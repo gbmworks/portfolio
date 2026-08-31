@@ -12,7 +12,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { EnvManager } from './env/procedural.js';
 import { createProps } from './env/props.js';
 import { DEFAULT_THEME } from './env/themes.js';
-import { tuneTransmission, PALETTE } from './env/materials.js';
+import { tuneTransmission, PALETTE, LOW_POWER } from './env/materials.js';
 
 export const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 export const damp = (cur, tgt, lambda, dt) => cur + (tgt - cur) * (1 - Math.exp(-lambda * dt));
@@ -21,7 +21,7 @@ export const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
 export async function createStage(canvas, themeKeys) {
   const t0 = performance.now();
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, LOW_POWER ? 1.25 : 1.5));
   renderer.setSize(innerWidth, innerHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
@@ -50,7 +50,7 @@ export async function createStage(canvas, themeKeys) {
   const props = createProps(scene, themeKeys);
 
   /* drifting dust, always on */
-  const N = 420;
+  const N = LOW_POWER ? 220 : 420;
   const dpos = new Float32Array(N * 3);
   for (let i = 0; i < N; i++) {
     const r = 7 + Math.random() * 16;

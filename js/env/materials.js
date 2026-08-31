@@ -28,11 +28,19 @@ export const PALETTE = {
 export const ACCENT_CSS = '#ff5a12';
 export const ACCENT_GLOW_CSS = '#ff9048';
 
-const phys = (o) => new THREE.MeshPhysicalMaterial({
-  transparent: true,
-  opacity: 1,
-  ...o
-});
+/* Refraction costs an extra scene render every frame. Phones and
+   trackpad-less touch devices get the look without the pass: the glass
+   keeps its tint and its environment reflections, and simply becomes
+   translucent instead of refractive. */
+export const LOW_POWER =
+  matchMedia('(max-width: 900px), (pointer: coarse)').matches;
+
+const phys = (o) => {
+  if (LOW_POWER && o.transmission) {
+    o = { ...o, transmission: 0, opacity: Math.min(1, 0.45 + o.roughness * 0.5) };
+  }
+  return new THREE.MeshPhysicalMaterial({ transparent: true, opacity: 1, ...o });
+};
 
 /* --- glass ------------------------------------------------------- */
 

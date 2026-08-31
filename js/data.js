@@ -80,7 +80,8 @@ export const SECTIONS = [
       { title: 'Product Tear-down | Scaled Model Making', year: '2018',     id: '79570257', slug: 'Product-tear-down-Scaled-down-model-making-2018' , cover: 'project_modules/disp/81a06c79570257.5cc7639cb6504.jpg' },
       { title: 'Worldskills Regionals | BIEC',            year: '2018',     id: '79651289', slug: 'Worldskills-Regionals-BIEC-21-23rd-June-2018' , cover: 'project_modules/disp/63c9d779651289.5cc9dc25d8c20.jpg' },
       { title: 'Foundation Year | NID Ahmedabad',         year: '2017-18',  id: '79560199', slug: 'Foundation-year-2017-18-NID-Ahmedabad' , cover: 'project_modules/disp/8b35f579560199.5cc72c64c763d.jpg' },
-      { title: 'A Collection of My Old Works',            year: 'pre-2017', id: '79545819', slug: 'A-Collection-Of-my-old-works-Before-2017' , cover: 'project_modules/disp/0fd03d79545819.5ee7570719394.jpg' }
+      { title: 'A Collection of My Old Works',            year: 'pre-2017', id: '79545819', slug: 'A-Collection-Of-my-old-works-Before-2017' , cover: 'project_modules/disp/0fd03d79545819.5ee7570719394.jpg' },
+      { title: 'JohnJacobs × Masaba Gupta',               year: '',         id: '199186729', slug: 'JohnJacobs-X-MasabaGupta' , preview: 'assets/web/Lenskart/ReelFinal.webm' , cover: 'projects/max_808/3601bc199186729.Y3JvcCwxNDAwLDEwOTUsMCw4Njk.jpg' }
     ],
     instagram: [
       { title: 'Infinity Mirror — the build',                 code: 'DYob7EGT4Rb', kind: 'reel'  , cover: 'assets/covers/instagram/DYob7EGT4Rb.jpg' },
@@ -105,7 +106,8 @@ export const SECTIONS = [
       { title: 'Adidas concept',                          code: 'CCoAxWMjytt', kind: 'p' , cover: 'assets/covers/instagram/CCoAxWMjytt.jpg' },
       { title: 'Adidas concept — II',                     code: 'CCmI1ZajXaI', kind: 'p' , cover: 'assets/covers/instagram/CCmI1ZajXaI.jpg' },
       { title: 'Icon helmet — Keyshot',                   code: 'B8A3qZMH3eJ', kind: 'reel' , cover: 'assets/covers/instagram/B8A3qZMH3eJ.jpg' },
-      { title: 'NID — product render',                    code: 'B5VbJ41nHIV', kind: 'p' , cover: 'assets/covers/instagram/B5VbJ41nHIV.jpg' }
+      { title: 'NID — product render',                    code: 'B5VbJ41nHIV', kind: 'p' , cover: 'assets/covers/instagram/B5VbJ41nHIV.jpg' },
+      { title: 'John Jacobs × Masaba — campaign',                      code: 'C7VvUorIkbB', kind: 'p'  , cover: 'assets/covers/instagram/C7VvUorIkbB.jpg' }
     ]
   },
 
@@ -141,7 +143,10 @@ export const SECTIONS = [
       { title: 'FPS environment in Unreal 5',                 code: 'C30IwA0S86z', kind: 'p' , cover: 'assets/covers/instagram/C30IwA0S86z.jpg' },
       { title: 'Crystalverse — web-based 3D game',            code: 'C5qKbaqoS81', kind: 'p' , cover: 'assets/covers/instagram/C5qKbaqoS81.jpg' },
       { title: 'Compositing in After Effects',            code: 'C3zEIFYSZDz', kind: 'reel' , cover: 'assets/covers/instagram/C3zEIFYSZDz.jpg' },
-      { title: 'Dynamic outfit & 3D UI overlays',         code: 'C3xN8HcSitr', kind: 'reel' , preview: 'assets/web/fitmint/AvatarF.webm' , cover: 'assets/covers/instagram/C3xN8HcSitr.jpg' }
+      { title: 'Dynamic outfit & 3D UI overlays',         code: 'C3xN8HcSitr', kind: 'reel' , preview: 'assets/web/fitmint/AvatarF.webm' , cover: 'assets/covers/instagram/C3xN8HcSitr.jpg' },
+      { title: 'Fitmint — Apex asset series',                 code: 'C4zkP75yvL3', kind: 'p' , preview: 'assets/web/fitmint/GOAt.webm' , cover: 'assets/covers/instagram/C4zkP75yvL3.jpg' },
+      { title: 'Fitmint — onboarding visuals',            code: 'CxrwSzcyniD', kind: 'reel' , cover: 'assets/covers/instagram/CxrwSzcyniD.jpg' },
+      { title: 'Fitmint — NFT',                           code: 'CxA3q1JS0za', kind: 'reel' , cover: 'assets/covers/instagram/CxA3q1JS0za.jpg' }
     ]
   },
 
@@ -216,7 +221,6 @@ export const SECTIONS = [
       }
     ],
     behance: [
-      { title: 'JohnJacobs × Masaba Gupta',               year: '',         id: '199186729', slug: 'JohnJacobs-X-MasabaGupta' , preview: 'assets/web/Lenskart/ReelFinal.webm' , cover: 'projects/max_808/3601bc199186729.Y3JvcCwxNDAwLDEwOTUsMCw4Njk.jpg' },
       { title: 'Mushroom Fiend vs Humans',                year: '',         id: '198751431', slug: 'Mushroom-Fiend-vs-Humans' , preview: 'assets/web/shroomF.webm' , cover: 'projects/max_808/97a057198751431.Y3JvcCwxMDM1LDgxMCw0NDMsMA.png' },
       { title: 'Dreamhome',                               year: '',         id: '134159883', slug: 'Dreamhome' , cover: 'projects/max_808/f1b200134159883.61cf7fb5866dc.jpg' },
       { title: 'Product Visualisation | 3D',              year: '',         id: '100310627', slug: 'Product-Visualisation-3D' , cover: 'project_modules/disp/34e1ff100310627.6654537f465c1.png'  },
@@ -232,8 +236,6 @@ export const SECTIONS = [
       { title: 'Visuals for Hrutul Patel',                    code: 'DGdAAn0oQAJ', kind: 'p' , preview: 'assets/web/2hrutul.webm'  , cover: 'assets/covers/instagram/DGdAAn0oQAJ.jpg' },
       { title: '1stroke — live painting',                     code: 'C6eGhKYIsUI', kind: 'p' , preview: 'assets/web/1stroke.webm'  , cover: 'assets/covers/instagram/C6eGhKYIsUI.jpg' },
       { title: 'Mushroom Fiend — Pwnisher challenge',         code: 'C7CCDc6osNr', kind: 'reel' , preview: 'assets/web/shroomF.webm' , cover: 'assets/covers/instagram/C7CCDc6osNr.jpg' },
-      { title: 'Fitmint — Apex asset series',                 code: 'C4zkP75yvL3', kind: 'p' , preview: 'assets/web/fitmint/GOAt.webm' , cover: 'assets/covers/instagram/C4zkP75yvL3.jpg' },
-      { title: 'John Jacobs × Masaba — campaign',                      code: 'C7VvUorIkbB', kind: 'p'  , cover: 'assets/covers/instagram/C7VvUorIkbB.jpg' },
       { title: 'Geode NFT',                                   code: 'C7ONyGwI_ay', kind: 'p' , cover: 'assets/covers/instagram/C7ONyGwI_ay.jpg' },
       { title: 'Artwork for Bonzai Music',                    code: 'DBi2HkxIX1H', kind: 'p' , cover: 'assets/covers/instagram/DBi2HkxIX1H.jpg' },
       { title: 'Digital wardrobe collage',                    code: 'DBblehryOvP', kind: 'p' , cover: 'assets/covers/instagram/DBblehryOvP.jpg' },
@@ -241,8 +243,6 @@ export const SECTIONS = [
       { title: 'Just floating around',                        code: 'DCzA-Kmozdd', kind: 'p' , preview: 'assets/web/astronaut1.webm' , cover: 'assets/covers/instagram/DCzA-Kmozdd.jpg' },
       { title: 'Do you have gum bro?',                        code: 'C93AJFvIDgv', kind: 'p' , cover: 'assets/covers/instagram/C93AJFvIDgv.jpg' },
       { title: '2024 recap',                                  code: 'DEhw2rOKdE8', kind: 'p' , cover: 'assets/covers/instagram/DEhw2rOKdE8.jpg' },
-      { title: 'Fitmint — onboarding visuals',            code: 'CxrwSzcyniD', kind: 'reel' , cover: 'assets/covers/instagram/CxrwSzcyniD.jpg' },
-      { title: 'Fitmint — NFT',                           code: 'CxA3q1JS0za', kind: 'reel' , cover: 'assets/covers/instagram/CxA3q1JS0za.jpg' },
       { title: 'Batman',                                  code: 'Cy75XuoSpS8', kind: 'p' , cover: 'assets/covers/instagram/Cy75XuoSpS8.jpg' }
     ]
   }

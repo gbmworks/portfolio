@@ -761,7 +761,8 @@ body.is-narrow .lede__p{ display:none; }
   .panel__nav a, .panel__nav a.is-next{ max-width:100%; text-align:left; }
 }
 
-@media (min-width:1500px)/* ================================================================
+
+/* ================================================================
    GALLERY PAGE
    ================================================================ */
 body.is-gallery{ overflow:visible; height:auto; min-height:100%; }
@@ -912,3 +913,55 @@ a:focus-visible, button:focus-visible, .tile:focus-visible, .gal-group__head:foc
   outline:2px solid var(--accent); outline-offset:3px; border-radius:4px;
 }
 .tile:focus-visible{ outline-offset:2px; }
+
+/* ================================================================
+   TOUCH & SMALL SCREENS
+   A phone has no hover, so anything that only appears on hover has to
+   be there already — and anything that only works with a cursor has to
+   get out of the way.
+   ================================================================ */
+
+/* the wheel's titles are permanent without a pointer to reveal them */
+@media (max-width: 900px), (hover: none) {
+  .label__title{ opacity:1; transform:none; }
+  .label{ width:150px; }
+  .label__icon{ width:38px; height:38px; }
+  .label__title{ font-size:10.5px; letter-spacing:.04em; margin-top:8px; }
+}
+
+@media (max-width: 900px) {
+  /* the preview stage needs a cursor; on touch it is dead space */
+  .stage{ display:none !important; }
+  body[data-layout="sheet"] .panel,
+  body[data-layout="stack"] .panel{ top:0; }
+  body[data-layout="stack"] .panel__scroll{ padding-top:76px; }
+  body[data-layout="sheet"] .panel__scroll{ padding-top:76px; }
+
+  /* the mosaic bar has to clear the fixed identity */
+  .galbar{ padding-top:96px; row-gap:6px; }
+  .galbar__count{ margin-left:0; }
+
+  /* comfortable touch targets */
+  .sectors a{ padding:10px 15px; }
+  .plink{ padding:17px 6px; }
+  .topbar__nav{ gap:16px; }
+  .topbar__nav a{ padding:6px 0; }
+
+  /* the landing copy sits under the wheel, so keep it tight */
+  .lede__p{ font-size:12px; }
+  .hint{ font-size:9.5px; letter-spacing:.14em; }
+}
+
+@media (max-width: 520px) {
+  .galbar__title{ font-size:22px; }
+  .win__panel{ padding:22px 18px; }
+  .xp__head{ grid-template-columns:1fr; }
+  .xp__when{ grid-row:auto; grid-column:1; }
+  .tile__cap{ padding:9px 11px 10px; }
+}
+
+/* iOS: honour the safe area so nothing hides under the home indicator */
+@supports (padding: max(0px)) {
+  .hint, .lede{ padding-bottom: max(0px, env(safe-area-inset-bottom)); }
+  .panel__scroll, .gal, .page-foot{ padding-bottom: max(48px, env(safe-area-inset-bottom)); }
+}
