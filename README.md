@@ -6,6 +6,32 @@ environment as you hover each slice → a real page per sector.
 Vanilla HTML/CSS + three.js (module build via CDN import map). No build step,
 no bundler, no assets required.
 
+**Live:** [govindbmohan.com](http://govindbmohan.com) — GitHub Pages, built from
+`main` in [gbmworks/portfolio](https://github.com/gbmworks/portfolio).
+
+## Deployment
+
+Pages serves the repo root; `CNAME` holds the domain and `.nojekyll` stops
+Jekyll swallowing paths. GoDaddy DNS points the apex at GitHub's four
+addresses (185.199.108–111.153) and `www` at `gbmworks.github.io`.
+
+What ships and what does not:
+
+| | in the repo | why |
+|---|---|---|
+| `assets/web/` | yes, 52 MB | the re-encoded clips the site loads |
+| `assets/covers/` | yes, 2.9 MB | Instagram thumbnails, saved locally |
+| `assets/3d/` | glb + 4 maps only | the character and its textures |
+| `assets/media/` | no, 328 MB | the original footage, local only |
+| `assets/3d/*.blend` | no, 257 MB each | over GitHub's 100 MB file limit |
+| `assets/1x/` | no | unused working files |
+
+To re-encode after adding footage:
+
+```bash
+ffmpeg -i in.webm -c:v libvpx-vp9 -crf 34 -b:v 0 -an   -vf "scale=w='min(1080,iw)':h='min(1080,ih)':force_original_aspect_ratio=decrease"   assets/web/out.webm
+```
+
 ## Run it
 
 ES modules need a real server — opening `index.html` from disk will fail.
@@ -153,6 +179,19 @@ list never spawns more than a single decoder. `js/preview.js`, styled as
 On the mosaic, tiles preview themselves: grey and still at rest, full colour
 and playing on hover. On the section pages the same job is done by the stage
 above.
+
+## Resilience and reach
+
+- **Boot guard.** If the app has not signalled `data-ready` within seven
+  seconds — blocked CDN, no WebGL, a very slow first load — `#boot` reveals a
+  plain linked page instead of a black screen.
+- **Metadata.** Canonical URLs, Open Graph and Twitter cards on every page,
+  an SVG favicon drawn from the wheel, `robots.txt`, `sitemap.xml` and a
+  styled `404.html`. The social card at `assets/og.jpg` is a 1200×630 frame
+  of the landing page itself — re-shoot it if the art direction changes.
+- **Keyboard.** Gallery tiles are focusable, carry `role` and `aria-label`,
+  activate on Enter or Space, and light up on focus exactly as on hover.
+  Focus rings are visible throughout.
 
 ## Performance
 
