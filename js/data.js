@@ -141,7 +141,7 @@ export const SECTIONS = [
       { title: 'FPS environment in Unreal 5',                 code: 'C30IwA0S86z', kind: 'p' , cover: 'assets/covers/instagram/C30IwA0S86z.jpg' },
       { title: 'Crystalverse — web-based 3D game',            code: 'C5qKbaqoS81', kind: 'p' , cover: 'assets/covers/instagram/C5qKbaqoS81.jpg' },
       { title: 'Compositing in After Effects',            code: 'C3zEIFYSZDz', kind: 'reel' , cover: 'assets/covers/instagram/C3zEIFYSZDz.jpg' },
-      { title: 'Dynamic outfit & 3D UI overlays',         code: 'C3xN8HcSitr', kind: 'reel' , preview: 'assets/media/fitmint/AvatarF.webm' , cover: 'assets/covers/instagram/C3xN8HcSitr.jpg' }
+      { title: 'Dynamic outfit & 3D UI overlays',         code: 'C3xN8HcSitr', kind: 'reel' , preview: 'assets/web/fitmint/AvatarF.webm' , cover: 'assets/covers/instagram/C3xN8HcSitr.jpg' }
     ]
   },
 
@@ -177,16 +177,16 @@ export const SECTIONS = [
         note: 'Client work — avatars, environments and hype pieces.',
         href: 'https://www.instagram.com/p/C4zkP75yvL3/', source: 'Instagram',
         items: [
-          { src: 'assets/media/fitmint/clubs_F.webm',      title: 'Clubs' },
-          { src: 'assets/media/fitmint/AvatarF.webm',      title: 'Avatar' },
-          { src: 'assets/media/fitmint/Burj Khalifa.webm', title: 'Burj Khalifa' },
-          { src: 'assets/media/fitmint/male.webm',         title: 'Male Character' },
-          { src: 'assets/media/fitmint/GOAt.webm',         title: 'GOAT' },
-          { src: 'assets/media/fitmint/coverf.jpg',        title: 'Cover' },
-          { src: 'assets/media/fitmint/1.jpg',             title: 'Still 01' },
-          { src: 'assets/media/fitmint/2.jpg',             title: 'Still 02' },
-          { src: 'assets/media/fitmint/3.jpg',             title: 'Still 03' },
-          { src: 'assets/media/fitmint/4.jpg',             title: 'Still 04' }
+          { src: 'assets/web/fitmint/clubs_F.webm',      title: 'Clubs' },
+          { src: 'assets/web/fitmint/AvatarF.webm',      title: 'Avatar' },
+          { src: 'assets/web/fitmint/Burj Khalifa.webm', title: 'Burj Khalifa' },
+          { src: 'assets/web/fitmint/male.webm',         title: 'Male Character' },
+          { src: 'assets/web/fitmint/GOAt.webm',         title: 'GOAT' },
+          { src: 'assets/web/fitmint/coverf.jpg',        title: 'Cover' },
+          { src: 'assets/web/fitmint/1.jpg',             title: 'Still 01' },
+          { src: 'assets/web/fitmint/2.jpg',             title: 'Still 02' },
+          { src: 'assets/web/fitmint/3.jpg',             title: 'Still 03' },
+          { src: 'assets/web/fitmint/4.jpg',             title: 'Still 04' }
         ]
       },
       {
@@ -194,30 +194,30 @@ export const SECTIONS = [
         note: 'Product reels — the John Jacobs × Masaba campaign.',
         href: 'https://www.behance.net/gallery/199186729/JohnJacobs-X-MasabaGupta', source: 'Behance',
         items: [
-          { src: 'assets/media/Lenskart/ReelFinal.webm', title: 'Reel — Final' },
-          { src: 'assets/media/Lenskart/shellReel.webm', title: 'Shell Reel' }
+          { src: 'assets/web/Lenskart/ReelFinal.webm', title: 'Reel — Final' },
+          { src: 'assets/web/Lenskart/shellReel.webm', title: 'Shell Reel' }
         ]
       },
       {
         title: 'Loops & Studies',
         note: 'Personal pieces, VJ loops and one-offs.',
         items: [
-          { src: 'assets/media/1stroke.webm',    title: 'One Stroke' , href: 'https://www.instagram.com/p/C6eGhKYIsUI/', source: 'Instagram' },
-          { src: 'assets/media/astronaut1.webm', title: 'Astronaut' , href: 'https://www.instagram.com/p/DCzA-Kmozdd/', source: 'Instagram' },
-          { src: 'assets/media/Halo_bg.webm',    title: 'Halo' },
-          { src: 'assets/media/drip_2.webm',     title: 'Drip' },
-          { src: 'assets/media/shroomF.webm',    title: 'Shroom' , href: 'https://www.behance.net/gallery/198751431/Mushroom-Fiend-vs-Humans', source: 'Behance' },
-          { src: 'assets/media/grind.webm',      title: 'Grind' },
-          { src: 'assets/media/Unicorn F.webm',  title: 'Unicorn' },
-          { src: 'assets/media/fiver.webm',      title: 'Fiver' },
-          { src: 'assets/media/postFF.webm',     title: 'Post FF' },
-          { src: 'assets/media/2hrutul.webm',    title: 'Hrutul' , href: 'https://www.instagram.com/p/DGdAAn0oQAJ/', source: 'Instagram' }
+          { src: 'assets/web/1stroke.webm',    title: 'One Stroke' , href: 'https://www.instagram.com/p/C6eGhKYIsUI/', source: 'Instagram' },
+          { src: 'assets/web/astronaut1.webm', title: 'Astronaut' , href: 'https://www.instagram.com/p/DCzA-Kmozdd/', source: 'Instagram' },
+          { src: 'assets/web/Halo_bg.webm',    title: 'Halo' },
+          { src: 'assets/web/drip_2.webm',     title: 'Drip' },
+          { src: 'assets/web/shroomF.webm',    title: 'Shroom' , href: 'https://www.behance.net/gallery/198751431/Mushroom-Fiend-vs-Humans', source: 'Behance' },
+          { src: 'assets/web/grind.webm',      title: 'Grind' },
+          { src: 'assets/web/Unicorn F.webm',  title: 'Unicorn' },
+          { src: 'assets/web/fiver.webm',      title: 'Fiver' },
+          { src: 'assets/web/postFF.webm',     title: 'Post FF' },
+          { src: 'assets/web/2hrutul.webm',    title: 'Hrutul' , href: 'https://www.instagram.com/p/DGdAAn0oQAJ/', source: 'Instagram' }
         ]
       }
     ],
     behance: [
-      { title: 'JohnJacobs × Masaba Gupta',               year: '',         id: '199186729', slug: 'JohnJacobs-X-MasabaGupta' , preview: 'assets/media/Lenskart/ReelFinal.webm' , cover: 'projects/max_808/3601bc199186729.Y3JvcCwxNDAwLDEwOTUsMCw4Njk.jpg' },
-      { title: 'Mushroom Fiend vs Humans',                year: '',         id: '198751431', slug: 'Mushroom-Fiend-vs-Humans' , preview: 'assets/media/shroomF.webm' , cover: 'projects/max_808/97a057198751431.Y3JvcCwxMDM1LDgxMCw0NDMsMA.png' },
+      { title: 'JohnJacobs × Masaba Gupta',               year: '',         id: '199186729', slug: 'JohnJacobs-X-MasabaGupta' , preview: 'assets/web/Lenskart/ReelFinal.webm' , cover: 'projects/max_808/3601bc199186729.Y3JvcCwxNDAwLDEwOTUsMCw4Njk.jpg' },
+      { title: 'Mushroom Fiend vs Humans',                year: '',         id: '198751431', slug: 'Mushroom-Fiend-vs-Humans' , preview: 'assets/web/shroomF.webm' , cover: 'projects/max_808/97a057198751431.Y3JvcCwxMDM1LDgxMCw0NDMsMA.png' },
       { title: 'Dreamhome',                               year: '',         id: '134159883', slug: 'Dreamhome' , cover: 'projects/max_808/f1b200134159883.61cf7fb5866dc.jpg' },
       { title: 'Product Visualisation | 3D',              year: '',         id: '100310627', slug: 'Product-Visualisation-3D' , cover: 'project_modules/disp/34e1ff100310627.6654537f465c1.png'  },
       { title: '3D Rendering',                            year: '',         id: '81079963', slug: '3D-Rendering' , cover: 'project_modules/disp/586aaa81079963.5ee75b55371ba.jpg' },
@@ -229,16 +229,16 @@ export const SECTIONS = [
       { title: 'Saturday night visuals',                      code: 'DV8nZzIkxXn', kind: 'reel'  , cover: 'assets/covers/instagram/DV8nZzIkxXn.jpg' },
       { title: 'Diaz, Goa — first set',                       code: 'DCoVgrcIE9J', kind: 'p'   , cover: 'assets/covers/instagram/DCoVgrcIE9J.jpg' },
       { title: 'Projection mapping exercise',                 code: 'DY1ZLdrzDMn', kind: 'reel'  , cover: 'assets/covers/instagram/DY1ZLdrzDMn.jpg' },
-      { title: 'Visuals for Hrutul Patel',                    code: 'DGdAAn0oQAJ', kind: 'p' , preview: 'assets/media/2hrutul.webm'  , cover: 'assets/covers/instagram/DGdAAn0oQAJ.jpg' },
-      { title: '1stroke — live painting',                     code: 'C6eGhKYIsUI', kind: 'p' , preview: 'assets/media/1stroke.webm'  , cover: 'assets/covers/instagram/C6eGhKYIsUI.jpg' },
-      { title: 'Mushroom Fiend — Pwnisher challenge',         code: 'C7CCDc6osNr', kind: 'reel' , preview: 'assets/media/shroomF.webm' , cover: 'assets/covers/instagram/C7CCDc6osNr.jpg' },
-      { title: 'Fitmint — Apex asset series',                 code: 'C4zkP75yvL3', kind: 'p' , preview: 'assets/media/fitmint/GOAt.webm' , cover: 'assets/covers/instagram/C4zkP75yvL3.jpg' },
+      { title: 'Visuals for Hrutul Patel',                    code: 'DGdAAn0oQAJ', kind: 'p' , preview: 'assets/web/2hrutul.webm'  , cover: 'assets/covers/instagram/DGdAAn0oQAJ.jpg' },
+      { title: '1stroke — live painting',                     code: 'C6eGhKYIsUI', kind: 'p' , preview: 'assets/web/1stroke.webm'  , cover: 'assets/covers/instagram/C6eGhKYIsUI.jpg' },
+      { title: 'Mushroom Fiend — Pwnisher challenge',         code: 'C7CCDc6osNr', kind: 'reel' , preview: 'assets/web/shroomF.webm' , cover: 'assets/covers/instagram/C7CCDc6osNr.jpg' },
+      { title: 'Fitmint — Apex asset series',                 code: 'C4zkP75yvL3', kind: 'p' , preview: 'assets/web/fitmint/GOAt.webm' , cover: 'assets/covers/instagram/C4zkP75yvL3.jpg' },
       { title: 'John Jacobs × Masaba — campaign',                      code: 'C7VvUorIkbB', kind: 'p'  , cover: 'assets/covers/instagram/C7VvUorIkbB.jpg' },
       { title: 'Geode NFT',                                   code: 'C7ONyGwI_ay', kind: 'p' , cover: 'assets/covers/instagram/C7ONyGwI_ay.jpg' },
       { title: 'Artwork for Bonzai Music',                    code: 'DBi2HkxIX1H', kind: 'p' , cover: 'assets/covers/instagram/DBi2HkxIX1H.jpg' },
       { title: 'Digital wardrobe collage',                    code: 'DBblehryOvP', kind: 'p' , cover: 'assets/covers/instagram/DBblehryOvP.jpg' },
       { title: 'The Game',                                    code: 'DCwKJScIyjX', kind: 'p' , cover: 'assets/covers/instagram/DCwKJScIyjX.jpg' },
-      { title: 'Just floating around',                        code: 'DCzA-Kmozdd', kind: 'p' , preview: 'assets/media/astronaut1.webm' , cover: 'assets/covers/instagram/DCzA-Kmozdd.jpg' },
+      { title: 'Just floating around',                        code: 'DCzA-Kmozdd', kind: 'p' , preview: 'assets/web/astronaut1.webm' , cover: 'assets/covers/instagram/DCzA-Kmozdd.jpg' },
       { title: 'Do you have gum bro?',                        code: 'C93AJFvIDgv', kind: 'p' , cover: 'assets/covers/instagram/C93AJFvIDgv.jpg' },
       { title: '2024 recap',                                  code: 'DEhw2rOKdE8', kind: 'p' , cover: 'assets/covers/instagram/DEhw2rOKdE8.jpg' },
       { title: 'Fitmint — onboarding visuals',            code: 'CxrwSzcyniD', kind: 'reel' , cover: 'assets/covers/instagram/CxrwSzcyniD.jpg' },

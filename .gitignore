@@ -7,8 +7,15 @@
 # clone (or onto the host) before the gallery and the 3D character
 # will appear.
 # ---------------------------------------------------------------
+# originals — kept locally, never pushed
 assets/media/
-assets/3d/
+assets/1x/
+portfolio/
+assets/3d/*.blend
+assets/3d/*.blend1
+assets/3d/male*.glb
+
+# assets/web/ holds the re-encoded, deployable versions and IS tracked
 
 # OS / editor noise
 Thumbs.db
@@ -21,3 +28,7 @@ Desktop.ini
 # scratch
 _cv_read.pdf
 *.log
+
+# unused duplicates of the .jpg maps the material actually loads
+assets/3d/diffuse_new.png
+assets/3d/normal_new.png
