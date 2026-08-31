@@ -1,0 +1,23 @@
+# ---------------------------------------------------------------
+# Heavy assets live outside the repo.
+#
+# The site loads these at runtime; they are deliberately not tracked
+# because they run to ~870 MB and two of the Blender files are over
+# GitHub's 100 MB hard limit. Copy assets/media and assets/3d into a
+# clone (or onto the host) before the gallery and the 3D character
+# will appear.
+# ---------------------------------------------------------------
+assets/media/
+assets/3d/
+
+# OS / editor noise
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+.vscode/
+.idea/
+
+# scratch
+_cv_read.pdf
+*.log

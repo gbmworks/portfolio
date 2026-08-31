@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Govind — 3D Generalist / Industrial Designer / VJ</title>
+<meta name="description" content="Portfolio of Govind — industrial design, character technical art and realtime visualization / VJ work." />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./css/style.css" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+
+  <canvas id="stage"></canvas>
+  <div class="scrim"></div>
+  <div id="veil" class="veil"></div>
+
+  <!-- ============ INTRO (3s) ============ -->
+  <div id="intro" class="intro">
+    <div class="intro__inner">
+      <p class="intro__hello" data-stagger>Hello — I'm</p>
+      <h1 class="intro__name" data-stagger>GOVIND</h1>
+      <p class="intro__roles" data-stagger>
+        <span>3D Generalist</span><i>/</i><span>Industrial Designer</span><i>/</i><span>VJ</span>
+      </p>
+      <p class="intro__tag" data-stagger>aspiring creative technologist</p>
+      <div class="intro__bar"><span id="introBar"></span></div>
+    </div>
+  </div>
+
+  <!-- ============ SELECTION UI ============ -->
+  <div id="ui" class="ui">
+    <header class="topbar">
+      <div class="topbar__id">
+        <strong>GOVIND</strong>
+        <span>3D Generalist · Industrial Designer · VJ</span>
+      </div>
+      <nav class="topbar__nav">
+        <a href="#" data-open="about">About</a>
+        <a href="https://linktr.ee/govindbmwork" target="_blank" rel="noopener noreferrer">Contact</a>
+      </nav>
+    </header>
+
+    <!-- left column sits on the first third; the wheel on the golden section -->
+    <div class="lede">
+      <p class="lede__k">Portfolio</p>
+      <h1 class="lede__h">Design,<br>rigs,<br>and light.</h1>
+      <p class="lede__p">
+        Industrial design, character technical art and realtime visuals —
+        three worlds, one wheel. Pick a slice.
+      </p>
+      <footer class="hint">
+        <span class="hint__dot"></span>
+        <span id="hintText">Hover a slice · the world changes with it</span>
+      </footer>
+    </div>
+
+    <!-- projected onto the 3D slices every frame -->
+    <div id="labels" class="labels"></div>
+
+    <div id="hub" class="hub">
+      <span class="hub__k">SELECT</span>
+      <span class="hub__v" id="hubValue">A SECTOR</span>
+    </div>
+  </div>
+
+  <noscript>
+    <div class="noscript">
+      <p>This portfolio runs on WebGL. Without JavaScript, here are the sections:</p>
+      <ul>
+        <li><a href="industrial-design.html">Industrial Design</a></li>
+        <li><a href="technical-art.html">Technical Art</a></li>
+        <li><a href="visualization.html">Visualization</a></li>
+      </ul>
+    </div>
+  </noscript>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>

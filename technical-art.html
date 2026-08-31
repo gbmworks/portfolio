@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Technical Art — Govind</title>
+<meta name="description" content="Character technical art — deformation rigs, viseme and speech shapekey systems, retopology, LOD chains and realtime optimization." />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./css/style.css" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body class="is-section">
+
+  <canvas id="stage"></canvas>
+  <div class="scrim"></div>
+  <div id="veil" class="veil"></div>
+
+  <div id="ui" class="ui is-in">
+    <header class="topbar">
+      <div class="topbar__id">
+        <a href="index.html" data-home><strong>GOVIND</strong></a>
+        <span>3D Generalist · Industrial Designer · VJ</span>
+      </div>
+      <nav class="topbar__nav">
+        <a href="index.html" data-home>All work</a>
+        <a href="#" data-open="about">About</a>
+        <a href="https://linktr.ee/govindbmwork" target="_blank" rel="noopener noreferrer">Contact</a>
+      </nav>
+    </header>
+    <div id="stagePreview" class="stage"></div>
+  </div>
+
+  <main id="panel" class="panel">
+    <div class="panel__scroll">
+      <noscript>
+        <h1>Technical Art</h1>
+        <p>Character technical art — deformation rigs, viseme and speech shapekey systems, retopology, LOD chains and realtime optimization.</p>
+        <p><a href="index.html">Back to all work</a></p>
+      </noscript>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initSection } from './js/page.js';
+    initSection('technical-art');
+  </script>
+</body>
+</html>

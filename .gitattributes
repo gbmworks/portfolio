@@ -1,0 +1,7 @@
+# keep line endings sane across Windows / CI / the host
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.webm binary
+*.glb binary
+*.hdr binary
