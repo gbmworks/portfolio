@@ -116,6 +116,7 @@ export async function initSection(id) {
 
   layout();
   stage.start();
+  document.documentElement.setAttribute('data-ready', '');
 }
 
 /* ---------------------------------------------------------------- */

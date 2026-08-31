@@ -3,8 +3,25 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Visualization — Govind</title>
+<title>Visualization — Govind B Mohan</title>
 <meta name="description" content="Rendered 3D artwork, motion pieces and audio-reactive VJ sets built to be mixed live." />
+<link rel="canonical" href="https://govindbmohan.com/visualization.html" />
+<link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
+<link rel="alternate icon" href="./assets/1x/favicon.png" />
+<meta name="theme-color" content="#0b0b10" />
+<meta name="author" content="Govind B Mohan" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Govind B Mohan" />
+<meta property="og:title" content="Visualization — Govind B Mohan" />
+<meta property="og:description" content="Rendered 3D artwork, motion pieces and audio-reactive VJ sets built to be mixed live." />
+<meta property="og:url" content="https://govindbmohan.com/visualization.html" />
+<meta property="og:image" content="https://govindbmohan.com/assets/og.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Visualization — Govind B Mohan" />
+<meta name="twitter:description" content="Rendered 3D artwork, motion pieces and audio-reactive VJ sets built to be mixed live." />
+<meta name="twitter:image" content="https://govindbmohan.com/assets/og.jpg" />
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,8 +35,32 @@
   }
 }
 </script>
+<script>
+  /* If the app has not signalled ready, surface a plain, usable page
+     rather than leaving a black screen — covers a blocked CDN, a WebGL
+     failure, or a very slow first load. */
+  setTimeout(function () {
+    if (!document.documentElement.hasAttribute('data-ready')) {
+      document.body.classList.add('is-stalled');
+    }
+  }, 7000);
+</script>
 </head>
 <body class="is-section">
+
+  <div id="boot" class="boot">
+    <div class="boot__inner">
+      <h1>Govind B Mohan</h1>
+      <p>3D Generalist · Industrial Designer · VJ</p>
+      <p class="boot__note">The interactive view needs WebGL and a moment to load. Here is the work:</p>
+      <ul>
+        <li><a href="industrial-design.html">Industrial Design</a></li>
+        <li><a href="technical-art.html">Technical Art</a></li>
+        <li><a href="visualization.html">Visualization</a></li>
+      </ul>
+      <p class="boot__note"><a href="https://www.behance.net/govindbm">Behance</a> · <a href="https://www.instagram.com/vindgo.visual/">Instagram</a></p>
+    </div>
+  </div>
 
   <canvas id="stage"></canvas>
   <div class="scrim"></div>

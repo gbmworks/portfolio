@@ -152,3 +152,4 @@ addEventListener('pageshow', () => {
 
 compose();
 stage.start();
+document.documentElement.setAttribute('data-ready', '');

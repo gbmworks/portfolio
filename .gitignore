@@ -9,7 +9,8 @@
 # ---------------------------------------------------------------
 # originals — kept locally, never pushed
 assets/media/
-assets/1x/
+assets/1x/*
+!assets/1x/favicon.png
 portfolio/
 assets/3d/*.blend
 assets/3d/*.blend1

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="12" fill="#0b0b10"/>
+  <g transform="translate(32 32)" stroke="none">
+    <!-- the wheel: three slices, the live one in the accent -->
+    <path d="M0-21A21 21 0 0 1 18.2 10.5L7.8 4.5A9 9 0 0 0 0-9Z" fill="#ff5a12"/>
+    <path d="M-18.2 10.5A21 21 0 0 1 0-21L0-9A9 9 0 0 0-7.8 4.5Z" fill="#8e8e96"/>
+    <path d="M18.2 10.5A21 21 0 0 1-18.2 10.5L-7.8 4.5A9 9 0 0 0 7.8 4.5Z" fill="#5a5a62"/>
+  </g>
+</svg>

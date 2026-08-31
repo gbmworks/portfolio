@@ -96,7 +96,8 @@ export function linkTiles(def) {
 
   const tiles = rows.map(p => `
     <figure class="tile tile--link has-link${p.cover || p.preview ? '' : ' is-flat'}"
-            data-title="${p.title}" data-href="${p.url}"
+            data-title="${p.title}" data-href="${p.url}" tabindex="0" role="link"
+            aria-label="${p.title} — opens on ${p.src}"
             data-kind="${p.cover ? 'image' : p.preview ? 'video' : 'none'}"
             ${p.cover ? `data-src="${encodeURI(p.cover)}"`
               : p.preview ? `data-src="${encodeURI(p.preview)}"` : ''}>
@@ -142,7 +143,9 @@ export function buildGallery(container, def, sections) {
       : `<img class="tile__el" data-src="${src}" alt="${item.title}" decoding="async">`;
     return `
       <figure class="tile${href ? ' has-link' : ''}" data-title="${item.title}" data-src="${src}"
-              data-kind="${isVideo(item.src) ? 'video' : 'image'}"
+              data-kind="${isVideo(item.src) ? 'video' : 'image'}" tabindex="0"
+              role="${href ? 'link' : 'button'}"
+              aria-label="${item.title}${href ? ' — opens on ' + source : ''}"
               ${href ? `data-href="${href}"` : ''}>
         <div class="tile__media">${el}<span class="tile__spin"></span></div>
         <figcaption class="tile__cap">
@@ -305,7 +308,23 @@ export function startGallery() {
     }
     if (e.target.closest('.lightbox')) closeBox();
   });
-  addEventListener('keydown', e => { if (e.key === 'Escape') closeBox(); });
+  addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeBox(); return; }
+    /* Enter / Space activate a focused tile, same as a click */
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const tileEl = document.activeElement && document.activeElement.closest('.tile');
+    if (!tileEl) return;
+    e.preventDefault();
+    const t = byEl.get(tileEl);
+    if (t && t.href) window.open(t.href, '_blank', 'noopener,noreferrer');
+    else if (t) openBox(t);
+  });
+
+  /* focus brings a tile to life too, so keyboard users see the same thing */
+  tiles.forEach(t => {
+    t.el.addEventListener('focus', () => wake(t));
+    t.el.addEventListener('blur', () => rest(t));
+  });
 
   return {
     /* 0 at the top of the hero, 1 once it has scrolled away */
