@@ -123,8 +123,8 @@ gets its own shape rather than the same panel three times:
 
 | sector | `layout` | arrangement |
 |---|---|---|
-| Industrial Design | `sheet` | a drawing sheet down the **left** — drafting grid, an orange rule under the title, and the index as a two-column register with corner ticks. The stage fills the space to its right. |
-| Technical Art | `stack` | one **centred column** floating over the world, everything centre-aligned, and the index chained to a spine with node dots and connectors. The stage plays **full-bleed behind the column**. |
+| Industrial Design | `sheet` | a drawing sheet down the **left** — drafting grid, an orange rule under the title, and the index as a two-column register with corner ticks. The framed preview stage fills the space to its right. |
+| Technical Art | `sheet` | the same. A full-bleed stage was tried here and dropped: stretching a portrait clip across the whole viewport read as a distorted background rather than a preview. |
 | Visualization | `gallery` | a **mosaic** — the page opens straight onto the wall under a slim title bar; no hero. |
 
 The Visualization page keeps nothing as a list: the media wall, and the

@@ -113,7 +113,7 @@ export const SECTIONS = [
 
   {
     id: 'technical-art',
-    layout: 'stack',
+    layout: 'sheet',
     index: '02',
     title: 'Technical Art',
     subtitle: 'Rigs, shapekeys, shaders and the pipeline underneath',

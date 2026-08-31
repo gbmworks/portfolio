@@ -5,9 +5,8 @@
    as the backdrop, the index sits in its own layout per sector, and
    hovering a row plays that work large in the stage.
 
-     sheet    Industrial Design — drawing sheet left, stage right
-     stack    Technical Art — centred column, stage full-bleed behind it
-     gallery  Visualization — the mosaic owns the page
+     sheet    a drawing sheet on the left, the preview stage on the right
+     gallery  a mosaic that owns the page
    ------------------------------------------------------------------ */
 
 import { SECTIONS } from './data.js';
