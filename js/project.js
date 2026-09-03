@@ -38,7 +38,7 @@ export async function initProject() {
   initOverlays();
 
   /* ---------------- backdrop ---------------- */
-  const stage = await createStage($('#stage'), SECTIONS.map(s => s.id));
+  const stage = await createStage($('#stage'), SECTIONS.map(s => s.id), { fps: 30, quality: 0.84 });
   stage.env.set(sector.id, true);
 
   const nav = bindNav({
@@ -81,12 +81,12 @@ function describe(p, sector) {
   set('meta[property="og:description"]', 'content', desc);
   set('meta[name="twitter:title"]', 'content', document.title);
   set('meta[name="twitter:description"]', 'content', desc);
-  set('link[rel="canonical"]', 'href', 'https://govindbmohan.com/' + projectUrl(p));
-  set('meta[property="og:url"]', 'content', 'https://govindbmohan.com/' + projectUrl(p));
+  set('link[rel="canonical"]', 'href', 'https://www.govindbmohan.com/' + projectUrl(p));
+  set('meta[property="og:url"]', 'content', 'https://www.govindbmohan.com/' + projectUrl(p));
   const still = projectStill(p);
   if (still) {
     const img = coverUrl(still);
-    const abs = img.startsWith('http') ? img : 'https://govindbmohan.com/' + img;
+    const abs = img.startsWith('http') ? img : 'https://www.govindbmohan.com/' + img;
     set('meta[property="og:image"]', 'content', abs);
     set('meta[name="twitter:image"]', 'content', abs);
   }

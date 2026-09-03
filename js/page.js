@@ -47,7 +47,7 @@ export async function initSection(id) {
 
   /* ---------------- backdrop ---------------- */
   const canvas = $('#stage');
-  const stage = await createStage(canvas, SECTIONS.map(s => s.id));
+  const stage = await createStage(canvas, SECTIONS.map(s => s.id), { fps: 30, quality: 0.84 });
   stage.env.set(def.id, true);
 
   function layout() {

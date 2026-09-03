@@ -18,10 +18,16 @@ export const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 export const damp = (cur, tgt, lambda, dt) => cur + (tgt - cur) * (1 - Math.exp(-lambda * dt));
 export const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export async function createStage(canvas, themeKeys) {
+/* The landing page is the hero: it renders as well as the machine allows.
+   On a section or project page the same scene is only a backdrop behind
+   a scrolling wall of media, so it runs at half the frame rate and a
+   lower pixel ratio — the drift is slow enough that nobody can tell,
+   and it leaves the main thread to the content. */
+export async function createStage(canvas, themeKeys, { fps = 0, quality = 1 } = {}) {
   const t0 = performance.now();
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, LOW_POWER ? 1.25 : 1.5));
+  const maxDpr = (LOW_POWER ? 1.25 : 1.5) * quality;
+  renderer.setPixelRatio(Math.min(devicePixelRatio, maxDpr));
   renderer.setSize(innerWidth, innerHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
@@ -88,7 +94,17 @@ export async function createStage(canvas, themeKeys) {
   }
   addEventListener('resize', resize);
 
-  function frame() {
+  const minFrameMs = fps > 0 ? 1000 / fps - 1 : 0;
+  let lastTick = 0;
+
+  function frame(now) {
+    requestAnimationFrame(frame);
+    /* a capped stage still gets every rAF, it just skips the work —
+       cheaper than rendering, and the clock keeps the motion honest */
+    if (minFrameMs) {
+      if (now - lastTick < minFrameMs) return;
+      lastTick = now;
+    }
     const dt = Math.min(clock.getDelta(), 0.05);
     const t = clock.elapsedTime;
 
@@ -103,7 +119,6 @@ export async function createStage(canvas, themeKeys) {
     listeners.forEach(l => l.afterMatrix && l.afterMatrix(dt, t));
 
     composer.render();
-    requestAnimationFrame(frame);
   }
 
   const stage = {
@@ -112,7 +127,7 @@ export async function createStage(canvas, themeKeys) {
     lights: { ambient, key, rim, bounce },
     on(l) { listeners.push(l); },
     resize,
-    start() { resize(); frame(); }
+    start() { resize(); frame(performance.now()); }
   };
   stage.bootMs = Math.round(performance.now() - t0);
   window.__stage = stage;

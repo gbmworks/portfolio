@@ -40,6 +40,14 @@
 
   el('link', { rel: 'stylesheet', href: './css/style.css' });
 
+  /* three.module.min.js is self-contained, so it can be fetched before
+     the import map exists.  Everything else — the addons and our own
+     modules — imports the bare specifier "three", and preloading those
+     here would make the browser resolve it with no map in place.  They
+     are preloaded by js/preload.js instead, after the map. */
+  el('link', { rel: 'modulepreload', crossorigin: '',
+    href: 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js' });
+
   /* If the app has not signalled ready, surface a plain, usable page
      rather than leaving a black screen — covers a blocked CDN, a WebGL
      failure, or a very slow first load. */

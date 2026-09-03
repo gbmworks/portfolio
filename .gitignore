@@ -33,3 +33,6 @@ _cv_read.pdf
 # unused duplicates of the .jpg maps the material actually loads
 assets/3d/diffuse_new.png
 assets/3d/normal_new.png
+
+# never loaded — no FBXLoader in the project
+assets/3d/butterfly.fbx

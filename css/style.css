@@ -471,8 +471,11 @@ body[data-layout="sheet"] .plink::after{
 .stage.is-on{ opacity:1; }
 
 body[data-layout="sheet"] .stage{
-  top:50%; right:clamp(24px,5vw,80px); transform:translateY(-50%);
-  width:min(46vw, 620px);
+  top:50%; right:clamp(18px,3.2vw,56px); transform:translateY(-50%);
+  /* fill the space the panel leaves: the panel takes min(38.2vw,660px),
+     so the rest of the viewport is the stage's to use.  The 115vh term
+     keeps a 16:10 frame from growing taller than the window. */
+  width:min(54vw, 940px, 115vh);
 }
 .stage__frame{
   position:relative; width:100%; aspect-ratio:16 / 10;
@@ -714,6 +717,9 @@ body.is-gallery.is-locked{ overflow:hidden; }
   border:1px solid var(--line); border-radius:12px; overflow:hidden;
   background:#0c0c13; cursor:zoom-in;
   transition:border-color .35s, transform .5s var(--ease);
+  /* a wall of 24 tiles only pays layout and paint for what is on screen */
+  content-visibility:auto;
+  contain-intrinsic-size:auto 340px;
 }
 .tile:hover,
 .tile.is-live{ border-color:color-mix(in srgb, var(--accent) 55%, transparent); transform:translateY(-3px); }
@@ -982,6 +988,11 @@ body[data-layout="project"] #stage{ touch-action:pan-y; }
 .panel .gal--small .gal-grid{ columns:3; column-gap:10px; }
 .panel .gal--small .tile__title{ font-size:11px; }
 @media (max-width:1180px){ .panel .gal--small .gal-grid{ columns:2; } }
+
+/* the canvas is a backdrop: it never needs to hit-test, and promoting it
+   keeps the compositor from repainting it under a scrolling wall */
+#stage{ pointer-events:none; }
+body:not(.is-section) #stage{ pointer-events:auto; }   /* except the wheel */
 
 /* ================================================================
    TOUCH & SMALL SCREENS

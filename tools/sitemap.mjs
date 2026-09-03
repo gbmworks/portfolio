@@ -12,7 +12,7 @@ import { writeFileSync } from 'node:fs';
 import { SECTIONS } from '../js/data.js';
 import { PROJECTS, projectUrl } from '../js/projects.js';
 
-const ORIGIN = 'https://govindbmohan.com/';
+const ORIGIN = 'https://www.govindbmohan.com/';
 const today = new Date().toISOString().slice(0, 10);
 
 const urls = [
