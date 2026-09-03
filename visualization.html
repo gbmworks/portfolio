@@ -6,10 +6,6 @@
 <title>Visualization — Govind B Mohan</title>
 <meta name="description" content="Rendered 3D artwork, motion pieces and audio-reactive VJ sets built to be mixed live." />
 <link rel="canonical" href="https://govindbmohan.com/visualization.html" />
-<link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
-<link rel="alternate icon" href="./assets/1x/favicon.png" />
-<meta name="theme-color" content="#0b0b10" />
-<meta name="author" content="Govind B Mohan" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Govind B Mohan" />
 <meta property="og:title" content="Visualization — Govind B Mohan" />
@@ -22,11 +18,11 @@
 <meta name="twitter:title" content="Visualization — Govind B Mohan" />
 <meta name="twitter:description" content="Rendered 3D artwork, motion pieces and audio-reactive VJ sets built to be mixed live." />
 <meta name="twitter:image" content="https://govindbmohan.com/assets/og.jpg" />
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="./css/style.css" />
+
+<!-- fonts, stylesheet, icons and the boot guard are identical on every
+     page and live in one place -->
+<script src="./js/head.js"></script>
+
 <script type="importmap">
 {
   "imports": {
@@ -35,23 +31,13 @@
   }
 }
 </script>
-<script>
-  /* If the app has not signalled ready, surface a plain, usable page
-     rather than leaving a black screen — covers a blocked CDN, a WebGL
-     failure, or a very slow first load. */
-  setTimeout(function () {
-    if (!document.documentElement.hasAttribute('data-ready')) {
-      document.body.classList.add('is-stalled');
-    }
-  }, 7000);
-</script>
 </head>
 <body class="is-section">
 
   <div id="boot" class="boot">
     <div class="boot__inner">
       <h1>Govind B Mohan</h1>
-      <p>3D Generalist · Industrial Designer · VJ</p>
+      <p>3D Generalist · Industrial Designer · Artist</p>
       <p class="boot__note">The interactive view needs WebGL and a moment to load. Here is the work:</p>
       <ul>
         <li><a href="industrial-design.html">Industrial Design</a></li>
@@ -70,7 +56,7 @@
     <header class="topbar">
       <div class="topbar__id">
         <a href="index.html" data-home><strong>GOVIND</strong></a>
-        <span>3D Generalist · Industrial Designer · VJ</span>
+        <span>3D Generalist · Industrial Designer · Artist</span>
       </div>
       <nav class="topbar__nav">
         <a href="index.html" data-home>All work</a>

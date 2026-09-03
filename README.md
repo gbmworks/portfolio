@@ -48,21 +48,30 @@ Then open http://127.0.0.1:8123
 ```
 index.html                 the wheel
 industrial-design.html     ┐
-technical-art.html         ├ section pages — thin shells, content from data.js
+technical-art.html         ├ section pages — thin shells, content from projects.js
 visualization.html         ┘
+project.html               one shell for every project — project.html?p=<slug>
 css/style.css              all styling
 js/
-  data.js                  >>> ALL CONTENT LIVES HERE <<<
+  projects.js              >>> ALL THE WORK LIVES HERE <<<
+  data.js                  sectors and identity — the shape of the site
+  cv.js                    the person: work history, education, awards, skills
+  head.js                  the invariant half of every <head>, in one place
+  nav.js                   leaving a page: the shared veil transition
   stage.js                 renderer, camera, lights, post chain, frame loop
   wheel.js                 slice geometry, projected labels, hover animation
   main.js                  landing page logic
-  page.js                  section page logic (panel layout / gallery layout)
-  gallery.js               the media wall + scroll-speed playback engine
+  page.js                  section page logic (sheet index / mosaic)
+  project.js               project page logic
+  tiles.js                 every tile wall + the lazy playback engine
+  preview.js               the hover preview stage on a section index
+  overlays.js              the About window, built from cv.js
   env/
     themes.js              per-sector lighting mood (sky brightness, IBL, fog, light tints)
     procedural.js          the GLSL skies + PMREM + cross-fading sky dome
     props.js               themed backdrop geometry per sector
     hdri.js                optional real-.hdr override
+tools/sitemap.mjs          regenerates sitemap.xml from the content
 assets/
   hdri/manifest.json       empty by default — see "Real HDRIs" below
 ```
@@ -115,70 +124,131 @@ here is from the CV, so there is one place to edit and nothing invented.
 The phone number was deliberately left off a public page; it is one line in
 `cv.js` if you want it.
 
+## Projects, and where they live
+
+A **project** is a thing you made. It has a slug, one or more sectors, a
+client, a role, a year, a summary, its own media, and links out to wherever it
+is published. It lives in `js/projects.js` and it owns a page:
+`project.html?p=<slug>`.
+
+That file is the single source for the work. `js/data.js` holds only the
+*shape* of the site — the three sectors that drive the wheel, the labels and
+the navigation — because a project can belong to more than one sector and a
+sector should not own it. Fitmint is technical art **and** visualization; the
+John Jacobs line is industrial design **and** visualization. Each is written
+once and appears in both.
+
+Anything with no page worth building stays a **post**: a one-off on Instagram,
+listed under `POSTS` per sector, linked straight out, never pretending to be a
+case study.
+
+```js
+// js/projects.js
+{
+  slug: 'fitmint-avatars',
+  sectors: ['technical-art', 'visualization'],   // first is where it lives
+  title: 'Fitmint',
+  client: 'Fitmint',
+  role: 'Character Technical Artist & 3D Generalist',
+  year: '2023 — 24',
+  tools: ['Blender', 'three.js'],
+  summary: 'The 3D avatar system for a crypto-based fitness app…',
+  body: ['…', '…'],                              // extra paragraphs
+  cover: 'assets/web/fitmint/coverf.jpg',        // or a Behance CDN path
+  preview: 'assets/web/fitmint/AvatarF.webm',
+  media: [{ src: '…', title: '…' }],
+  behance: { id: '199186729', slug: 'JohnJacobs-X-MasabaGupta' },
+  posts: [{ code: 'C3xN8HcSitr', kind: 'reel', title: '…', cover: '…' }],
+  feature: true                                  // top of its sector's index
+}
+```
+
+Every field except `slug`, `sectors` and `title` is optional, and the page
+degrades honestly. The still that represents a project is picked by
+`projectStill()`: its own `cover`, or failing that the thumbnail of the first
+post attached to it. With none of those it falls back to `preview`, and with
+nothing at all the tile becomes a **typographic plate** — the project's name
+set large on a dark card — rather than a broken frame. Same for the copy: no
+summary and no body prints a line saying the work lives as a published gallery
+instead.
+
+Eight projects currently have no artwork in the repo at all — the three
+Technical Art client systems (`primetrace-companion`, `metabrix-avatar-bodies`,
+`lenskart-ar-game`), the four 2024 freelance jobs (`suta-bombay`,
+`the-eyewear-project`, `soul-jams`, `besodetres`) and
+`hecoll-protective-range`. Drop a file into `assets/web/<slug>/` and set
+`cover:` on the record and it appears everywhere at once: the sector index, its
+row's preview stage, the mosaic tile, the project hero and the social card.
+
+### Adding a project
+
+1. Add the record to `PROJECTS` in `js/projects.js`.
+2. Drop any local media into `assets/web/…` and reference it in `media`.
+3. Run `node tools/sitemap.mjs`.
+
+No new HTML file, ever — `project.html` renders all of them.
+
 ## Three layouts, one system
 
 `layout` in `data.js` picks the arrangement, and `page.js` sets
-`body[data-layout]` so the CSS and the wheel placement follow. Each class
-gets its own shape rather than the same panel three times:
+`body[data-layout]` so the CSS follows:
 
 | sector | `layout` | arrangement |
 |---|---|---|
-| Industrial Design | `sheet` | a drawing sheet down the **left** — drafting grid, an orange rule under the title, and the index as a two-column register with corner ticks. The framed preview stage fills the space to its right. |
+| Industrial Design | `sheet` | a drawing sheet down the **left** — drafting grid, an orange rule under the title, and the project index as a two-column register with corner ticks. The framed preview stage fills the space to its right. |
 | Technical Art | `sheet` | the same. A full-bleed stage was tried here and dropped: stretching a portrait clip across the whole viewport read as a distorted background rather than a preview. |
-| Visualization | `gallery` | a **mosaic** — the page opens straight onto the wall under a slim title bar; no hero. |
+| Visualization | `gallery` | a **mosaic** of project covers under a slim title bar; no hero. |
+| a project | `project` | a reading column over the sector's own world — hero, facts rail, copy, then its media in the same tile grid used everywhere else. |
 
-The Visualization page keeps nothing as a list: the media wall, and the
-Behance/Instagram index below it, are all tiles in the same mosaic
-(`linkTiles()`), so the whole page scrolls as one wall. Published entries
-with a matching local clip get a real moving tile; the rest render as flat
-marked tiles. Hover behaviour is identical everywhere — grey at rest, colour
-and play on hover.
+`body[data-layout]` and the page shell have to agree: a `sheet` page needs
+`#panel` and `#stagePreview` in its HTML, a `gallery` page needs `#page`, and
+`project.html` needs `#work`. Change one without the other and the page has
+nothing to render into.
+
+One tile engine (`js/tiles.js`) draws every wall on the site — the mosaic, a
+project's own media, and the Instagram strips. Grey at rest, colour and play
+on hover, lazy everywhere: nothing decodes until it is near the viewport, and
+video is released again five seconds after it leaves.
 
 ## Duplicates
 
-Three kinds were removed, and one guard keeps them from coming back:
+They are gone structurally rather than by a guard. A piece of work is one
+record in `PROJECTS`, tagged with every sector it belongs to, so there is
+nothing to de-duplicate:
 
-- **Same piece, several posts.** The John Jacobs × Masaba campaign had four
-  Instagram entries and the Mushroom Fiend two; the debut-gig announcement and
-  the set from the same night were both listed. One row each now.
+- **Same work, several sectors.** The John Jacobs × Masaba line used to be a
+  Behance row under Industrial Design, a gallery group under Visualization and
+  a loose Instagram post. It is now one record with
+  `sectors: ['industrial-design', 'visualization']` and its posts attached.
+- **Same piece, several posts.** Instagram entries hang off the project they
+  belong to (`posts:`), so a campaign's four posts sit on its page instead of
+  competing with it in an index.
 - **Same footage, two files.** `Lenskart/reel.webm` (35 MB) is the long cut of
-  `ReelFinal.webm`, so it is out of the gallery. The file is still on disk.
-- **Same work, twice on one page.** `linkTiles()` now skips any published row
-  whose clip already stands in the mosaic above, or whose destination a media
-  tile already links to — on Visualization that collapses 26 index rows into
-  19 tiles, with no link lost, because the media tile carries it.
+  `ReelFinal.webm`, so it is not referenced. The file is still on disk.
+
+The old `linkTiles()` de-duplication pass — which compared clip paths and
+destination URLs to hide copies — was deleted along with the copies.
 
 ## The preview stage
 
 There is **no wheel on a section page** — that space is the stage. Hovering a
-row plays that piece of work there, large: framed to the right of the sheet on
-Industrial Design, full-bleed behind the column on Technical Art.
-`js/preview.js`, mounted on `#stagePreview`.
+project row plays that project there, large, framed to the right of the sheet.
+`js/preview.js`, mounted on `#stagePreview`, reusing one `<video>` for the
+whole page so running down a long index never spawns more than one decoder.
 
-Rows carry `preview:` for a clip or `still:` for an image, and any row falls
-back to its own cover — the saved Instagram thumbnail or the Behance project
-cover — so **every row on Industrial Design and Technical Art shows real
-artwork on hover**. Nothing is ever illustrated with a piece from a different
-project.
+A row shows its `preview:` clip if it has one, otherwise its `cover:` — the
+Behance project cover or a saved Instagram thumbnail — so **most rows show
+real artwork on hover**, and never a piece from a different project. A row
+with neither says "Open the project" instead of guessing.
 
 Since the wheel no longer navigates, each section page carries a **sector
 switcher** (01 / 02 / 03) under its header, and the prev/next pair still sits
-at the foot.
+at the foot. A project page has its own prev/next, which walks that sector's
+list rather than the sectors.
 
-Most Industrial Design and Technical Art rows have no local file yet, so their
-stage sits empty. Drop a clip or a frame into `assets/media/` and add
-`preview:` / `still:` to that row and it plays immediately.
-
-## Hover previews
-
-Any element carrying `data-preview` pops its clip beside the cursor while
-hovered — one shared `<video>` for the whole page, so running down a long
-list never spawns more than a single decoder. `js/preview.js`, styled as
-`.hoverprev`. Rows and headings that have one show a small `▸`.
-
-On the mosaic, tiles preview themselves: grey and still at rest, full colour
-and playing on hover. On the section pages the same job is done by the stage
-above.
+On the mosaic and on a project's media grid the tiles preview themselves —
+grey and still at rest, colour and playing on hover — so the stage is only
+needed where the work is a list.
 
 ## Resilience and reach
 
@@ -189,6 +259,15 @@ above.
   an SVG favicon drawn from the wheel, `robots.txt`, `sitemap.xml` and a
   styled `404.html`. The social card at `assets/og.jpg` is a 1200×630 frame
   of the landing page itself — re-shoot it if the art direction changes.
+- **One caveat on project pages.** `project.html` is a single shell shared by
+  every project, so its static `<head>` is generic and `js/project.js` corrects
+  the title, description, canonical link and OG image once it knows the slug.
+  Google runs scripts and will see the corrected tags; the social scrapers do
+  not, so a link to a specific project pasted into Slack or X shows the generic
+  card. The alternative is a real HTML file per project, which means a build
+  step and 40 more copies of the boilerplate — the trade was made deliberately.
+- **An unknown slug** renders a real page listing every sector and its project
+  count, rather than an empty shell.
 - **Keyboard.** Gallery tiles are focusable, carry `role` and `aria-label`,
   activate on Enter or Space, and light up on focus exactly as on hover.
   Focus rings are visible throughout.
@@ -313,56 +392,28 @@ That loads `assets/hdri/technical-art.hdr` and `visualization.hdr` and uses
 them for both the sky and the lighting. Anything unlisted stays procedural,
 and nothing is requested at all while the manifest is empty.
 
-## The gallery
+## The tile wall
 
-`visualization.html` uses the full-page gallery layout instead of the reading
-panel, switched on by `layout: 'gallery'` in its `data.js` entry. The hero
-holds the wheel and the title; scroll and the wheel fades out and hands the
-screen to the media wall, with the neon world still running behind it.
+`js/tiles.js` draws every grid on the site and runs one playback engine for
+all of them — the Visualization mosaic, a project page's media, and the
+Instagram strips.
 
-**One flat wall.** No group headings: every clip, still and published entry
-sits in a single masonry, with the group name (Fitmint, Lenskart, Loops &
-Studies) riding on the tile caption so the context survives.
-
-**The marks.** The wheel labels are the per-class marks, white by default and
-black on the lit slice (which is fluorescent orange). Titles wrap rather than
-clip: the label box is centred on its projected point with a transform instead
-of fixed margins, so it can grow.
-
-**Every tile is 3:4 or 4:3.** The ratio is chosen from the media's own
-orientation once metadata loads and the image is cropped to fit, so a 9:16
-clip no longer runs a third of the page tall. Five columns above 1600 px, down
-to one on a phone.
-
-**The wall rests grey and still.** Every tile sits desaturated
-(`saturate(.14)`) on a paused first frame. Hover one and it comes to full
-colour and plays at normal speed; move away and it settles back. Only the
-tile under the cursor decodes, so a hundred clips cost about as much as one.
-Touch screens have no hover, so there the two tiles squarely on screen play
-by themselves.
-
-**Tiles link to where the piece is published.** Give an item (or a whole
-group) an `href` and a `source` in `data.js` and clicking the tile opens that
-Behance project or Instagram post, with a small `INSTAGRAM ↗` / `BEHANCE ↗`
-badge in the caption. Anything unpublished opens in the lightbox instead.
-
-Nothing is eager: a poster frame is fetched only within 1200px of the
-viewport and released a few seconds after leaving. Tile aspect ratios are
-read from the media itself, so the masonry fits whatever you drop in.
-
-Knobs at the top of `js/gallery.js`:
-
-```js
-const ATTACH_PX = 1200;   // load a poster frame this close to the viewport
-const RELEASE_MS = 5000;  // ...and release it this long after leaving
-const MAX_AUTO = 2;       // tiles that play unattended on touch screens
-```
-
-The resting look is one line in `style.css` — the `filter` on `.tile__el`.
-
-Adding the gallery to another sector: add `layout: 'gallery'` and a `gallery`
-array to its entry in `data.js`, then swap `<main id="panel" class="panel">`
-for `<main id="page" class="page">` in that sector's HTML file.
+- **Masonry**, five CSS columns down to one, so a portrait clip and a
+  landscape still can sit side by side without letterboxing.
+- **Grey at rest.** `filter: saturate(.14)` on every tile; hover restores
+  colour and plays the clip. The wall reads as one surface until you look at
+  something.
+- **Lazy both ways.** An IntersectionObserver attaches a poster frame 400px
+  before a tile enters the viewport (`preload=metadata` plus a `#t=0.1` media
+  fragment paints a still without playing) and releases the video five seconds
+  after it leaves. A long wall never holds more than what you have looked at.
+- **Aspect from the file.** Once metadata lands, the tile takes `3/4` or `4/3`
+  from the real dimensions — the wall stays even instead of following a 9:16
+  clip all the way down the page.
+- **No hover on touch.** Whatever is more than 60% on screen plays, two at a
+  time.
+- **Where a tile goes.** A project tile navigates here, an Instagram tile
+  opens the post, and a tile with nowhere to go opens in the lightbox.
 
 ### A note on file sizes
 
@@ -379,102 +430,64 @@ ffmpeg -i in.webm -c:v libvpx-vp9 -crf 34 -b:v 0 -vf "scale=-2:1080" -an out.web
 
 ## Editing content
 
-Everything you'd normally change is in `js/data.js`. Each entry in `SECTIONS`
-generates a slice, its label, its page and its navigation:
+Two files, split by what they describe:
+
+- **`js/projects.js`** — the work. See "Projects, and where they live" above.
+- **`js/data.js`** — the sectors and the identity. Each entry in `SECTIONS`
+  generates a slice, its label, its page and its navigation:
 
 ```js
 {
   id,           // must match the .html filename AND the theme key in env/themes.js
+  layout,       // 'sheet' or 'gallery'
   index, title, subtitle,
   color, glow,  // slice colour + lighter tint for outline/icon
   blurb,        // paragraph at the top of the section page
-  icon,         // inline stroke SVG — it draws itself on hover
-  behance: [ { title, year, id, slug } ],   // published index, links out to Behance
-  behanceNote,  // optional line above the index
-  layout, gallery               // only on sectors using the media wall
+  note,         // optional line above the index
+  icon          // inline stroke SVG — it draws itself on hover
 }
 ```
 
 - **Adding a 4th sector**: add the entry to `SECTIONS`, add a matching theme to
   `js/env/themes.js` (and a shader branch + backdrop builder if you want it to
-  have its own world), and copy one of the section `.html` files. Wheel
-  angles, gaps, raycasting and labels all derive from `SECTIONS.length`.
+  have its own world), copy one of the section `.html` files, and tag projects
+  with the new `id`. Wheel angles, gaps, raycasting and labels all derive from
+  `SECTIONS.length`.
+- **`js/cv.js`** is the person — work history, education, awards, skills. The
+  About window is built entirely from it, and several project summaries were
+  written from it.
 
-## The published indexes
+## Published work
 
-Two of them, both classified into the three sectors and rendered by
-`linkList()` in `js/gallery.js`.
+Nothing published is re-hosted. A project carries a reference and the URL is
+built from it:
 
-### Instagram
+- **Behance** — `behance: { id, slug }` becomes
+  `behance.net/gallery/<id>/<slug>`. Covers come straight from Behance's
+  unsigned, stable CDN path (`mir-s3-cdn-cf.behance.net/...`), so a project
+  tile shows the real cover without a copy living in this repo.
+- **Instagram** — `{ code, kind }` becomes `instagram.com/<kind>/<code>/`,
+  where `kind` is `p` for a post or `reel` for a Reel. Thumbnails *are* saved
+  locally, in `assets/covers/instagram/<code>.jpg`, because Instagram's CDN
+  URLs are signed and expire.
 
-`PROFILE.instagram` plus a per-sector `instagram` array, walked from
-[@vindgo.visual](https://www.instagram.com/vindgo.visual/) — 102 of the 103
-posts were read, and the ones with usable evidence are indexed: **23**
-Industrial Design / **8** Technical Art / **18** Visualization. `igUrl()`
-builds the permalink from `kind` + `code`.
+Posts attached to a project (`posts:`) appear on that project's page. Posts
+that belong to no project sit in `POSTS[sectorId]` and appear as the "Also on
+Instagram" strip under a sector index.
 
-The older posts have no captions, but their tags carry the signal —
-`@keyshot3d`, `@conceptkicks`, `@adidas`, `@sneakerfreakermag`,
-`@daburvatikaofficial`, `@bikeexif`, `@titancompanyltd`, `@bbcleague.nid` are
-all product and industrial work, which is where most of the new Industrial
-Design rows came from. Posts with neither a caption nor a meaningful tag were
-left out rather than guessed at.
+`IG_HIGHLIGHTS` in `data.js` names the story highlights he curates himself;
+they show as tags above a sector's project list.
 
-`IG_HIGHLIGHTS` maps your own story highlights onto the sectors — they are the
-most reliable signal, because you grouped them: *Nvisage 2020* → Industrial
-Design, *Nodes* → Technical Art, *VJ · JJ | Masaba · Unicorn · Fitmint* →
-Visualization. They render as chips above each list.
+### Classification
 
-Several posts cross-reference the local media: *1stroke*, *Hrutul Patel*,
-*Just floating around* (astronaut), *Fitmint* and the Lenskart / John Jacobs
-campaign all appear in both `assets/media` and the feed.
+The sector a project sits in is a judgement call, and a few are deliberate:
 
-## The Behance index
-
-`PROFILE` and the per-sector `behance` arrays in `js/data.js` mirror
-[behance.net/govindbm](https://www.behance.net/govindbm) — all 28 published
-projects, sorted into the three sectors. Each row links straight out to its
-project page in a new tab; `behanceUrl()` builds the URL from `id` + `slug`,
-so a row is just four fields.
-
-Current split: **19** Industrial Design, **1** Technical Art, **8**
-Visualization. Reclassifying is a one-line move between arrays.
-
-Judgment calls worth checking:
-
-| project | filed under | why, and the alternative |
-|---|---|---|
-| JohnJacobs × Masaba Gupta | Visualization | read it as brand/product renders; it's an eyewear collab, so Industrial Design is just as defensible |
-| Strandbeest — Theo Jansen Mechanism | Technical Art | the only published piece that's about mechanism and motion; it's also a physical NID build, i.e. Industrial Design |
-| Mobius Ring — Exploration | Visualization | form/render study; could sit with the product work |
-| Installation 2019 | Industrial Design | assumed a physical build rather than a visual installation |
-| Photography | Visualization | not 3D, but it is image-making |
-
-Technical Art is thin on Behance because that work isn't published there —
-it lives inside the client reels on the Visualization page. `behanceNote` on
-that section says so rather than padding the list.
-
-**Covers.** The images on the profile grid are signed and expire, but every
-project page exposes an unsigned, stable `og:image` on Behance's own CDN — all
-28 are stored in `data.js` as `cover:` paths (switched to the `disp` size,
-~600 px) and referenced through `coverUrl()`. Nothing is copied or re-hosted.
-If Behance ever changes those paths, re-harvest them or save files into
-`assets/covers/` instead.
-
-**Instagram thumbnails are local.** Its CDN URLs are signed and expire, so
-hotlinking would go blank in weeks. Instead each post's thumbnail was pulled
-once from the public `instagram.com/p/<code>/media/?size=l` endpoint and saved
-to `assets/covers/instagram/<code>.jpg` — 49 files, 2.9 MB, no signatures, no
-expiry. `coverUrl()` returns a local path or a Behance CDN path depending on
-which kind of row it is.
-
-To refresh or extend them:
-
-```bash
-curl -L -o "assets/covers/instagram/<code>.jpg"   "https://www.instagram.com/p/<code>/media/?size=l"
-```
-
-Every one of the 77 indexed rows now has a thumbnail.
+- The John Jacobs × Masaba line is **industrial design** first — it is eyewear
+  design — and visualization second, because the launch reels are his too.
+- Fitmint is **technical art** first: the avatar system is the work, the hype
+  reels are its output.
+- The Titan watch is industrial design, not visualization, even though the
+  Behance gallery is mostly renders — the project is the parametric system.
 
 ## Interaction
 
@@ -482,12 +495,15 @@ Every one of the 77 indexed rows now has a thumbnail.
 |---|---|
 | hover a slice | slice pulls out along its bisector and tilts, icon lights and redraws, title pops in, **the world changes** |
 | click a slice | colour wipe + camera dive, then the section page |
-| `1` `2` `3` | enter that section directly |
-| on a section page | the wheel stays as navigation — hover a neighbour to preview its world, click to go |
-| `Esc` | close the About window |
+| `1` `2` `3` | enter that section directly, from anywhere |
+| on a section page | the sector switcher under the header moves between sectors; the wheel is gone — that space is the preview stage |
+| hover a project row | it plays in the stage beside the sheet |
+| click a project row | its project page |
+| `Esc` | close the About window or the lightbox |
+| returning to the wheel | the 3s intro runs **once a visit** — `sessionStorage.introSeen`. A new tab or a fresh visit plays it again; walking back from a section page does not |
 | touch | first tap previews, second tap enters |
-| hover a gallery tile | it comes to colour and plays at normal speed |
-| click a tile | opens the published post, or the lightbox if there isn't one |
+| hover a tile | it comes to colour and plays at normal speed |
+| click a tile | a project page, the published post, or the lightbox — in that order of preference |
 
 The wheel idles with a slow spin that stops the moment a slice is engaged.
 

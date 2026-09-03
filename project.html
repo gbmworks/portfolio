@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Industrial Design — Govind B Mohan</title>
-<meta name="description" content="Product form development from first sketch to manufacturable CAD: ergonomics, CMF, DFM and the renders that sell the idea." />
-<link rel="canonical" href="https://govindbmohan.com/industrial-design.html" />
+<title>Project — Govind B Mohan</title>
+<meta name="description" content="A project by Govind B Mohan: industrial design, character technical art and realtime visuals." />
+<link rel="canonical" href="https://govindbmohan.com/project.html" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Govind B Mohan" />
-<meta property="og:title" content="Industrial Design — Govind B Mohan" />
-<meta property="og:description" content="Product form development from first sketch to manufacturable CAD: ergonomics, CMF, DFM and the renders that sell the idea." />
-<meta property="og:url" content="https://govindbmohan.com/industrial-design.html" />
+<meta property="og:title" content="Project — Govind B Mohan" />
+<meta property="og:description" content="A project by Govind B Mohan: industrial design, character technical art and realtime visuals." />
+<meta property="og:url" content="https://govindbmohan.com/project.html" />
 <meta property="og:image" content="https://govindbmohan.com/assets/og.jpg" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Industrial Design — Govind B Mohan" />
-<meta name="twitter:description" content="Product form development from first sketch to manufacturable CAD: ergonomics, CMF, DFM and the renders that sell the idea." />
+<meta name="twitter:title" content="Project — Govind B Mohan" />
+<meta name="twitter:description" content="A project by Govind B Mohan: industrial design, character technical art and realtime visuals." />
 <meta name="twitter:image" content="https://govindbmohan.com/assets/og.jpg" />
 
 <!-- fonts, stylesheet, icons and the boot guard are identical on every
@@ -64,22 +64,24 @@
         <a href="https://linktr.ee/govindbmwork" target="_blank" rel="noopener noreferrer">Contact</a>
       </nav>
     </header>
-    <div id="stagePreview" class="stage"></div>
   </div>
 
-  <main id="panel" class="panel">
-    <div class="panel__scroll">
-      <noscript>
-        <h1>Industrial Design</h1>
-        <p>Product form development from first sketch to manufacturable CAD — ergonomics, CMF, DFM and the renders that sell the idea.</p>
-        <p><a href="index.html">Back to all work</a></p>
-      </noscript>
-    </div>
+  <main id="work" class="work">
+    <noscript>
+      <h1>Project</h1>
+      <p>Project pages are rendered in the browser. Without JavaScript, the work is
+         listed by sector:</p>
+      <ul>
+        <li><a href="industrial-design.html">Industrial Design</a></li>
+        <li><a href="technical-art.html">Technical Art</a></li>
+        <li><a href="visualization.html">Visualization</a></li>
+      </ul>
+    </noscript>
   </main>
 
   <script type="module">
-    import { initSection } from './js/page.js';
-    initSection('industrial-design');
+    import { initProject } from './js/project.js';
+    initProject();
   </script>
 </body>
 </html>

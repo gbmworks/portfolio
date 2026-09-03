@@ -11,6 +11,7 @@ import { createStage, reducedMotion } from './stage.js';
 import { Wheel } from './wheel.js';
 import { DEFAULT_THEME } from './env/themes.js';
 import { initOverlays } from './overlays.js';
+import { bindNav } from './nav.js';
 
 const INTRO_MS = 3000;
 const $ = (s) => document.querySelector(s);
@@ -23,26 +24,39 @@ const labelsEl = $('#labels');
 const hubValue = $('#hubValue');
 const hubEl    = $('#hub');
 const hintText = $('#hintText');
-const veil     = $('#veil');
 
-const state = { mode: 'intro', leaving: false };
+const state = { mode: 'intro' };
 
-/* ---------------- intro ---------------- */
+/* ---------------- intro ----------------
+   It runs once a visit.  Coming back to the wheel from a section page —
+   which happens constantly — should land you on the wheel, not make you
+   sit through the name again.  A new tab or a fresh visit still gets it. */
+const SEEN_INTRO = 'introSeen';
 let introDone = false;
+
 function endIntro() {
   if (introDone) return;
   introDone = true;
   state.mode = 'select';
+  sessionStorage.setItem(SEEN_INTRO, '1');
   introEl.classList.add('is-out');
   uiEl.classList.add('is-in');
   setTimeout(() => introEl.remove(), 1200);
 }
-requestAnimationFrame(() => {
-  introBar.style.transition = 'width ' + INTRO_MS + 'ms linear';
-  introBar.style.width = '100%';
-});
-setTimeout(endIntro, reducedMotion ? 900 : INTRO_MS);
-introEl.addEventListener('click', endIntro);
+
+if (sessionStorage.getItem(SEEN_INTRO)) {
+  introDone = true;
+  state.mode = 'select';
+  introEl.remove();
+  uiEl.classList.add('is-in');
+} else {
+  requestAnimationFrame(() => {
+    introBar.style.transition = 'width ' + INTRO_MS + 'ms linear';
+    introBar.style.width = '100%';
+  });
+  setTimeout(endIntro, reducedMotion ? 900 : INTRO_MS);
+  introEl.addEventListener('click', endIntro);
+}
 
 /* ---------------- floating windows ---------------- */
 initOverlays();
@@ -51,6 +65,7 @@ initOverlays();
 const themeKeys = SECTIONS.map(s => s.id);
 const stage = await createStage(canvas, themeKeys);
 const wheel = new Wheel({ sections: SECTIONS, scene: stage.scene, camera: stage.camera, labelsEl });
+const nav = bindNav({ accent: ACCENT, zoom: -3.4, getZ: () => stage.camera.position.z });
 
 /* Composition: the wheel's centre sits on the vertical golden section
    (61.8% across) and on the horizontal centre line; the type column runs
@@ -72,8 +87,8 @@ stage.on({
   resize: compose,
   frame: (dt, t) => {
     wheel.frame(dt, t, { entering: state.mode === 'intro' });
-    if (state.leaving) {
-      stage.camera.position.z += (state.zTarget - stage.camera.position.z) * (1 - Math.exp(-3.5 * dt));
+    if (nav.leaving) {
+      stage.camera.position.z += (nav.zTarget - stage.camera.position.z) * (1 - Math.exp(-3.5 * dt));
     }
   },
   afterMatrix: () => {
@@ -101,7 +116,7 @@ function setHover(i) {
 
 function onMove(e) {
   wheel.parallax.set((e.clientX / innerWidth) * 2 - 1, (e.clientY / innerHeight) * 2 - 1);
-  if (state.mode !== 'select' || state.leaving || e.pointerType === 'touch') return;
+  if (state.mode !== 'select' || nav.leaving || e.pointerType === 'touch') return;
   setHover(wheel.pick(e.clientX, e.clientY));
 }
 addEventListener('pointermove', onMove, { passive: true });
@@ -109,20 +124,15 @@ addEventListener('mousemove', onMove, { passive: true });
 
 /* dive into a section */
 function enter(i) {
-  if (state.leaving || i < 0) return;
+  if (nav.leaving || i < 0) return;
   const s = SECTIONS[i];
-  state.leaving = true;
-  state.zTarget = stage.camera.position.z - 3.4;
   wheel.setActive(i);
-  veil.style.background = s.color;
-  veil.classList.add('is-on');
   hintText.textContent = 'Entering ' + s.title + '…';
-  sessionStorage.setItem('cameFromWheel', '1');
-  setTimeout(() => { location.href = s.id + '.html'; }, reducedMotion ? 60 : 620);
+  nav.leave(s.id + '.html', s.color);
 }
 
 canvas.addEventListener('pointerdown', e => {
-  if (state.mode !== 'select' || state.leaving) return;
+  if (state.mode !== 'select' || nav.leaving) return;
   const i = wheel.pick(e.clientX, e.clientY);
   if (i === -1) return;
   if (e.pointerType === 'touch' && wheel.hover !== i) { setHover(i); return; }
@@ -142,12 +152,6 @@ addEventListener('keydown', e => {
   if (e.key === 'Escape') return;
   const n = parseInt(e.key, 10);
   if (n >= 1 && n <= SECTIONS.length) enter(n - 1);
-});
-
-/* arriving back from a section page */
-addEventListener('pageshow', () => {
-  state.leaving = false;
-  veil.classList.remove('is-on');
 });
 
 compose();

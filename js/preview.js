@@ -2,11 +2,11 @@
    Preview stage.
 
    On a section page the wheel is gone and the space it used to fill is
-   the stage: hovering a row plays that piece of work there, large.
+   the stage: hovering a row plays that project there, large.
 
-   Only rows that actually have a file show one — a row with nothing
-   local says so and points at where the work lives instead.  One
-   <video> is reused for the whole page.
+   Only rows that actually have a cover or a clip show one — a row with
+   neither says so and waits to be clicked.  One <video> is reused for
+   the whole page.
    ------------------------------------------------------------------ */
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -59,9 +59,7 @@ export function initStage({ mount, rows, sector = '' } = {}) {
     } else {
       frame.dataset.mode = 'empty';
       video.pause();
-      const host = /instagram/i.test(row.href) ? 'Instagram'
-                 : /behance/i.test(row.href) ? 'Behance' : '';
-      note.textContent = host ? `No local file — opens on ${host}` : 'No local file yet';
+      note.textContent = 'Open the project';
     }
     mount.classList.add('is-on');
   };
