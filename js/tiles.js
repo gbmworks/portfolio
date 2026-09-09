@@ -51,8 +51,16 @@ const GLYPH = {
 function tile({ title, group = '', href = '', still = '', clip = '', mark = '', label = '' }) {
   const src = still || clip;
   const kind = still ? 'image' : clip ? 'video' : 'none';
+
+  /* A still and a clip are no longer either/or.  Every clip has a poster
+     (tools/media.mjs), so the tile paints the poster and layers the
+     video over it — and the video's src stays unset until somebody
+     hovers.  A wall of twenty-six tiles used to pull `preload=metadata`
+     from twenty-six multi-megabyte clips just to show a frame. */
   const el = still
     ? `<img class="tile__el" data-src="${encodeURI(still)}" alt="${esc(title)}" decoding="async">
+       ${clip ? `<video class="tile__clip" data-src="${encodeURI(clip)}" muted loop playsinline
+              preload="none" tabindex="-1"></video>` : ''}
        <span class="tile__spin"></span>`
     : clip
     ? `<video class="tile__el" data-src="${encodeURI(clip)}" muted loop playsinline
@@ -90,7 +98,7 @@ export const entryTile = (entry) => tile({
   group: entry.meta,
   href: entry.href,
   still: entry.still,
-  clip: entry.still ? '' : entry.clip,
+  clip: entry.clip,
   label: entry.title + (entry.external ? ' — opens where it is published' : '')
 });
 
@@ -134,9 +142,12 @@ export function startTiles(root = document, { onNavigate = null } = {}) {
   const tiles = [...root.querySelectorAll('.tile')].map(el => ({
     el,
     media: el.querySelector('.tile__el'),
+    /* the hover-only video layered over a poster, if there is one */
+    clip: el.querySelector('.tile__clip'),
     isVideo: el.dataset.kind === 'video',
     href: el.dataset.href || '',
     attached: false,
+    clipOn: false,
     releaseTimer: 0
   }));
   if (!tiles.length) return { destroy() {} };
@@ -192,17 +203,28 @@ export function startTiles(root = document, { onNavigate = null } = {}) {
   }, { rootMargin: `${ATTACH_PX}px 0px` });
   tiles.forEach(t => t.media && near.observe(t.el));
 
-  /* ---- hover brings a tile to colour and plays it ---- */
+  /* ---- hover brings a tile to colour and plays it ----
+     This is the only place a clip is ever requested.  Until someone
+     hovers, a tile costs one poster JPEG. */
   const wake = (t) => {
     if (!t || reduced) return;
     attach(t);
     t.el.classList.add('is-live');
-    if (t.isVideo) t.media.play().catch(() => {});
+    if (t.isVideo) { t.media.play().catch(() => {}); return; }
+    if (!t.clip) return;
+    if (!t.clipOn) {
+      t.clipOn = true;
+      t.clip.preload = 'auto';
+      t.clip.src = t.clip.dataset.src;
+      t.clip.addEventListener('loadeddata', () => t.el.classList.add('is-clip'), { once: true });
+    }
+    t.clip.play().catch(() => {});
   };
   const rest = (t) => {
     if (!t) return;
-    t.el.classList.remove('is-live');
+    t.el.classList.remove('is-live', 'is-clip');
     if (t.isVideo) t.media.pause();
+    else if (t.clip && t.clipOn) t.clip.pause();
   };
 
   if (finePointer) {

@@ -132,3 +132,20 @@ a:focus-visible, button:focus-visible, .tile:focus-visible, .gal-group__head:foc
   outline:2px solid var(--accent); outline-offset:3px; border-radius:4px;
 }
 .tile:focus-visible{ outline-offset:2px; }
+
+/* ------------------------------------------------------------------
+   The hover clip.
+
+   A tile paints its poster and nothing else until someone hovers it —
+   the video below is layered over the poster and only gets a src at
+   that moment (js/tiles.js, wake()).  It fades in once it has a real
+   frame, so a slow clip reveals itself rather than flashing black over
+   an image that was already there.
+   ------------------------------------------------------------------ */
+.tile__clip{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; display:block;
+  opacity:0; transition:opacity .32s var(--ease);
+  pointer-events:none;
+}
+.tile.is-clip .tile__clip{ opacity:1; }

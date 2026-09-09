@@ -134,7 +134,9 @@ export function sectorFoot(index) {
 /* One row for anything on the page.
 
    The row carries its own still and clip as data attributes, which is
-   what the preview stage reads on hover.  An entry that leaves the site
+   what the preview stage reads on hover.  `still` is a cover if there is
+   one and the clip's poster otherwise, so the stage always has something
+   to paint on the first frame of a hover.  An entry that leaves the site
    opens in a new tab; one that has a page here transitions to it. */
 function entryRow(e, i) {
   const out = e.external;

@@ -104,9 +104,11 @@ js/
     props.js               themed backdrop geometry per sector
     hdri.js                optional real-.hdr override
 tools/allocate.mjs         content/allocation_new.csv -> js/pages.js
+tools/media.mjs            posters for every clip; clip re-encode; a size report
 tools/serve.mjs            the dev server (no-store, Range) — see "Run it"
 tools/sitemap.mjs          regenerates sitemap.xml from the content
 assets/
+  posters/                 one ~40 KB JPEG per clip — what the tiles show
   hdri/manifest.json       empty by default — see "Real HDRIs" below
 ```
 
@@ -737,18 +739,82 @@ Instagram strips.
 - **Where a tile goes.** A project tile navigates here, an Instagram tile
   opens the post, and a tile with nowhere to go opens in the lightbox.
 
-### A note on file sizes
+## Media
 
-`assets/media` is ~328 MB as it stands — `2hrutul.webm` alone is 58 MB and
-`Lenskart/reel.webm` is 35 MB (and looks like a longer cut of `ReelFinal`).
-Lazy loading means a visitor only pays for what they scroll past, but it is
-still worth re-encoding the wall down to roughly 2–5 MB a clip, e.g.
+`tools/media.mjs` — `posters`, `encode`, `report`.
+
+### Posters are the whole trick
+
+Every clip in `assets/web/` has a poster beside it in `assets/posters/`,
+about 40 KB each, 0.6 MB for all seventeen. A tile paints the poster and
+layers the video *over* it with no `src`; the src is only set in `wake()`,
+on hover. Scrolling the whole 26-tile Visualization mosaic now fetches
+**zero video bytes** — measured, not assumed.
+
+Before this, a tile within 400 px of the viewport set `preload=metadata`
+on a multi-megabyte clip purely to paint a still frame. On a wall of
+twenty-six that is tens of megabytes to show what 0.6 MB of JPEG shows.
 
 ```bash
-ffmpeg -i in.webm -c:v libvpx-vp9 -crf 34 -b:v 0 -vf "scale=-2:1080" -an out.webm
+node tools/media.mjs posters     # after adding or re-encoding any clip
 ```
 
-`-an` drops audio, which the tiles never play anyway.
+The frame is taken a fifth of the way in — past a fade-up, before an
+outro — scaled to 900 px on the long edge at `-q:v 4`.
+
+### The clips are already well encoded — do not re-encode them
+
+`encode` exists and works, and running it was a dead end. It re-encodes
+from `assets/media` (the originals) at CRF 34, and **six of the seven
+clips it tried came back bigger than what is already deployed**; the
+seventh improved by 2%.
+
+The bitrate spread across `assets/web` looks alarming — 418 kbps to
+5175 kbps — and it is tempting to read that as sloppy encoding. It is
+not. It is content: `drip_2` is seven seconds of high-motion material and
+genuinely needs 5 Mbps at that quality; `clubs_F` is twelve seconds of
+something nearly static. They were already encoded above CRF 34.
+
+The guard in `encode` keeps the existing file whenever the new one is
+bigger, so running it cannot make things worse — but at CRF 34 it will
+mostly print "kept" and waste ten minutes of VP9. If you ever do want
+them smaller, the lever is a *higher* CRF (36–38) and accepting the
+quality cost, not a re-encode at 34.
+
+A first attempt also capped the long edge at 1280 from the *original's*
+dimensions, which silently upscaled the clips that had been downscaled to
+608×1080 — that is why the first run produced bigger files across the
+board. It now encodes to the dimensions the deployed clip already has.
+
+### The character is the heaviest thing on the site
+
+`assets/3d/PORTFOLIO.glb` is 2.0 MB and its maps were 1.0 MB, so the
+Visualization page paid **3.2 MB for a decorative backdrop** — 72% of the
+page. The maps were 2048×2048 for a character drawn about 570 px tall.
+
+At 1024×1024 they are 348 KB, down 66%, with no visible difference at the
+size it is actually rendered:
+
+| | was | now |
+|---|---|---|
+| `diffuse_new.jpg` | 599 KB, 2048² | **185 KB, 1024²** |
+| `normal_new.jpg` | 413 KB, 2048² | **164 KB, 1024²** |
+| character total | 3165 KB | **2502 KB** |
+
+The remaining 2.0 MB is the GLB itself. Draco would take it to roughly
+400 KB, but it costs a `DRACOLoader` plus a wasm decoder — more requests
+on every page for a saving on one. It is still only fetched the first
+time the visualization world is shown, so the other two sectors never pay
+for it.
+
+### Re-encoding after adding footage
+
+```bash
+ffmpeg -i in.webm -c:v libvpx-vp9 -crf 34 -b:v 0 -an \
+  -vf "scale=w='min(1080,iw)':h='min(1080,ih)':force_original_aspect_ratio=decrease" \
+  assets/web/out.webm
+node tools/media.mjs posters
+```
 
 ## Editing content
 

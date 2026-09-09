@@ -43,7 +43,7 @@
    ------------------------------------------------------------------ */
 
 import { PAGES, pageRefs } from './pages.js';
-import { coverUrl, igUrl, behanceUrl, projectUrl } from './links.js';
+import { coverUrl, igUrl, behanceUrl, projectUrl, posterUrl } from './links.js';
 
 export const PROJECTS = [
 
@@ -721,12 +721,15 @@ export function resolveEntry(ref) {
   const project = bySlug(ref);
   if (project) {
     const still = projectStill(project);
+    const clip = project.preview || '';
     return {
       kind: 'project', ref, id: project.slug,
       title: project.title,
       meta: [project.client, project.year].filter(Boolean).join(' · '),
-      still: still ? coverUrl(still) : '',
-      clip: project.preview || '',
+      /* a cover if it has one, otherwise the clip's poster — either way
+         something paints without touching the video */
+      still: still ? coverUrl(still) : posterUrl(clip),
+      clip,
       href: projectUrl(project),
       external: false,
       project
