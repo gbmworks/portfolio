@@ -140,7 +140,15 @@ body:not(.is-section) .scrim{
   margin:12px 0 0;
   font-size:clamp(10px,0.98vw,12.8px); font-weight:700; letter-spacing:.06em;
   line-height:1.25; text-transform:uppercase;
-  max-width:100%; overflow-wrap:break-word;   /* never clipped, wraps instead */
+
+  /* Two-word sector names break at the space rather than running the
+     full width of the slice.  The cap is narrower than "INDUSTRIAL
+     DESIGN" set on one line but wider than either word alone, so it
+     wraps to two centred lines — and "VISUALIZATION", having no space to
+     break at, stays on one line because overflow-wrap is `normal` rather
+     than `break-word`: a single word is never chopped mid-way, it just
+     runs to the label's own 230px. */
+  max-width:10ch; overflow-wrap:normal; hyphens:none;
   opacity:0; transform:translateY(8px);
   color:currentColor;
   transition:opacity .45s var(--ease), transform .5s var(--ease), color .35s;
