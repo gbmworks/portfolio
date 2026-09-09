@@ -37,5 +37,6 @@ assets/3d/normal_new.png
 # never loaded — no FBXLoader in the project
 assets/3d/butterfly.fbx
 
-# the allocation sheet is a working document, not part of the site
-content/
+# content/ IS tracked. It holds the allocation sheet that tools/allocate.mjs
+# turns into js/pages.js — the running order of every page — so a clone
+# without it cannot rebuild the site's content. It also holds WORKLOG.md.

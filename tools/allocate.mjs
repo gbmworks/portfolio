@@ -18,10 +18,11 @@
    ------------------------------------------------------------------ */
 
 import { readFileSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { PROJECTS, ARCHIVE, POSTS } from '../js/projects.js';
 import { SECTIONS } from '../js/sectors.js';
 
-const SRC = process.argv[2] || new URL('../content/allocation_new.csv', import.meta.url).pathname.replace(/^\//, '');
+const SRC = process.argv[2] || fileURLToPath(new URL('../content/allocation_new.csv', import.meta.url));
 const COLUMNS = { ID: 'industrial-design', VIZ: 'visualization', TD: 'technical-art' };
 
 /* --- read the sheet ------------------------------------------------ */
