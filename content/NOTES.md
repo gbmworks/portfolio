@@ -28,6 +28,16 @@ Pages takes 30-90 seconds. Check with:
 curl -sI https://www.govindbmohan.com/game/unicorn/ | head -1
 ```
 
+HTTPS is enforced (since 2026-09-09), so `http://` and the bare apex both
+`301` to `https://www.govindbmohan.com/…` with the path kept. That is a
+repo setting, not a file:
+
+```bash
+gh api -X PUT repos/gbmworks/portfolio/pages -F https_enforced=true
+```
+
+`-F` sends a real boolean. `-f` sends the string `"true"` and 422s.
+
 ## The loop
 
 ```bash
@@ -107,13 +117,11 @@ files should not change.
 
 1. **`SITE.links` vs `SITE.beacons`** — linktr.ee is live, the CV says
    beacons.ai. Pick one, delete the other.
-2. **Enforce HTTPS** on the Pages site:
-   `gh api -X PUT repos/gbmworks/portfolio/pages -f https_enforced=true`
-3. **The Instagram post "Crystalverse — web-based 3D game"** still sits four
+2. **The Instagram post "Crystalverse — web-based 3D game"** still sits four
    rows below the game itself on Technical Art. Both are real, but it
    reads as a duplicate — one cell to delete if it does.
-4. **Artwork for the four bare records**, which is the only thing keeping
+3. **Artwork for the four bare records**, which is the only thing keeping
    them off the site.
-5. **Self-host the fonts and three.js** — two extra origins and 209 KB from
+4. **Self-host the fonts and three.js** — two extra origins and 209 KB from
    a CDN on every page, and the CDN is a single point of failure the boot
    guard exists to defend against.

@@ -6,7 +6,7 @@ environment as you hover each slice → a real page per sector.
 Vanilla HTML/CSS + three.js (module build via CDN import map). No build step,
 no bundler, no assets required.
 
-**Live:** [govindbmohan.com](http://govindbmohan.com) — GitHub Pages, built from
+**Live:** [govindbmohan.com](https://www.govindbmohan.com) — GitHub Pages, built from
 `main` in [gbmworks/portfolio](https://github.com/gbmworks/portfolio).
 
 ## Deployment
@@ -14,6 +14,12 @@ no bundler, no assets required.
 Pages serves the repo root; `CNAME` holds the domain and `.nojekyll` stops
 Jekyll swallowing paths. GoDaddy DNS points the apex at GitHub's four
 addresses (185.199.108–111.153) and `www` at `gbmworks.github.io`.
+
+HTTPS is enforced, so `http://` and the bare apex both answer `301` to
+`https://www.govindbmohan.com/…` keeping the path. It is a repository
+setting rather than anything in the repo:
+`gh api -X PUT repos/gbmworks/portfolio/pages -F https_enforced=true`
+— note `-F`, not `-f`, or it sends the string `"true"` and 422s.
 
 What ships and what does not:
 

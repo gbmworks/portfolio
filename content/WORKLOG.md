@@ -315,9 +315,11 @@ worth one look by hand.
    and one, the game, plays. Adding Fitmint back is one line in the
    sheet.
 3. **`SITE.links` vs `SITE.beacons`** — pick one.
-4. **HTTPS is not enforced.** `http://` returns 200 rather than
-   redirecting. One command:
-   `gh api -X PUT repos/gbmworks/portfolio/pages -f https_enforced=true`
+4. ~~**HTTPS is not enforced.**~~ **Done, 2026-09-09** —
+   `https_enforced: true` on the Pages site, verified: `http://`, the
+   bare apex and deep paths all `301` to `https://www.govindbmohan.com/…`.
+   The flag needs `gh api -F` (a typed boolean); `-f` sends the string
+   `"true"` and returns 422.
 5. **`PORTFOLIO.glb` is still 2.0 MB.** Draco would take it to ~400 KB
    but costs a loader plus a wasm decoder on every page to save weight on
    one. It is already lazy — the other two sectors never fetch it.
