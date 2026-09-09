@@ -36,3 +36,6 @@ assets/3d/normal_new.png
 
 # never loaded — no FBXLoader in the project
 assets/3d/butterfly.fbx
+
+# the allocation sheet is a working document, not part of the site
+content/

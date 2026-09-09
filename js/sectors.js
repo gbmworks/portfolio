@@ -1,44 +1,28 @@
 /* ------------------------------------------------------------------
-   Sectors and identity.
+   The shape of the site.
 
-   SECTIONS is the *shape* of the site — it drives the wheel geometry,
-   the labels, the section pages and the navigation between them.  It
-   deliberately holds no work any more: projects live in projects.js,
-   because a project can belong to more than one sector and a sector
-   should not own it.
+   SECTIONS drives the wheel geometry, the labels, the section pages
+   and the navigation between them.  It holds no work: projects live
+   in projects.js, because a project can belong to more than one sector
+   and a sector should not own it.
 
-   layout   'sheet'   an index on a drawing sheet, preview stage beside it
-            'gallery' a mosaic of covers that owns the page
+     id        must match the .html filename AND the theme key in env/themes.js
+     layout    'sheet'    an index on a drawing sheet, preview stage beside it
+               'gallery'  a mosaic of covers that owns the page
+     index     the register number shown in the UI
+     blurb     the paragraph at the top of the section page
+     note      an optional line above the index
+     icon      inline stroke SVG — it draws itself on hover
+
+   There is no per-sector colour.  All three used to declare the same
+   #ff5a12 / #ff9048 as the global accent; the system is monochrome and
+   the accent lives in site.js.
+
+   Adding a fourth sector: add an entry here, add a matching theme to
+   env/themes.js, copy a section .html file, and tag projects with the
+   new id.  Wheel angles, gaps, raycasting and labels all derive from
+   SECTIONS.length.
    ------------------------------------------------------------------ */
-
-export const PROFILE = {
-  name: 'Govind B Mohan',
-  role: '3D Generalist | XR',
-  location: 'Thiruvananthapuram, India',
-  behance: 'https://www.behance.net/govindbm',
-  instagram: 'https://www.instagram.com/vindgo.visual/',
-  links: 'https://linktr.ee/govindbmwork'
-};
-
-/* Instagram collections he curates himself, as story highlights */
-export const IG_HIGHLIGHTS = {
-  'industrial-design': ['Nvisage 2020'],
-  'technical-art': ['Nodes'],
-  'visualization': ['VJ', 'JJ | Masaba', 'Unicorn', 'Fitmint']
-};
-
-export const ACCENT = '#ff5a12';
-export const ACCENT_GLOW = '#ff9048';
-
-/* Behance serves project covers from an unsigned, stable CDN path, so the
-   tiles reference them directly — nothing is copied or re-hosted. */
-const BE_CDN = 'https://mir-s3-cdn-cf.behance.net/';
-export const coverUrl = (path) =>
-  !path ? '' : (path.startsWith('assets/') ? path : BE_CDN + path);
-
-export const igUrl = (p) => 'https://www.instagram.com/' + p.kind + '/' + p.code + '/';
-
-export const behanceUrl = (b) => 'https://www.behance.net/gallery/' + b.id + '/' + b.slug;
 
 export const SECTIONS = [
   {
@@ -47,8 +31,6 @@ export const SECTIONS = [
     index: '01',
     title: 'Industrial Design',
     subtitle: 'Objects, systems, and the hands that use them',
-    color: '#ff5a12',
-    glow: '#ff9048',
     blurb:
       'Product form development from first sketch to manufacturable CAD — ergonomics, material and process choices, CMF, and the renders that sell the idea before the tooling exists.',
     icon: `
@@ -70,12 +52,8 @@ export const SECTIONS = [
     index: '02',
     title: 'Technical Art',
     subtitle: 'Rigs, shapekeys, shaders and the pipeline underneath',
-    color: '#ff5a12',
-    glow: '#ff9048',
     blurb:
       'Character technical art — deformation rigs, viseme and speech shapekey systems, corrective shapes, retopology, LOD chains and asset optimization. The unglamorous layer that makes everything above it possible.',
-    note:
-      'Most of this work ships inside a client’s product rather than a published case study, so the pages below are written from the brief rather than linked out to a gallery.',
     icon: `
       <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"
            stroke-linecap="round" stroke-linejoin="round">
@@ -94,8 +72,6 @@ export const SECTIONS = [
     index: '03',
     title: 'Visualization',
     subtitle: '3D artwork, animation and live audiovisual sets',
-    color: '#ff5a12',
-    glow: '#ff9048',
     blurb:
       'Where it all gets shown: rendered 3D artwork, motion pieces, and VJ sets — generative and reactive visuals built to be mixed live in front of a room full of people.',
     icon: `
@@ -110,3 +86,14 @@ export const SECTIONS = [
 ];
 
 export const sectionById = (id) => SECTIONS.find(s => s.id === id) || null;
+
+export const sectorIndex = (id) => SECTIONS.findIndex(s => s.id === id);
+
+export const TOTAL = String(SECTIONS.length).padStart(2, '0');
+
+/* Instagram collections he curates himself, as story highlights */
+export const IG_HIGHLIGHTS = {
+  'industrial-design': ['Nvisage 2020'],
+  'technical-art': ['Nodes'],
+  'visualization': ['VJ', 'JJ | Masaba', 'Unicorn', 'Fitmint']
+};

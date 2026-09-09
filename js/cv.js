@@ -1,14 +1,11 @@
 /* ------------------------------------------------------------------
-   Career, from the 2026 CV.  Kept apart from SECTIONS because it is
-   about the person rather than the work: the Experience window reads
-   from here, nothing else does.
-   ------------------------------------------------------------------ */
+   Career, from the 2026 CV.
 
-export const CONTACT = {
-  email: 'govindbmwork@gmail.com',
-  links: 'https://beacons.ai/govindbmohan',
-  based: 'Bangalore, India · from Kerala'
-};
+   Kept apart from SECTIONS because it is about the person rather than
+   the work, and apart from site.js because that is the card — name,
+   role line, where to find him — while this is the history.  The About
+   window is built from both.
+   ------------------------------------------------------------------ */
 
 export const SUMMARY =
   'Hailing from Kerala, India. I love visuals, cloud gazing and speculating ' +

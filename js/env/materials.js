@@ -179,8 +179,20 @@ export function accentGlass(opts = {}) {
    Trim it on weaker GPUs so the refraction pass does not halve the
    frame rate.
    ------------------------------------------------------------------ */
+/* Refraction is a second full render of the scene, every frame, shared
+   by every transmissive surface — here, the three wheel slices.  Their
+   glass is rough (0.34) and therefore blurry anyway, so half resolution
+   would be free quality.
+
+   INERT ON THE PINNED VERSION.  `transmissionResolutionScale` landed in
+   three.js r171; the import map pins r169, so the property does not
+   exist and this function does nothing at all.  It is kept, and kept
+   guarded, because it starts working the moment the pin moves — but do
+   not count it as a saving today.  Until then the lever that actually
+   removes this pass is `transmission: 0` on the slices in wheel.js,
+   which is what LOW_POWER already does for phones. */
 export function tuneTransmission(renderer) {
   if ('transmissionResolutionScale' in renderer) {
-    renderer.transmissionResolutionScale = devicePixelRatio > 1.5 ? 0.5 : 0.75;
+    renderer.transmissionResolutionScale = 0.5;
   }
 }

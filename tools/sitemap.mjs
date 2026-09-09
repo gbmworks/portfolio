@@ -5,20 +5,35 @@
 
    The site has no build step and does not need one — this is the single
    exception, because a sitemap has to be a real file for crawlers and
-   there is now one URL per project.  Run it after adding a project.
+   there is one URL per case study.  Run it after adding a project.
+
+   Only projects that are actually listed on a page get a URL.  A record
+   that no page references is still in projects.js — so an old link to
+   it resolves — but it is not offered to crawlers as if it were part of
+   the site.  Published galleries have no page at all.
    ------------------------------------------------------------------ */
 
 import { writeFileSync } from 'node:fs';
-import { SECTIONS } from '../js/data.js';
-import { PROJECTS, projectUrl } from '../js/projects.js';
+import { SECTIONS } from '../js/sectors.js';
+import { PROJECTS, ARCHIVE, pageEntries } from '../js/projects.js';
+import { projectUrl, sectorUrl } from '../js/links.js';
+import { SITE } from '../js/site.js';
 
-const ORIGIN = 'https://www.govindbmohan.com/';
+const ORIGIN = SITE.origin + '/';
 const today = new Date().toISOString().slice(0, 10);
+
+/* every project reachable from a page, in page order, no duplicates */
+const listed = [];
+for (const s of SECTIONS) {
+  for (const e of pageEntries(s.id)) {
+    if (e.kind === 'project' && !listed.includes(e.project)) listed.push(e.project);
+  }
+}
 
 const urls = [
   { loc: '', priority: '1.0' },
-  ...SECTIONS.map(s => ({ loc: s.id + '.html', priority: '0.8' })),
-  ...PROJECTS.map(p => ({ loc: projectUrl(p), priority: p.feature ? '0.7' : '0.6' }))
+  ...SECTIONS.map(s => ({ loc: sectorUrl(s), priority: '0.8' })),
+  ...listed.map(p => ({ loc: projectUrl(p), priority: '0.6' }))
 ];
 
 const xml =
@@ -33,4 +48,8 @@ ${urls.map(u => `  <url>
 `;
 
 writeFileSync(new URL('../sitemap.xml', import.meta.url), xml);
-console.log(`sitemap.xml — ${urls.length} URLs (${PROJECTS.length} projects)`);
+console.log(
+  `sitemap.xml — ${urls.length} URLs: ${SECTIONS.length} sectors, ` +
+  `${listed.length} project pages listed ` +
+  `(of ${PROJECTS.length} records; ${ARCHIVE.length} galleries have no page)`
+);

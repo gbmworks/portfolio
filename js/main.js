@@ -6,11 +6,13 @@
    world.  Clicking dives into its page.
    ------------------------------------------------------------------ */
 
-import { SECTIONS, ACCENT, ACCENT_GLOW } from './data.js';
+import { SECTIONS, TOTAL } from './sectors.js';
+import { ACCENT, ACCENT_GLOW } from './site.js';
+import { sectorUrl } from './links.js';
 import { createStage, reducedMotion } from './stage.js';
 import { Wheel } from './wheel.js';
 import { DEFAULT_THEME } from './env/themes.js';
-import { initOverlays } from './overlays.js';
+import { mountShell } from './shell.js';
 import { bindNav } from './nav.js';
 
 const INTRO_MS = 3000;
@@ -58,12 +60,14 @@ if (sessionStorage.getItem(SEEN_INTRO)) {
   introEl.addEventListener('click', endIntro);
 }
 
-/* ---------------- floating windows ---------------- */
-initOverlays();
+/* ---------------- the shared bar, and the About window it opens ----------------
+   the landing page is already home, so the bar links out rather than back */
+mountShell({ home: false });
 
 /* ---------------- stage ---------------- */
 const themeKeys = SECTIONS.map(s => s.id);
-const stage = await createStage(canvas, themeKeys);
+/* the landing page is the subject: bloom on, the larger pixel budget */
+const stage = await createStage(canvas, themeKeys, { bloom: true, budget: 'hero' });
 const wheel = new Wheel({ sections: SECTIONS, scene: stage.scene, camera: stage.camera, labelsEl });
 const nav = bindNav({ accent: ACCENT, zoom: -3.4, getZ: () => stage.camera.position.z });
 
@@ -106,7 +110,7 @@ function setHover(i) {
   stage.env.set(s ? s.id : DEFAULT_THEME);
   document.documentElement.style.setProperty('--accent', ACCENT);
   hubValue.textContent = s
-    ? s.index + ' / ' + String(SECTIONS.length).padStart(2, '0')
+    ? s.index + ' / ' + TOTAL
     : 'A SECTOR';
   hubValue.style.color = s ? ACCENT_GLOW : '';
   hintText.textContent = s
@@ -128,7 +132,7 @@ function enter(i) {
   const s = SECTIONS[i];
   wheel.setActive(i);
   hintText.textContent = 'Entering ' + s.title + '…';
-  nav.leave(s.id + '.html', s.color);
+  nav.leave(sectorUrl(s), ACCENT);
 }
 
 canvas.addEventListener('pointerdown', e => {

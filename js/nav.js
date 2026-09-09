@@ -12,11 +12,12 @@
    ------------------------------------------------------------------ */
 
 import { reducedMotion } from './stage.js';
+import { ACCENT } from './site.js';
 
 const LEAVE_MS = 480;
 const INTERNAL = '.sectors a, .panel__nav a, .pnav a, [data-nav]';
 
-export function bindNav({ accent = '#ff5a12', zoom = 0, getZ = null } = {}) {
+export function bindNav({ accent = ACCENT, zoom = 0, getZ = null } = {}) {
   const veil = document.querySelector('#veil');
 
   /* arriving: if the last page painted the veil on its way out, hold it

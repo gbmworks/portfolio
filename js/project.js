@@ -1,21 +1,28 @@
 /* ------------------------------------------------------------------
    One project.
 
-   project.html?p=<slug> — a single template that renders any record in
-   projects.js.  The 3D world behind it is themed to the project's
-   primary sector, so walking from a sector index into a project does
-   not change the room you are standing in.
+   project.html?p=<slug> — a single template that renders any case
+   study in projects.js.  The 3D world behind it is themed to the
+   project's primary sector, so walking from a sector index into a
+   project does not change the room you are standing in.
 
    The head carries only generic metadata, since the file is shared;
    the title, description and canonical URL are corrected here once the
    slug is known.
+
+   A slug that is no longer a page is not a dead end.  Twenty-two
+   records became archive entries and four became one, so this file
+   knows about both and says where the work went instead of showing an
+   empty shell.
    ------------------------------------------------------------------ */
 
-import { SECTIONS, sectionById, PROFILE, coverUrl, behanceUrl } from './data.js';
-import { bySlug, bySector, neighbours, projectUrl, projectStill } from './projects.js';
+import { SECTIONS, sectionById } from './sectors.js';
+import { SITE, ACCENT, ACCENT_GLOW, absolute } from './site.js';
+import { coverUrl, behanceUrl, projectUrl, sectorUrl } from './links.js';
+import { bySlug, archiveBySlug, MOVED, neighbours, homeSector, pageEntries, projectStill } from './projects.js';
 import { createStage } from './stage.js';
-import { mediaTile, postTile, startTiles, grid } from './tiles.js';
-import { initOverlays } from './overlays.js';
+import { mediaTile, startTiles, grid } from './tiles.js';
+import { mountShell } from './shell.js';
 import { bindNav } from './nav.js';
 
 const $ = (s) => document.querySelector(s);
@@ -25,24 +32,29 @@ const esc = (s) => String(s == null ? '' : s)
 
 export async function initProject() {
   const slug = new URLSearchParams(location.search).get('p') || '';
-  const p = bySlug(slug);
 
-  if (!p) { notFound(slug); return; }
+  /* a slug that was folded into another project keeps working */
+  const p = bySlug(MOVED[slug] || slug);
 
-  const sector = sectionById(p.sectors[0]) || SECTIONS[0];
+  if (!p) { missing(slug); return; }
+
+  /* the page it is actually listed on, not the tag it carries */
+  const sector = sectionById(homeSector(p)) || SECTIONS[0];
   document.body.dataset.layout = 'project';
-  document.documentElement.style.setProperty('--accent', sector.color);
+  document.documentElement.style.setProperty('--accent', ACCENT);
 
   describe(p, sector);
+  mountShell();
   $('#work').innerHTML = projectHTML(p, sector);
-  initOverlays();
 
   /* ---------------- backdrop ---------------- */
-  const stage = await createStage($('#stage'), SECTIONS.map(s => s.id), { fps: 30, quality: 0.84 });
+  /* a backdrop, not the subject — see the note in page.js */
+  const stage = await createStage($('#stage'), SECTIONS.map(s => s.id),
+    { fps: 24, quality: 0.84, bloom: false });
   stage.env.set(sector.id, true);
 
   const nav = bindNav({
-    accent: sector.color, zoom: -2.4, getZ: () => stage.camera.position.z
+    accent: ACCENT, zoom: -2.4, getZ: () => stage.camera.position.z
   });
   startTiles(document, { onNavigate: nav.leave });
 
@@ -73,22 +85,21 @@ export async function initProject() {
 
 /* the shell is generic, so correct the metadata once we know the work */
 function describe(p, sector) {
-  const desc = p.summary || `${p.title} — ${sector.title} by ${PROFILE.name}.`;
-  document.title = `${p.title} — ${PROFILE.name}`;
+  const desc = p.summary || `${p.title} — ${sector.title} by ${SITE.name}.`;
+  document.title = `${p.title} — ${SITE.name}`;
   const set = (sel, attr, val) => { const el = $(sel); if (el) el.setAttribute(attr, val); };
   set('meta[name="description"]', 'content', desc);
   set('meta[property="og:title"]', 'content', document.title);
   set('meta[property="og:description"]', 'content', desc);
   set('meta[name="twitter:title"]', 'content', document.title);
   set('meta[name="twitter:description"]', 'content', desc);
-  set('link[rel="canonical"]', 'href', 'https://www.govindbmohan.com/' + projectUrl(p));
-  set('meta[property="og:url"]', 'content', 'https://www.govindbmohan.com/' + projectUrl(p));
+  set('link[rel="canonical"]', 'href', absolute(projectUrl(p)));
+  set('meta[property="og:url"]', 'content', absolute(projectUrl(p)));
   const still = projectStill(p);
   if (still) {
-    const img = coverUrl(still);
-    const abs = img.startsWith('http') ? img : 'https://www.govindbmohan.com/' + img;
-    set('meta[property="og:image"]', 'content', abs);
-    set('meta[name="twitter:image"]', 'content', abs);
+    const img = absolute(coverUrl(still));
+    set('meta[property="og:image"]', 'content', img);
+    set('meta[name="twitter:image"]', 'content', img);
   }
 }
 
@@ -103,17 +114,17 @@ function projectHTML(p, sector) {
     ['Tools', (p.tools || []).join(' · ')],
     ['Sector', p.sectors.map(id => {
       const s = sectionById(id);
-      return s ? `<a href="${s.id}.html" data-nav>${s.title}</a>` : '';
+      return s ? `<a href="${sectorUrl(s)}" data-nav>${s.title}</a>` : '';
     }).filter(Boolean).join(', ')]
   ].filter(([, v]) => v);
 
   const links = [];
   if (p.behance) links.push(['Full case study on Behance', behanceUrl(p.behance)]);
-  links.push(['More on Instagram', PROFILE.instagram]);
+  links.push(['More on Instagram', SITE.instagram]);
 
   return `
     <article class="proj">
-      <a class="panel__back" href="${sector.id}.html" data-nav>
+      <a class="panel__back" href="${sectorUrl(sector)}" data-nav>
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
              stroke-width="1.6"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
         ${esc(sector.title)}</a>
@@ -135,8 +146,8 @@ function projectHTML(p, sector) {
         <div class="proj__copy">
           ${(p.body || []).map(t => `<p>${esc(t)}</p>`).join('')}
           ${!p.body && !p.summary
-            ? `<p class="proj__thin">This one lives as a published gallery rather than a
-                 write-up — the full set of images is on Behance.</p>` : ''}
+            ? `<p class="proj__thin">Not written up — what there is to see is the
+                 gallery and the posts below.</p>` : ''}
           <ul class="proj__links">
             ${links.map(([label, href]) => `
               <li><a href="${href}" target="_blank" rel="noopener noreferrer">${label} ↗</a></li>`).join('')}
@@ -153,13 +164,13 @@ function projectHTML(p, sector) {
       ${p.posts && p.posts.length ? `
         <section class="proj__media">
           <h2 class="proj__h2">Posts</h2>
-          ${grid(p.posts.map(postTile).join(''), 'gal--small')}
+          ${grid(p.posts.map(x => mediaTile({ src: x.cover, title: x.title })).join(''), 'gal--small')}
         </section>` : ''}
 
       <nav class="panel__nav pnav">
-        ${prev ? `<a href="${projectUrl(prev)}" style="--lc:${sector.glow}">
+        ${prev ? `<a href="${projectUrl(prev)}" style="--lc:${ACCENT_GLOW}">
           <span>Previous</span><strong>${esc(prev.title)}</strong></a>` : '<span></span>'}
-        ${next ? `<a href="${projectUrl(next)}" style="--lc:${sector.glow}" class="is-next">
+        ${next ? `<a href="${projectUrl(next)}" style="--lc:${ACCENT_GLOW}" class="is-next">
           <span>Next</span><strong>${esc(next.title)}</strong></a>` : '<span></span>'}
       </nav>
     </article>`;
@@ -181,24 +192,63 @@ function heroHTML(p) {
   return '';
 }
 
-function notFound(slug) {
+/* ------------------------------------------------------------------
+   A slug with no page.
+
+   Either it is in the archive — in which case the work exists, it just
+   lives on Behance now — or it is nothing, and the sectors are listed.
+   ------------------------------------------------------------------ */
+function missing(slug) {
   document.body.dataset.layout = 'project';
-  document.title = 'Project not found — ' + PROFILE.name;
+  document.documentElement.style.setProperty('--accent', ACCENT);
+  mountShell();
+
+  const a = archiveBySlug(slug);
+  const head = a
+    ? {
+        k: 'Archive',
+        title: a.title,
+        lede: 'This one is a published gallery rather than a write-up, so it lives ' +
+              'on Behance rather than as a page here.',
+        links: [
+          a.behance ? [`Open “${a.title}” on Behance`, behanceUrl(a.behance)] : null,
+          ...a.sectors.map(id => {
+            const s = sectionById(id);
+            return s ? [`${s.title} — the rest of the sector`, sectorUrl(s)] : null;
+          })
+        ].filter(Boolean)
+      }
+    : {
+        k: '404',
+        title: `No project called “${slug}”`,
+        lede: 'It may have been renamed. Everything is listed by sector:',
+        links: [
+          ...SECTIONS.map(s => [`${s.title} — ${pageEntries(s.id).length} pieces`, sectorUrl(s)]),
+          ['All work', 'index.html']
+        ]
+      };
+
+  document.title = (a ? a.title : 'Not found') + ' — ' + SITE.name;
+
   $('#work').innerHTML = `
     <article class="proj">
       <header class="proj__head">
-        <span class="proj__k">404</span>
-        <h1 class="proj__title">No project called “${esc(slug)}”</h1>
-        <p class="proj__lede">It may have been renamed. Everything is listed by sector:</p>
+        <span class="proj__k">${esc(head.k)}</span>
+        <h1 class="proj__title">${esc(head.title)}</h1>
+        <p class="proj__lede">${esc(head.lede)}</p>
       </header>
       <div class="proj__body">
         <div class="proj__copy">
           <ul class="proj__links">
-            ${SECTIONS.map(s => `<li><a href="${s.id}.html">${s.title} — ${bySector(s.id).length} projects</a></li>`).join('')}
-            <li><a href="index.html">All work</a></li>
+            ${head.links.map(([label, href]) => {
+              const out = /^https?:/i.test(href);
+              return `<li><a href="${href}"${out ? ' target="_blank" rel="noopener noreferrer"' : ' data-nav'}>${esc(label)}${out ? ' ↗' : ''}</a></li>`;
+            }).join('')}
           </ul>
         </div>
       </div>
     </article>`;
+
+  bindNav({ accent: ACCENT });
   document.documentElement.setAttribute('data-ready', '');
 }

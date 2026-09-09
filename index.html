@@ -1,8 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-stage="hero">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+<!-- What has to be static: crawlers and social scrapers do not run
+     scripts, so the title, description, canonical link and the card
+     block stay here.  Everything else a page needs is in js/boot.js. -->
 <title>Govind B Mohan — 3D Generalist, Industrial Designer &amp; Artist</title>
 <meta name="description" content="Portfolio of Govind B Mohan: industrial design, character technical art and realtime visuals. Three worlds, one wheel." />
 <link rel="canonical" href="https://www.govindbmohan.com/" />
@@ -19,9 +23,27 @@
 <meta name="twitter:description" content="Portfolio of Govind B Mohan: industrial design, character technical art and realtime visuals. Three worlds, one wheel." />
 <meta name="twitter:image" content="https://www.govindbmohan.com/assets/og.jpg" />
 
-<!-- fonts, stylesheet, icons and the boot guard are identical on every
-     page and live in one place -->
-<script src="./js/head.js"></script>
+<!-- Found by the preload scanner while the HTML is still parsing.
+
+     These were injected by js/boot.js, which meant the browser knew
+     about no stylesheet at all until boot.js had been fetched, parsed
+     and run: a whole round trip of dead time before the first CSS
+     request, and the Google Fonts hop stacked in series behind it.
+
+     Yes, this is copied into all five shells. That is the point — the
+     preload scanner only reads markup, so this is the one kind of
+     duplication that has to stay duplicated. -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&amp;family=JetBrains+Mono:wght@400&amp;display=swap" />
+<link rel="stylesheet" href="./css/base.css" />
+<link rel="stylesheet" href="./css/landing.css" />
+<link rel="stylesheet" href="./css/sections.css" />
+<link rel="stylesheet" href="./css/about.css" />
+<link rel="stylesheet" href="./css/tiles.css" />
+<link rel="stylesheet" href="./css/project.css" />
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js" crossorigin />
 
 <script type="importmap">
 {
@@ -32,28 +54,18 @@
 }
 </script>
 
-<!-- warms the rest of the module graph; must follow the import map -->
-<script src="./js/preload.js"></script>
+<!-- fonts, stylesheets, icons, module preloads and the boot guard;
+     must follow the import map -->
+<script src="./js/boot.js"></script>
 </head>
 <body>
-
-  <div id="boot" class="boot">
-    <div class="boot__inner">
-      <h1>Govind B Mohan</h1>
-      <p>3D Generalist · Industrial Designer · Artist</p>
-      <p class="boot__note">The interactive view needs WebGL and a moment to load. Here is the work:</p>
-      <ul>
-        <li><a href="industrial-design.html">Industrial Design</a></li>
-        <li><a href="technical-art.html">Technical Art</a></li>
-        <li><a href="visualization.html">Visualization</a></li>
-      </ul>
-      <p class="boot__note"><a href="https://www.behance.net/govindbm">Behance</a> · <a href="https://www.instagram.com/vindgo.visual/">Instagram</a></p>
-    </div>
-  </div>
 
   <canvas id="stage"></canvas>
   <div class="scrim"></div>
   <div id="veil" class="veil"></div>
+
+  <!-- filled from the <noscript> below if the app never comes up -->
+  <div id="boot" class="fallback"></div>
 
   <!-- ============ INTRO (3s) ============ -->
   <div id="intro" class="intro">
@@ -68,18 +80,9 @@
     </div>
   </div>
 
-  <!-- ============ SELECTION UI ============ -->
+  <!-- ============ SELECTION UI ============
+       the top bar is prepended here by js/shell.js -->
   <div id="ui" class="ui">
-    <header class="topbar">
-      <div class="topbar__id">
-        <strong>GOVIND</strong>
-        <span>3D Generalist · Industrial Designer · Artist</span>
-      </div>
-      <nav class="topbar__nav">
-        <a href="#" data-open="about">About</a>
-        <a href="https://linktr.ee/govindbmwork" target="_blank" rel="noopener noreferrer">Contact</a>
-      </nav>
-    </header>
 
     <!-- left column sits on the first third; the wheel on the golden section -->
     <div class="lede">
@@ -104,14 +107,20 @@
     </div>
   </div>
 
-  <noscript>
-    <div class="noscript">
-      <p>This portfolio runs on WebGL. Without JavaScript, here are the sections:</p>
+  <!-- The fallback, for no JavaScript and for a stall alike: js/boot.js
+       copies this markup into #boot if the app has not signalled ready
+       within seven seconds. -->
+  <noscript class="fallback">
+    <div class="fallback__inner">
+      <h1>Govind B Mohan</h1>
+      <p>3D Generalist · Industrial Designer · Artist</p>
+      <p class="fallback__note">The interactive view needs WebGL and a moment to load. Here is the work:</p>
       <ul>
         <li><a href="industrial-design.html">Industrial Design</a></li>
         <li><a href="technical-art.html">Technical Art</a></li>
         <li><a href="visualization.html">Visualization</a></li>
       </ul>
+      <p class="fallback__note"><a href="https://www.behance.net/govindbm">Behance</a> · <a href="https://www.instagram.com/vindgo.visual/">Instagram</a></p>
     </div>
   </noscript>
 

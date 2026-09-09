@@ -3,6 +3,15 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+<!-- One shell renders every case study, so this head is generic and
+     js/project.js corrects the title, description, canonical link and
+     OG image once it knows the slug.  Google runs scripts and sees the
+     corrected tags; the social scrapers do not, so a link to a specific
+     project pasted into Slack or X shows the generic card.  The
+     alternative is a real HTML file per project, which means a build
+     step and nineteen more copies of this boilerplate — the trade was
+     made deliberately. -->
 <title>Project — Govind B Mohan</title>
 <meta name="description" content="A project by Govind B Mohan: industrial design, character technical art and realtime visuals." />
 <link rel="canonical" href="https://www.govindbmohan.com/project.html" />
@@ -19,9 +28,27 @@
 <meta name="twitter:description" content="A project by Govind B Mohan: industrial design, character technical art and realtime visuals." />
 <meta name="twitter:image" content="https://www.govindbmohan.com/assets/og.jpg" />
 
-<!-- fonts, stylesheet, icons and the boot guard are identical on every
-     page and live in one place -->
-<script src="./js/head.js"></script>
+<!-- Found by the preload scanner while the HTML is still parsing.
+
+     These were injected by js/boot.js, which meant the browser knew
+     about no stylesheet at all until boot.js had been fetched, parsed
+     and run: a whole round trip of dead time before the first CSS
+     request, and the Google Fonts hop stacked in series behind it.
+
+     Yes, this is copied into all five shells. That is the point — the
+     preload scanner only reads markup, so this is the one kind of
+     duplication that has to stay duplicated. -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&amp;family=JetBrains+Mono:wght@400&amp;display=swap" />
+<link rel="stylesheet" href="./css/base.css" />
+<link rel="stylesheet" href="./css/landing.css" />
+<link rel="stylesheet" href="./css/sections.css" />
+<link rel="stylesheet" href="./css/about.css" />
+<link rel="stylesheet" href="./css/tiles.css" />
+<link rel="stylesheet" href="./css/project.css" />
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js" crossorigin />
 
 <script type="importmap">
 {
@@ -32,55 +59,36 @@
 }
 </script>
 
-<!-- warms the rest of the module graph; must follow the import map -->
-<script src="./js/preload.js"></script>
+<!-- fonts, stylesheets, icons, module preloads and the boot guard;
+     must follow the import map -->
+<script src="./js/boot.js"></script>
 </head>
 <body class="is-section">
-
-  <div id="boot" class="boot">
-    <div class="boot__inner">
-      <h1>Govind B Mohan</h1>
-      <p>3D Generalist · Industrial Designer · Artist</p>
-      <p class="boot__note">The interactive view needs WebGL and a moment to load. Here is the work:</p>
-      <ul>
-        <li><a href="industrial-design.html">Industrial Design</a></li>
-        <li><a href="technical-art.html">Technical Art</a></li>
-        <li><a href="visualization.html">Visualization</a></li>
-      </ul>
-      <p class="boot__note"><a href="https://www.behance.net/govindbm">Behance</a> · <a href="https://www.instagram.com/vindgo.visual/">Instagram</a></p>
-    </div>
-  </div>
 
   <canvas id="stage"></canvas>
   <div class="scrim"></div>
   <div id="veil" class="veil"></div>
 
-  <div id="ui" class="ui is-in">
-    <header class="topbar">
-      <div class="topbar__id">
-        <a href="index.html" data-home><strong>GOVIND</strong></a>
-        <span>3D Generalist · Industrial Designer · Artist</span>
-      </div>
-      <nav class="topbar__nav">
-        <a href="index.html" data-home>All work</a>
-        <a href="#" data-open="about">About</a>
-        <a href="https://linktr.ee/govindbmwork" target="_blank" rel="noopener noreferrer">Contact</a>
-      </nav>
-    </header>
-  </div>
+  <!-- filled from the <noscript> below if the app never comes up -->
+  <div id="boot" class="fallback"></div>
 
-  <main id="work" class="work">
-    <noscript>
+  <!-- the top bar is prepended here by js/shell.js -->
+  <div id="ui" class="ui is-in"></div>
+
+  <!-- data-layout="project" needs #work; project.js renders into it -->
+  <main id="work" class="work"></main>
+
+  <noscript class="fallback">
+    <div class="fallback__inner">
       <h1>Project</h1>
-      <p>Project pages are rendered in the browser. Without JavaScript, the work is
-         listed by sector:</p>
+      <p>Project pages are rendered in the browser. The work is listed by sector:</p>
       <ul>
         <li><a href="industrial-design.html">Industrial Design</a></li>
         <li><a href="technical-art.html">Technical Art</a></li>
         <li><a href="visualization.html">Visualization</a></li>
       </ul>
-    </noscript>
-  </main>
+    </div>
+  </noscript>
 
   <script type="module">
     import { initProject } from './js/project.js';

@@ -1,0 +1,220 @@
+/* ==================================================================
+   The landing page, and the bar that sits on every page.
+
+   The 3s intro, the readability scrim, the top bar, the projected sector
+   labels, the lede column, the centre hub and the footer hint.
+
+   Loaded in order by js/boot.js.  The five sheets are one cascade cut
+   into readable pieces, not five independent modules: source order is
+   preserved exactly as it was in the single style.css, so a rule still
+   sees the same rules before it that it always did.
+   ================================================================== */
+
+/* ---------------- INTRO ---------------- */
+.intro{
+  position:fixed; inset:0; z-index:60;
+  display:grid; place-items:center;
+  background:
+    radial-gradient(120% 90% at 50% 45%, #14141d 0%, var(--bg) 60%, #030305 100%);
+  transition:opacity .9s var(--ease), transform 1.1s var(--ease);
+}
+.intro.is-out{ opacity:0; transform:scale(1.06); pointer-events:none; }
+.intro__inner{ text-align:center; padding:0 24px; }
+
+[data-stagger]{
+  opacity:0;
+  transform:translateY(18px);
+  animation:rise .9s var(--ease) forwards;
+}
+[data-stagger]:nth-child(1){ animation-delay:.10s; }
+[data-stagger]:nth-child(2){ animation-delay:.22s; }
+[data-stagger]:nth-child(3){ animation-delay:.42s; }
+[data-stagger]:nth-child(4){ animation-delay:.60s; }
+@keyframes rise{ to{ opacity:1; transform:none; } }
+
+.intro__hello{
+  margin:0 0 10px;
+  font-family:var(--mono); font-size:12px; letter-spacing:.34em;
+  text-transform:uppercase; color:var(--ink-dim);
+}
+.intro__name{
+  margin:0;
+  font-size:clamp(52px, 13vw, 148px);
+  font-weight:700; letter-spacing:.06em; line-height:.95;
+  background:linear-gradient(100deg,#6e6e78 0%, var(--ink) 40%, #9a9aa4 72%, #55555e 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.intro__roles{
+  margin:20px 0 0;
+  display:flex; flex-wrap:wrap; gap:12px; justify-content:center; align-items:center;
+  font-size:clamp(12px,2.2vw,15px); letter-spacing:.20em; text-transform:uppercase;
+  color:var(--ink);
+}
+.intro__roles i{ color:var(--ink-faint); font-style:normal; }
+.intro__tag{
+  margin:14px 0 0;
+  font-family:var(--mono); font-size:12px; letter-spacing:.16em; color:var(--ink-dim);
+}
+.intro__bar{
+  margin:44px auto 0; width:min(240px,52vw); height:1px;
+  background:var(--line); overflow:hidden;
+}
+.intro__bar span{
+  display:block; height:100%; width:0%;
+  background:linear-gradient(90deg,var(--accent),var(--accent-glow));
+}
+
+/* keeps the fixed UI readable whatever world is behind it */
+.scrim{
+  position:fixed; inset:0; z-index:5; pointer-events:none;
+  background:
+    linear-gradient(180deg, rgba(4,4,8,.62) 0%, rgba(4,4,8,0) 20%),
+    linear-gradient(0deg,   rgba(4,4,8,.62) 0%, rgba(4,4,8,0) 18%);
+}
+/* the landing page carries copy down its first third, so that column
+   gets its own falloff and the backdrop never reads through the type */
+body:not(.is-section) .scrim{
+  background:
+    linear-gradient(180deg, rgba(4,4,8,.62) 0%, rgba(4,4,8,0) 20%),
+    linear-gradient(0deg,   rgba(4,4,8,.62) 0%, rgba(4,4,8,0) 18%),
+    linear-gradient(90deg,  rgba(4,4,8,.86) 0%, rgba(4,4,8,.55) 22%, rgba(4,4,8,0) 42%);
+}
+
+/* ---------------- SELECTION UI ---------------- */
+.ui{
+  position:fixed; inset:0; z-index:20;
+  pointer-events:none;
+  opacity:0; transition:opacity .8s var(--ease) .1s;
+}
+.ui.is-in{ opacity:1; }
+
+.topbar{
+  position:absolute; top:0; left:0; right:0;
+  display:flex; justify-content:space-between; align-items:flex-start; gap:20px;
+  padding:clamp(18px,3vw,34px);
+}
+.topbar__id strong{
+  display:block; font-size:14px; letter-spacing:.30em; font-weight:600;
+}
+.topbar__id span{
+  display:block; margin-top:6px;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.14em;
+  color:var(--ink-dim); text-transform:uppercase;
+}
+.topbar__nav{ display:flex; gap:22px; pointer-events:auto; }
+.topbar__nav a{
+  font-family:var(--mono); font-size:11px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--ink-dim);
+  padding-bottom:3px; border-bottom:1px solid transparent;
+  transition:color .3s, border-color .3s;
+}
+.topbar__nav a:hover{ color:var(--ink); border-color:var(--accent); }
+
+/* --- projected sector labels --- */
+.labels{ position:absolute; inset:0; }
+.label{
+  position:absolute; top:0; left:0;
+  width:230px;                     /* JS centres it with translate(-50%,-50%) */
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center;
+  color:var(--ink);                /* the mark is white by default */
+  transition:opacity .4s var(--ease), color .35s var(--ease);
+  will-change:transform,opacity;
+  pointer-events:auto; cursor:pointer;
+  text-decoration:none;
+}
+.label:focus-visible{ outline:none; }
+.label__icon{
+  width:52px; height:52px; margin:0 auto;
+  opacity:.92; transform:scale(.94);
+  transition:opacity .45s var(--ease), transform .55s var(--ease);
+}
+.label__icon svg{ width:100%; height:100%; display:block; overflow:visible; }
+.label__icon svg path,
+.label__icon svg circle{
+  stroke-dasharray:var(--len,120);
+  stroke-dashoffset:0;
+}
+
+.label__title{
+  margin:12px 0 0;
+  font-size:clamp(10px,0.98vw,12.8px); font-weight:700; letter-spacing:.06em;
+  line-height:1.25; text-transform:uppercase;
+  max-width:100%; overflow-wrap:break-word;   /* never clipped, wraps instead */
+  opacity:0; transform:translateY(8px);
+  color:currentColor;
+  transition:opacity .45s var(--ease), transform .5s var(--ease), color .35s;
+}
+
+.label:focus-visible .label__title{ opacity:1; transform:none; }
+.label:focus-visible .label__icon{ opacity:1; }
+.label.is-active{ color:#08080a; }          /* black on the lit slice */
+.label.is-active .label__icon{ opacity:1; transform:scale(1.04); filter:none; }
+.label.is-active .label__title{ text-shadow:none; }
+.label.is-active .label__title{ opacity:1; transform:none; }
+/* icon line-draw on activation */
+.label.is-active .label__icon svg path,
+.label.is-active .label__icon svg circle{
+  animation:draw .75s var(--ease) forwards;
+}
+@keyframes draw{
+  0%   { stroke-dashoffset:var(--len,120); }
+  100% { stroke-dashoffset:0; }
+}
+
+/* --- landing page lede: first third of the screen --- */
+.lede{
+  position:absolute; left:clamp(24px,6.2vw,96px);
+  top:33.3%; transform:translateY(-30%);
+  width:min(30vw,380px);
+  pointer-events:none;
+}
+.lede__k{
+  margin:0 0 14px; font-family:var(--mono); font-size:10px; letter-spacing:.34em;
+  text-transform:uppercase; color:var(--accent);
+}
+.lede__h{
+  margin:0; font-size:clamp(30px,3.6vw,54px); font-weight:700; line-height:1.02;
+  letter-spacing:-.015em; color:var(--ink);
+  text-shadow:0 4px 34px rgba(0,0,0,.55);
+}
+.lede__p{
+  margin:22px 0 0; padding-top:20px; border-top:1px solid var(--line);
+  font-size:12.5px; line-height:1.8; color:var(--ink-dim); max-width:34ch;
+}
+.lede .hint{
+  position:static; margin-top:30px; justify-content:flex-start; text-align:left;
+}
+
+/* --- centre hub --- */
+.hub{
+  position:absolute; top:0; left:0;
+  text-align:center; pointer-events:none;
+  will-change:transform;
+}
+.hub__k{
+  display:block; font-family:var(--mono); font-size:9px;
+  letter-spacing:.34em; color:var(--ink-faint);
+}
+.hub__v{
+  display:block; margin-top:7px;
+  font-size:12px; font-weight:600; letter-spacing:.20em; text-transform:uppercase;
+  color:var(--ink);
+  transition:color .4s;
+}
+
+/* --- footer hint --- */
+.hint{
+  position:absolute; left:0; right:0; bottom:clamp(18px,3vw,32px);
+  display:flex; gap:10px; align-items:center; justify-content:center;
+  flex-wrap:wrap;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--ink-dim);
+}
+.hint__dot{
+  width:5px; height:5px; border-radius:50%;
+  background:var(--accent);
+  animation:pulse 2.4s ease-in-out infinite;
+  transition:background .4s;
+}
+@keyframes pulse{ 0%,100%{opacity:.25; transform:scale(.8);} 50%{opacity:1; transform:scale(1);} }

@@ -1,15 +1,16 @@
 /* ------------------------------------------------------------------
    The About window — one floating panel, shared by every page.
 
-   It is built entirely from js/cv.js: the summary, the work history,
-   education, awards, skills, languages and interests all come from the
-   CV, so that file stays the single source of truth for the person.
+   The work history, education, awards, skills, languages and interests
+   come from js/cv.js; the contact line comes from js/site.js.  Nothing
+   about the person is written here.
    ------------------------------------------------------------------ */
 
 import {
   EXPERIENCE, EDUCATION, AWARDS, SKILLS,
-  LANGUAGES, INTERESTS, SUMMARY, CONTACT
+  LANGUAGES, INTERESTS, SUMMARY
 } from './cv.js';
+import { SITE } from './site.js';
 
 function panelHTML() {
   const jobs = EXPERIENCE.map(j => `
@@ -49,8 +50,8 @@ function panelHTML() {
         <h2>About</h2>
         <p class="win__lede">${SUMMARY}</p>
         <p class="win__meta">
-          <a href="mailto:${CONTACT.email}">${CONTACT.email}</a>
-          <span>${CONTACT.based}</span>
+          <a href="mailto:${SITE.email}">${SITE.email}</a>
+          <span>${SITE.based}</span>
         </p>
       </header>
 

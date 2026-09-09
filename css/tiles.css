@@ -1,0 +1,134 @@
+/* ==================================================================
+   The tile wall — masonry, playback states, the lightbox.
+
+   Every grid on the site: the mosaic, a project page media wall and the
+   Instagram strips.  Grey at rest, colour and playing on hover.
+
+   Loaded in order by js/boot.js.  The five sheets are one cascade cut
+   into readable pieces, not five independent modules: source order is
+   preserved exactly as it was in the single style.css, so a rule still
+   sees the same rules before it that it always did.
+   ================================================================== */
+
+/* ================================================================
+   GALLERY PAGE
+   ================================================================ */
+body.is-gallery{ overflow:visible; height:auto; min-height:100%; }
+body.is-gallery.is-locked{ overflow:hidden; }
+.is-gallery #stage{ touch-action:pan-y; }     /* let the page scroll over the canvas */
+
+.page{ position:relative; z-index:12; display:block; }
+
+.gal{
+  padding:0 clamp(16px,4vw,64px) 40px;
+  background:linear-gradient(180deg, rgba(6,6,10,0) 0%, rgba(6,6,10,.86) 6%, rgba(6,6,10,.93) 100%);
+}
+/* --- masonry --- */
+.gal-grid{ columns:5; column-gap:14px; }
+@media (max-width:1600px){ .gal-grid{ columns:4; } }
+@media (max-width:1200px){ .gal-grid{ columns:3; } }
+@media (max-width:820px){  .gal-grid{ columns:2; } }
+@media (max-width:520px){  .gal-grid{ columns:1; } }
+
+.tile{
+  break-inside:avoid; margin:0 0 14px;
+  border:1px solid var(--line); border-radius:12px; overflow:hidden;
+  background:#0c0c13; cursor:zoom-in;
+  transition:border-color .35s, transform .5s var(--ease);
+  /* a wall of 24 tiles only pays layout and paint for what is on screen */
+  content-visibility:auto;
+  contain-intrinsic-size:auto 340px;
+}
+.tile:hover,
+.tile.is-live{ border-color:color-mix(in srgb, var(--accent) 55%, transparent); transform:translateY(-3px); }
+.tile.has-link{ cursor:alias; }
+.tile__media{
+  position:relative; width:100%;
+  aspect-ratio:var(--ar, 3 / 4);
+  max-height:62vh;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 24%, transparent), transparent 60%),
+    #0c0c13;
+}
+.tile__el{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; display:block;
+  opacity:0;
+  /* the wall rests desaturated; hover brings the piece back to colour */
+  filter:saturate(.14) contrast(1.04) brightness(.86);
+  transition:opacity .6s var(--ease), filter .55s var(--ease), transform .7s var(--ease);
+}
+.tile.is-ready .tile__el{ opacity:1; }
+.tile.is-live .tile__el{ filter:none; transform:scale(1.015); }
+.tile__spin{
+  position:absolute; left:50%; top:50%; width:18px; height:18px; margin:-9px 0 0 -9px;
+  border:1px solid var(--line); border-top-color:var(--accent); border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+.tile.is-ready .tile__spin{ display:none; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+
+.tile__cap{
+  display:grid; grid-template-columns:1fr auto; align-items:baseline;
+  gap:2px 10px; padding:10px 12px 11px;
+}
+.tile__group{
+  grid-column:1 / -1;
+  font-family:var(--mono); font-size:8.5px; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--ink-faint);
+}
+.tile__title{ font-size:12px; font-weight:600; letter-spacing:.01em; line-height:1.35; }
+.tile__src{
+  font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-faint); white-space:nowrap; transition:color .3s;
+}
+.tile:hover .tile__src{ color:var(--accent); }
+
+/* --- lightbox --- */
+.lightbox{
+  position:fixed; inset:0; z-index:90;
+  display:grid; place-items:center; gap:14px; align-content:center;
+  padding:clamp(20px,5vw,64px);
+  background:rgba(3,3,6,.90);
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  opacity:0; pointer-events:none; transition:opacity .35s var(--ease);
+}
+.lightbox.is-open{ opacity:1; pointer-events:auto; cursor:zoom-out; }
+.lightbox__stage{ display:grid; place-items:center; max-width:100%; }
+.lightbox__stage video, .lightbox__stage img{
+  max-width:min(1400px,92vw); max-height:80vh; border-radius:10px; display:block;
+  box-shadow:0 30px 90px rgba(0,0,0,.6);
+}
+.lightbox__cap{
+  margin:0; font-family:var(--mono); font-size:10.5px; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--ink-dim);
+}
+.lightbox__close{
+  position:absolute; top:22px; right:26px; font-size:30px; line-height:1; color:var(--ink-dim);
+}
+.lightbox__close:hover{ color:var(--ink); }
+
+/* --- foot --- */
+.page-foot{
+  padding:clamp(40px,6vw,80px) clamp(16px,4vw,64px) clamp(48px,8vw,110px);
+  background:rgba(6,6,10,.93);
+}
+.page-foot .panel__nav{ margin-top:0; }
+.page-foot__note{
+  margin:34px 0 0; font-family:var(--mono); font-size:10px; line-height:1.9; color:var(--ink-faint);
+}
+.page-foot__note code{ color:var(--ink-dim); }
+
+@media (max-width:900px){
+  .lede{ position:static; width:auto; margin:0; padding:0 24px; transform:none; }
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{ animation-duration:.01ms !important; transition-duration:.05ms !important; }
+}
+
+/* keyboard focus, everywhere it matters */
+a:focus-visible, button:focus-visible, .tile:focus-visible, .gal-group__head:focus-visible{
+  outline:2px solid var(--accent); outline-offset:3px; border-radius:4px;
+}
+.tile:focus-visible{ outline-offset:2px; }

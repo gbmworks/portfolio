@@ -1,0 +1,341 @@
+/* ==================================================================
+   Section pages — the index, its layouts and the preview stage.
+
+   The reading panel and the project index, the per-sector arrangements
+   (sheet on the left, mosaic across the page), the mosaic bar, the
+   preview stage that replaced the wheel, and the sector switcher.
+
+   Loaded in order by js/boot.js.  The five sheets are one cascade cut
+   into readable pieces, not five independent modules: source order is
+   preserved exactly as it was in the single style.css, so a rule still
+   sees the same rules before it that it always did.
+   ================================================================== */
+
+/* ---------------- SECTION PANEL ---------------- */
+.panel{
+  position:fixed; z-index:30;
+  top:0; right:0; bottom:0;
+  width:min(38.2vw, 660px); min-width:420px; max-width:100%;
+  /* No backdrop-filter.  This panel is 660px wide and full height, and
+     it sits over a canvas that changes every frame — so the blur had to
+     be recomputed every frame, over about a fifth of the screen, for an
+     effect you cannot see through a gradient this opaque.  The opacity
+     below does the one job the blur was there for: keeping the type
+     readable over a moving world. */
+  background:linear-gradient(180deg, rgba(10,10,16,.90), rgba(6,6,10,.975));
+  border-left:1px solid var(--line);
+}
+.panel__scroll{
+  height:100%; overflow-y:auto; overscroll-behavior:contain; overflow-anchor:none;
+  padding:clamp(26px,4vw,44px) clamp(24px,4vw,52px) 72px;
+}
+.panel__scroll::-webkit-scrollbar{ width:6px; }
+.panel__scroll::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.14); border-radius:99px; }
+
+.panel__back{
+  display:inline-flex; align-items:center; gap:8px; margin-bottom:34px;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-dim); transition:color .3s, gap .3s;
+}
+.panel__back:hover{ color:var(--accent); gap:12px; }
+
+.panel__index{
+  font-family:var(--mono); font-size:11px; letter-spacing:.3em; color:var(--accent);
+}
+.panel__title{
+  margin:12px 0 0;
+  font-size:clamp(32px,4.4vw,52px); font-weight:700; line-height:1.0; letter-spacing:.005em;
+}
+.panel__sub{ margin:14px 0 0; font-size:14.5px; color:var(--ink); opacity:.85; }
+.panel__blurb{
+  margin:20px 0 0; padding-top:20px; border-top:1px solid var(--line);
+  font-size:13.5px; line-height:1.78; color:var(--ink-dim); max-width:52ch;
+}
+
+.panel__nav{
+  margin-top:44px; padding-top:24px; border-top:1px solid var(--line);
+  display:flex; justify-content:space-between; gap:18px;
+}
+.panel__nav a{ display:grid; gap:6px; max-width:48%; }
+.panel__nav a.is-next{ text-align:right; }
+.panel__nav span{
+  font-family:var(--mono); font-size:9.5px; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--ink-faint);
+}
+.panel__nav strong{
+  font-size:14px; font-weight:600; color:var(--ink-dim); transition:color .3s;
+}
+.panel__nav a:hover strong{ color:var(--lc,var(--accent)); }
+
+/* ---------------- PUBLISHED-WORK INDEX ---------------- */
+.plinks{ margin-top:40px; }
+.plinks__head{
+  display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap;
+  padding-bottom:16px; margin-bottom:6px; border-bottom:1px solid var(--line);
+}
+.plinks__head h2{ margin:0; font-size:clamp(18px,2.4vw,26px); font-weight:700; }
+.plinks__head a{
+  font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-dim); transition:color .3s;
+}
+.plinks__head a:hover{ color:var(--accent); }
+.plinks__note{
+  margin:14px 0 4px; font-size:12.5px; line-height:1.7; color:var(--ink-dim); max-width:52ch;
+}
+
+.plinks__tags{ margin:14px 0 2px; display:flex; flex-wrap:wrap; gap:7px; }
+.plinks__tags span{
+  font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
+  padding:4px 10px; border-radius:99px;
+  border:1px solid var(--line); color:var(--ink-dim);
+}
+.plinks + .plinks{ margin-top:clamp(38px,5vw,64px); }
+
+.plink{
+  position:relative;
+  display:grid; grid-template-columns:30px 1fr auto 16px; align-items:baseline; gap:14px;
+  padding:15px 6px 15px 4px;
+  border-bottom:1px solid var(--line);
+  transition:padding-left .35s var(--ease), border-color .35s;
+}
+.plink::before{
+  content:''; position:absolute; left:0; top:0; bottom:0; width:2px;
+  background:var(--accent); transform:scaleY(0); transform-origin:center;
+  transition:transform .35s var(--ease);
+}
+.plink:hover{ padding-left:14px; border-color:color-mix(in srgb, var(--accent) 40%, transparent); }
+.plink:hover::before{ transform:scaleY(1); }
+.plink__n{
+  font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; color:var(--ink-faint);
+}
+.plink__t{
+  font-size:14.5px; font-weight:500; line-height:1.35; color:var(--ink-dim);
+  transition:color .3s;
+}
+.plink:hover .plink__t{ color:var(--ink); }
+.plink__y{ font-family:var(--mono); font-size:10px; color:var(--ink-faint); white-space:nowrap; }
+.plink__go{ color:var(--ink-faint); opacity:0; transform:translate(-4px,4px);
+  transition:opacity .3s, transform .35s var(--ease); align-self:center; }
+.plink:hover .plink__go{ opacity:1; transform:none; color:var(--accent); }
+
+@media (max-width:620px){
+  .plink{ grid-template-columns:26px 1fr auto; }
+  .plink__go{ display:none; }
+}
+
+/* ================================================================
+   PER-SECTOR LAYOUTS
+   Each class gets its own arrangement — a drawing sheet, a pipeline
+   column, and a mosaic.
+   ================================================================ */
+
+/* --- 01 · Industrial Design: sheet on the LEFT, drafting rules --- */
+body[data-layout="sheet"] .panel{
+  left:0; right:auto;
+  border-left:0; border-right:1px solid var(--line);
+  /* re-declared, so it carries the same opacity as .panel above — the
+     blur that used to sit behind it is gone */
+  background:linear-gradient(180deg, rgba(10,10,16,.92), rgba(6,6,10,.975));
+}
+body[data-layout="sheet"] .panel__scroll{
+  background-image:
+    linear-gradient(90deg, var(--line) 1px, transparent 1px),
+    linear-gradient(180deg, var(--line) 1px, transparent 1px);
+  background-size:48px 48px;
+  background-position:-1px -1px;
+}
+/* The sheet occupies the top-left, so the identity moves out of its way.
+   With it gone the bar has one child left, and space-between put that
+   child at the *start* — About and Contact ended up underneath the
+   sheet, which is z-index 30 to the bar's 20, and were unreachable.
+   The nav belongs on the right whether or not the identity is there. */
+body[data-layout="sheet"] .topbar__id{ display:none; }
+body[data-layout="sheet"] .topbar{ justify-content:flex-end; }
+
+body[data-layout="sheet"] .panel__head{
+  padding-bottom:22px; border-bottom:1px solid var(--line);
+}
+body[data-layout="sheet"] .panel__title::after{
+  content:''; display:block; width:56px; height:1px; margin-top:18px;
+  background:var(--accent);
+}
+/* the index runs as a two-column drafting register */
+body[data-layout="sheet"] .plinks__list{
+  display:grid; grid-template-columns:1fr 1fr; column-gap:22px;
+}
+body[data-layout="sheet"] .plink{ grid-template-columns:26px 1fr 16px; row-gap:3px; }
+body[data-layout="sheet"] .plink__y{ grid-column:2; grid-row:2; white-space:normal; }
+body[data-layout="sheet"] .plink::after{
+  content:''; position:absolute; left:0; bottom:-1px; width:7px; height:5px;
+  border-left:1px solid var(--line); border-bottom:1px solid var(--line);
+}
+@media (max-width:1180px){
+  body[data-layout="sheet"] .plinks__list{ grid-template-columns:1fr; }
+}
+
+/* --- 03 · Visualization: the whole page is the mosaic --- */
+.galbar{
+  position:relative; z-index:2;
+  display:flex; align-items:baseline; gap:clamp(16px,3vw,40px); flex-wrap:wrap;
+  padding:clamp(74px,10vh,110px) clamp(16px,4vw,64px) clamp(16px,2vw,26px);
+  background:linear-gradient(180deg, rgba(6,6,10,.94), rgba(6,6,10,.86));
+  border-bottom:1px solid var(--line);
+}
+.galbar__back{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-dim); transition:color .3s;
+}
+.galbar__back:hover{ color:var(--accent); }
+.galbar__title{
+  margin:0; display:flex; align-items:baseline; gap:14px;
+  font-size:clamp(24px,3.2vw,40px); font-weight:700; letter-spacing:-.01em;
+}
+.galbar__title span{
+  font-family:var(--mono); font-size:11px; font-weight:400; letter-spacing:.3em;
+  color:var(--accent);
+}
+.galbar__count{
+  margin-left:auto;
+  font-family:var(--mono); font-size:10px; letter-spacing:.24em;
+  text-transform:uppercase; color:var(--ink-faint);
+}
+.gal--mosaic{ background:rgba(6,6,10,.86); padding-top:0; }
+/* An entry with no artwork in the repo says its own name instead of
+   showing a broken frame — a typographic plate, not a placeholder. */
+.tile.is-flat .tile__media{
+  aspect-ratio:4 / 3;
+  display:flex; align-items:flex-end; justify-content:flex-start; gap:14px;
+  padding:18px;
+  background:
+    radial-gradient(130% 110% at 12% 0%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 64%),
+    linear-gradient(155deg, rgba(255,255,255,.06), transparent 58%),
+    #0e0e14;
+}
+.tile__plate{
+  font-size:clamp(15px,2.1vw,21px); font-weight:700; line-height:1.14;
+  letter-spacing:-.012em; color:var(--ink); text-wrap:balance;
+  transition:color .35s var(--ease);
+}
+.tile.is-flat:hover .tile__plate{ color:var(--accent); }
+.tile__glyph{
+  position:absolute; top:16px; right:16px;
+  width:20px; height:20px; color:var(--accent); opacity:.6;
+  transition:opacity .35s var(--ease), transform .45s var(--ease);
+}
+.tile__glyph svg{ width:100%; height:100%; display:block; }
+.tile.is-flat:hover .tile__glyph{ opacity:1; transform:scale(1.1); }
+/* the plate already carries the name, so the caption drops to the meta */
+.tile.is-flat .tile__title{ display:none; }
+.tile.is-flat .tile__cap{ grid-template-columns:1fr; }
+.gal--small .tile.is-flat .tile__plate{ font-size:12px; }
+
+@media (max-width:900px){
+  body[data-layout="sheet"] .panel{
+    left:0; right:0; transform:none; width:100%; min-width:0;
+    border-left:0; border-right:0;
+  }
+
+}
+
+/* ================================================================
+   PREVIEW STAGE  —  what used to be the wheel's space
+   ================================================================ */
+.stage{
+  position:fixed; z-index:14; pointer-events:none;
+  opacity:0; transition:opacity .5s var(--ease);
+}
+.stage.is-on{ opacity:1; }
+
+/* The stage owns the whole area the sheet leaves and centres itself in
+   it, rather than hanging off the right edge.  `left` is exactly where
+   the panel ends, so the frame is centred in what is actually free —
+   not in the viewport, which would push it under the sheet. */
+body[data-layout="sheet"] .stage{
+  top:50%; transform:translateY(-50%);
+  /* the same expression the panel resolves to — width:min(38.2vw,660px)
+     with min-width:420px — so the stage starts exactly where the sheet
+     ends rather than a few pixels under it on a narrow window */
+  left:clamp(420px, 38.2vw, 660px); right:0;
+  display:grid; place-items:center;
+  padding:0 clamp(20px,2.6vw,52px);
+}
+.stage__frame{
+  position:relative; width:100%; aspect-ratio:16 / 10;
+  border:1px solid var(--line); border-radius:14px; overflow:hidden;
+  background:#0a0a10;
+  box-shadow:0 40px 90px rgba(0,0,0,.55);
+}
+/* 131vh keeps a 16:10 frame under about 82% of the window height, so a
+   short window shrinks it rather than cropping it. */
+body[data-layout="sheet"] .stage__frame{
+  width:min(100%, 1360px, 131vh);
+}
+
+.stage__still{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; display:block; opacity:0;
+  transition:opacity .45s var(--ease);
+}
+.stage__frame[data-mode="still"] .stage__still{ opacity:1; }
+/* covers are whole compositions — show them entire, not cropped */
+.stage__still{ object-fit:contain; background:#0a0a10; }
+/* the still is also the instant layer under a clip: it paints while the
+   video decodes, so sweeping the index never flashes black */
+.stage__frame[data-mode="play"] .stage__still{ opacity:1; }
+
+.stage__video{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; display:block; opacity:0;
+  transition:opacity .45s var(--ease);
+}
+.stage__frame[data-mode="play"] .stage__video{ opacity:1; }
+
+.stage__empty, .stage__idle{
+  position:absolute; inset:0; display:none;
+  flex-direction:column; align-items:center; justify-content:center; gap:10px;
+  padding:26px; text-align:center;
+}
+.stage__frame[data-mode="empty"] .stage__empty{ display:flex; }
+.stage__frame[data-mode="idle"]  .stage__idle{ display:flex; }
+
+/* Nothing to show is still something to look at: a project with no
+   artwork in the repo gets its name set large on the dark card, the
+   same typographic plate the tile wall uses, rather than one grey line
+   of apology in the middle of a very large empty frame. */
+.stage__empty{ gap:14px; }
+.stage__empty .stage__title{
+  font-size:clamp(24px,3.4vw,46px); line-height:1.1; letter-spacing:-.015em;
+  max-width:16ch;
+}
+.stage__meta{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--ink-dim);
+}
+.stage__title{ font-size:16px; font-weight:600; color:var(--ink); max-width:26ch; }
+.stage__note, .stage__hint{
+  font-family:var(--mono); font-size:10px; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--ink-faint);
+}
+.stage__sector{
+  font-family:var(--mono); font-size:10px; letter-spacing:.3em;
+  text-transform:uppercase; color:var(--accent);
+}
+
+/* sector switcher, since the wheel no longer does it */
+.sectors{
+  display:flex; flex-wrap:wrap; gap:8px;
+  margin:30px 0 4px; padding-top:22px; border-top:1px solid var(--line);
+}
+.sectors a{
+  display:inline-flex; align-items:baseline; gap:8px;
+  padding:7px 13px; border-radius:99px; border:1px solid var(--line);
+  font-size:11.5px; color:var(--ink-dim);
+  transition:color .3s, border-color .3s, background .3s;
+}
+.sectors a span{ font-family:var(--mono); font-size:9px; color:var(--ink-faint); }
+.sectors a:hover{ color:var(--ink); border-color:color-mix(in srgb, var(--accent) 50%, transparent); }
+.sectors a.is-current{
+  color:var(--accent); border-color:color-mix(in srgb, var(--accent) 55%, transparent);
+  background:color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.sectors a.is-current span{ color:var(--accent); }

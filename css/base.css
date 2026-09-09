@@ -1,0 +1,89 @@
+/* ==================================================================
+   Tokens, reset, the canvas — and the fallback page.
+
+   The custom properties every other sheet reads, the reset, and the
+   WebGL canvas itself.
+
+   Loaded in order by js/boot.js.  The five sheets are one cascade cut
+   into readable pieces, not five independent modules: source order is
+   preserved exactly as it was in the single style.css, so a rule still
+   sees the same rules before it that it always did.
+   ================================================================== */
+
+/* =================================================================
+   GOVIND — portfolio
+   ================================================================= */
+
+:root{
+  --bg:        #07070b;
+  --bg-2:      #0d0d14;
+  --ink:       #f2f0ee;
+  --ink-dim:   #9c9aa6;
+  --ink-faint: #55535f;
+  --line:      rgba(255,255,255,.10);
+  /* monochrome system — one fluorescent accent, used only for live state */
+  --c1:#5a5a62;  --c2:#8e8e96;  --c3:#c8c8d0;
+  --accent:      #ff5a12;
+  --accent-glow: #ff9048;
+  --font: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  --ease: cubic-bezier(.16,1,.3,1);
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font);
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+a{ color:inherit; text-decoration:none; }
+button{ font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+
+#stage{
+  position:fixed; inset:0;
+  width:100%; height:100%;
+  display:block;
+  touch-action:none;
+}
+
+/* ==================================================================
+   THE FALLBACK PAGE
+
+   One style for two situations that always wanted the same thing:
+   JavaScript is off (<noscript class="fallback">), or the app never
+   signalled ready within seven seconds — a blocked CDN, no WebGL, a
+   very slow first load — and js/boot.js copies the noscript markup
+   into #boot and sets body.is-stalled.
+
+   These used to be .noscript and .boot: two rulesets, two blocks of
+   markup per page, saying the same thing in different type.
+   ================================================================== */
+.fallback{
+  position:fixed; inset:0; z-index:95;
+  display:grid; place-items:center; text-align:center;
+  padding:32px; background:var(--bg);
+}
+/* #boot is empty and hidden until the guard fires; a <noscript> is only
+   rendered at all when there is no scripting, so it needs no toggle */
+#boot.fallback{ display:none; }
+body.is-stalled #boot.fallback{ display:grid; }
+
+.fallback__inner h1{
+  margin:0; font-size:clamp(28px,5vw,54px); font-weight:700; letter-spacing:.02em;
+}
+.fallback__inner > p{
+  margin:12px 0 0; font-family:var(--mono); font-size:11px; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--ink-dim);
+}
+.fallback__note{
+  margin-top:26px !important; text-transform:none !important; letter-spacing:.04em !important;
+}
+.fallback__inner ul{
+  list-style:none; margin:22px 0 0; padding:0; display:grid; gap:10px; justify-items:center;
+}
+.fallback__inner a{ color:var(--accent); border-bottom:1px solid currentColor; }
+.fallback__inner li a{ font-size:17px; font-weight:600; }

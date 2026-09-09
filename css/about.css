@@ -1,0 +1,159 @@
+/* ==================================================================
+   The About window, the page-transition veil, shared responsive rules.
+
+   One floating panel built from cv.js, the coloured veil every page
+   leaves through, and the responsive rules that follow them.
+
+   Loaded in order by js/boot.js.  The five sheets are one cascade cut
+   into readable pieces, not five independent modules: source order is
+   preserved exactly as it was in the single style.css, so a rule still
+   sees the same rules before it that it always did.
+   ================================================================== */
+
+/* ================================================================
+   FLOATING WINDOW  —  Experience
+   ================================================================ */
+.win{
+  position:fixed; inset:0; z-index:70;
+  display:grid; place-items:center;
+  padding:clamp(16px,4vw,48px);
+  background:rgba(4,4,7,.74);
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  opacity:0; pointer-events:none; transition:opacity .45s var(--ease);
+}
+.win.is-open{ opacity:1; pointer-events:auto; }
+.win__panel{
+  position:relative;
+  width:min(1120px, 94vw); max-height:88vh; overflow-y:auto;
+  padding:clamp(26px,3.4vw,46px);
+  border:1px solid var(--line); border-radius:16px;
+  background:linear-gradient(180deg,#101018,#0a0a10);
+  transform:translateY(20px); transition:transform .6s var(--ease);
+}
+.win.is-open .win__panel{ transform:none; }
+.win__panel::-webkit-scrollbar{ width:6px; }
+.win__panel::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.14); border-radius:99px; }
+.win__close{
+  position:absolute; top:14px; right:20px; font-size:26px; line-height:1;
+  color:var(--ink-faint); transition:color .3s; z-index:2;
+}
+.win__close:hover{ color:var(--ink); }
+
+.win__head h2{ margin:0; font-size:clamp(26px,3.2vw,40px); font-weight:700; }
+.win__lede{
+  margin:16px 0 0; max-width:62ch; font-size:13.5px; line-height:1.8; color:var(--ink-dim);
+}
+.win__meta{
+  margin:14px 0 0; display:flex; flex-wrap:wrap; gap:8px 20px;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-faint);
+}
+.win__meta a{ color:var(--accent); }
+.win__body{
+  display:grid; grid-template-columns:1fr 300px; gap:clamp(24px,3vw,52px);
+  margin-top:34px; padding-top:26px; border-top:1px solid var(--line);
+}
+.win__k{
+  margin:0 0 18px; font-family:var(--mono); font-size:9.5px; letter-spacing:.28em;
+  text-transform:uppercase; color:var(--accent);
+}
+.win__side .win__k:not(:first-child){ margin-top:34px; }
+.win__k--gap{ margin-top:38px; padding-top:26px; border-top:1px solid var(--line); }
+
+.skills{ display:grid; gap:16px; }
+.skill{ display:grid; gap:5px; }
+.skill__k{
+  font-family:var(--mono); font-size:9.5px; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--ink-dim);
+}
+.skill__v{ margin:0; font-size:12.5px; line-height:1.7; color:var(--ink-dim); }
+
+.win__tags{ margin:0; display:flex; flex-wrap:wrap; gap:6px; }
+.win__tags span{
+  font-family:var(--mono); font-size:9.5px; letter-spacing:.1em;
+  padding:4px 9px; border-radius:99px;
+  border:1px solid var(--line); color:var(--ink-dim);
+}
+
+.xp{ padding:0 0 22px; margin-bottom:22px; border-bottom:1px solid var(--line); }
+.xp:last-child{ border-bottom:0; margin-bottom:0; }
+.xp__head{ display:grid; grid-template-columns:1fr auto; gap:4px 16px; align-items:baseline; }
+.xp__role{ margin:0; font-size:15.5px; font-weight:600; letter-spacing:.005em; }
+.xp__org{
+  grid-column:1; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-dim);
+}
+.xp__when{
+  grid-row:1 / span 2; grid-column:2; align-self:start;
+  font-family:var(--mono); font-size:10px; color:var(--ink-faint); white-space:nowrap;
+}
+.xp.is-now .xp__when{ color:var(--accent); }
+.xp__points{ margin:14px 0 0; padding:0; list-style:none; display:grid; gap:9px; }
+.xp__points li{
+  position:relative; padding-left:16px;
+  font-size:12.5px; line-height:1.72; color:var(--ink-dim);
+}
+.xp__points li::before{
+  content:''; position:absolute; left:0; top:.62em;
+  width:5px; height:1px; background:var(--ink-faint);
+}
+
+.edus, .awards{ list-style:none; margin:0; padding:0; display:grid; gap:16px; }
+.edu{ display:grid; gap:3px; padding-bottom:14px; border-bottom:1px solid var(--line); }
+.edu:last-child{ border-bottom:0; }
+.edu__what{ font-size:13px; font-weight:600; }
+.edu__note{ font-size:11.5px; color:var(--ink-dim); line-height:1.55; }
+.edu__when, .edu__score{ font-family:var(--mono); font-size:10px; color:var(--ink-faint); }
+.edu__score{ color:var(--ink-dim); }
+
+.award{ display:grid; grid-template-columns:26px 1fr auto; gap:10px; align-items:baseline; }
+.award__n{ font-family:var(--mono); font-size:10px; color:var(--accent); }
+.award__t{ font-size:12px; line-height:1.5; color:var(--ink-dim); }
+.award__w{ font-family:var(--mono); font-size:10px; color:var(--ink-faint); }
+
+@media (max-width:900px){
+  .win__body{ grid-template-columns:1fr; }
+  body[data-layout="sheet"] .stage{
+    position:fixed; top:auto; bottom:16px; right:16px; left:16px;
+    width:auto; transform:none;
+  }
+}
+
+/* ---------------- TRANSITION VEIL ---------------- */
+.veil{
+  position:fixed; inset:0; z-index:70;
+  opacity:0; pointer-events:none;
+  transition:opacity .55s var(--ease);
+  mix-blend-mode:screen;
+}
+.veil.is-on{ opacity:.80; }
+
+.is-section .topbar__id a{ transition:opacity .3s; }
+.is-section .topbar__id a:hover{ opacity:.65; }
+
+/* ---------------- RESPONSIVE ---------------- */
+body.is-narrow .lede{
+  position:absolute; top:auto; bottom:clamp(18px,5vh,54px); transform:none;
+  width:calc(100% - 48px);
+}
+body.is-narrow .lede__h{ font-size:clamp(26px,7vw,38px); }
+body.is-narrow .lede__p{ display:none; }
+
+@media (max-width:860px){
+  .label{ width:170px; }
+  .label__icon{ width:42px; height:42px; }
+  .label__icon{ width:34px; height:34px; }
+  .topbar__id span{ display:none; }
+}
+
+@media (max-width:900px){
+  .panel{
+    width:100%; top:40vh; border-left:0; border-top:1px solid var(--line);
+    border-radius:20px 20px 0 0;
+    background:linear-gradient(180deg, rgba(10,10,16,.86), rgba(6,6,10,.97));
+  }
+  .panel__scroll{ padding-top:30px; }
+  
+  .panel__nav{ flex-direction:column; }
+  .panel__nav a, .panel__nav a.is-next{ max-width:100%; text-align:left; }
+}

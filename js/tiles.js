@@ -2,17 +2,16 @@
    Tile walls.
 
    One engine renders every grid on the site: the Visualization mosaic,
-   a project page's own media, and the Instagram strip under an index.
-   The wall sits desaturated and still; hover a tile and it comes to
-   colour and plays at normal speed.  Only what you are actually
-   looking at decodes.
+   the archive of published galleries, a project page's own media, and
+   the Instagram strip under an index.  The wall sits desaturated and
+   still; hover a tile and it comes to colour and plays at normal
+   speed.  Only what you are actually looking at decodes.
 
-   A tile either goes somewhere — a project page, a published post —
-   or, having nowhere to go, opens in the lightbox.
+   A tile either goes somewhere — a project page, a Behance gallery, a
+   published post — or, having nowhere to go, opens in the lightbox.
    ------------------------------------------------------------------ */
 
-import { coverUrl, igUrl } from './data.js';
-import { projectUrl, projectStill } from './projects.js';
+import { pageEntries } from './projects.js';
 
 const ATTACH_PX = 400;      // load a poster frame this close to the viewport
 const RELEASE_MS = 5000;    // ...and release it this long after leaving
@@ -44,11 +43,11 @@ const GLYPH = {
    one tile
    ------------------------------------------------------------------ */
 
-/*  media  { src }            a local file, lazy-loaded
-    still  'path'             an image to show instead
+/*  still  'path'             an image to show
+    clip   'path'             a local file, lazy-loaded
     href   ''                 where a click goes; empty opens the lightbox
     group  'Fitmint'          the small line above the title
-    mark   'Behance'          badge for a tile with no image of its own  */
+    mark   'Behance'          badge naming where a click lands  */
 function tile({ title, group = '', href = '', still = '', clip = '', mark = '', label = '' }) {
   const src = still || clip;
   const kind = still ? 'image' : clip ? 'video' : 'none';
@@ -79,26 +78,20 @@ function tile({ title, group = '', href = '', still = '', clip = '', mark = '', 
     </figure>`;
 }
 
-/* a project, as a tile that opens its page */
-export const projectTile = (p) => {
-  const still = projectStill(p);
-  return tile({
-    title: p.title,
-    group: p.client || p.role || '',
-    href: projectUrl(p),
-    still: still ? coverUrl(still) : '',
-    clip: still ? '' : (p.preview || ''),
-    label: p.title + ' — open the project'
-  });
-};
+/* One tile for anything on a page.
 
-/* an Instagram one-off, as a tile that opens the post */
-export const postTile = (post) => tile({
-  title: post.title,
-  href: igUrl(post),
-  still: post.cover || '',
-  mark: 'Instagram',
-  label: post.title + ' — opens on Instagram'
+   There is deliberately no projectTile / archiveTile / postTile any
+   more.  A page is one running order and everything in it is drawn the
+   same way; `entry.href` already knows whether the click stays here,
+   opens a Behance gallery or opens a post, and nothing on the tile
+   announces which. */
+export const entryTile = (entry) => tile({
+  title: entry.title,
+  group: entry.meta,
+  href: entry.href,
+  still: entry.still,
+  clip: entry.still ? '' : entry.clip,
+  label: entry.title + (entry.external ? ' — opens where it is published' : '')
 });
 
 /* a file belonging to a project — nowhere to go, so it opens large */
@@ -113,41 +106,22 @@ export const grid = (html, extra = '') =>
   `<div class="gal gal--mosaic${extra ? ' ' + extra : ''}"><div class="gal-grid">${html}</div></div>`;
 
 /* ------------------------------------------------------------------
-   the Visualization page: every project in the sector, then the
-   one-offs that never became one
+   the gallery layout: the page's running order as one wall
    ------------------------------------------------------------------ */
-export function buildMosaic(container, def, projects, posts, sections) {
-  const index = sections.findIndex(s => s.id === def.id);
-  const prev = sections[(index - 1 + sections.length) % sections.length];
-  const next = sections[(index + 1) % sections.length];
-
+export function buildMosaic(container, def, entries, { foot = '' } = {}) {
   container.innerHTML = `
     <header class="galbar">
       <a class="galbar__back" href="index.html" data-home>← All work</a>
       <h1 class="galbar__title"><span>${def.index}</span>${def.title}</h1>
-      <span class="galbar__count">${projects.length} projects</span>
+      <span class="galbar__count">${entries.length} pieces</span>
     </header>
 
-    ${grid(projects.map(projectTile).join(''))}
-
-    ${posts.length ? `
-      <section class="strip">
-        <header class="strip__head">
-          <h2>Also on Instagram</h2>
-          <a href="https://www.instagram.com/vindgo.visual/" target="_blank"
-             rel="noopener noreferrer">@vindgo.visual ↗</a>
-        </header>
-        ${grid(posts.map(postTile).join(''), 'gal--small')}
-      </section>` : ''}
+    ${grid(entries.map(entryTile).join(''))}
 
     <footer class="page-foot">
-      <nav class="panel__nav">
-        <a href="${prev.id}.html" style="--lc:${prev.glow}"><span>Previous</span><strong>${prev.title}</strong></a>
-        <a href="${next.id}.html" style="--lc:${next.glow}" class="is-next"><span>Next</span><strong>${next.title}</strong></a>
-      </nav>
+      ${foot}
       <p class="page-foot__note">
-        Hover a tile to bring it to colour. Project tiles open a page here;
-        Instagram tiles open the post.
+        Hover a tile to bring it to colour.
       </p>
     </footer>`;
 }
@@ -183,10 +157,15 @@ export function startTiles(root = document, { onNavigate = null } = {}) {
       t.el.classList.add('is-ready');
     };
     if (t.isVideo) {
-      /* metadata + a media fragment paints a still without playing */
+      /* metadata + a media fragment paints a still without playing.
+         Both events are worth listening to: loadedmetadata gives the
+         dimensions the wall needs, and loadeddata is what fires once
+         there is an actual frame — a clip whose seek to 0.1s never
+         completes would otherwise sit grey forever. */
       t.media.preload = 'metadata';
       t.media.src = src + '#t=0.1';
       t.media.addEventListener('loadedmetadata', ready, { once: true });
+      t.media.addEventListener('loadeddata', ready, { once: true });
     } else {
       t.media.src = src;
       t.media.addEventListener('load', ready, { once: true });
@@ -278,7 +257,7 @@ export function startTiles(root = document, { onNavigate = null } = {}) {
   };
 
   /* a project tile is a same-site link, so it navigates; everything
-     else either opens its post in a new tab or opens here */
+     else either opens where it is published or opens here */
   const activate = (t) => {
     if (!t) return;
     if (!t.href) { openBox(t); return; }

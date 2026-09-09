@@ -1,23 +1,34 @@
 /* ------------------------------------------------------------------
-   Procedural environments.
+   The procedural environment.
 
-   Each theme is a fragment shader that paints a full 360° equirect
-   sky into a half-float render target.  That target is then:
+   ONE sky, baked once.  A fragment shader paints a full 360° equirect
+   sky into a half-float render target, and that target is then:
 
      1. run through PMREMGenerator  ->  scene.environment (the IBL that
         actually lights and reflects in the slices)
      2. sampled directly by a big inside-out sphere -> the visible sky
 
-   Because the dome samples two maps at once we can cross-fade between
-   themes; the PMREM swaps at the half-way point, hidden under a dip in
-   environmentIntensity.
+   It used to be four skies, cross-faded on hover: the dome sampled two
+   equirect maps per pixel and mixed them, and the PMREM was swapped at
+   the half-way point under a dip in environmentIntensity.  That is
+   gone.  Hovering a slice now changes the backdrop *geometry* and the
+   light colours; the room it all sits in stays the same room.
+
+   What that removes: three equirect bakes, three PMREM chains (each a
+   multi-pass mip convolution), one texture fetch per dome pixel, and
+   the whole swap-and-dip dance in update().
    ------------------------------------------------------------------ */
 
 import * as THREE from 'three';
-import { THEMES, DEFAULT_THEME } from './themes.js';
+import { THEMES, DEFAULT_THEME, SKY } from './themes.js';
 import { loadHdriOverride } from './hdri.js';
 
-const SIZE = { w: 512, h: 256 };   // PMREM downsamples anyway
+/* One sky can afford to be baked well.  This was 512x256 because four
+   of them were baked; with three of those gone the single remaining
+   bake goes back up, which costs one render at boot and gives the
+   PMREM — and therefore every reflection in the glass — more to work
+   with than it had before. */
+const SIZE = { w: 1024, h: 512 };
 const FADE = 0.85;           // seconds
 
 /* ---------------------------------------------------------------- */
@@ -218,9 +229,7 @@ const DOME_VERT = /* glsl */`
 
 const DOME_FRAG = /* glsl */`
   precision highp float;
-  uniform sampler2D uA;
-  uniform sampler2D uB;
-  uniform float uMix;
+  uniform sampler2D uSky;
   uniform float uIntensity;
   varying vec3 vDir;
 
@@ -235,7 +244,7 @@ const DOME_FRAG = /* glsl */`
   void main(){
     vec3 d  = normalize(vDir);
     vec2 uv = equirectUv(d);
-    vec3 c  = mix(texture2D(uA, uv).rgb, texture2D(uB, uv).rgb, uMix);
+    vec3 c  = texture2D(uSky, uv).rgb;
 
     /* the IBL keeps the full HDR range; the *visible* sky gets rolled
        off so blazing skylights read as glow instead of a white wall */
@@ -257,11 +266,10 @@ export class EnvManager {
     this.renderer = renderer;
     this.scene = scene;
     this.lights = lights;
-    this.maps = new Map();          // key -> { rt, env, theme }
+    this.sky = null;                // the one baked equirect
     this.current = null;
     this.next = null;
     this.t = 1;
-    this.swapped = true;
 
     this.pmrem = new THREE.PMREMGenerator(renderer);
     this.pmrem.compileEquirectangularShader();
@@ -272,8 +280,7 @@ export class EnvManager {
         vertexShader: DOME_VERT,
         fragmentShader: DOME_FRAG,
         uniforms: {
-          uA: { value: null }, uB: { value: null },
-          uMix: { value: 0 }, uIntensity: { value: 0.5 }
+          uSky: { value: null }, uIntensity: { value: 0.5 }
         },
         side: THREE.BackSide,
         depthWrite: false,
@@ -291,9 +298,8 @@ export class EnvManager {
     this._tmp2 = new THREE.Color();
   }
 
-  /* renders one equirect sky and derives its PMREM */
-  _bake(key) {
-    const theme = THEMES[key];
+  /* Renders the one equirect sky and derives its PMREM.  Called once. */
+  _bake() {
     const rt = new THREE.WebGLRenderTarget(SIZE.w, SIZE.h, {
       type: THREE.HalfFloatType,
       minFilter: THREE.LinearFilter,
@@ -306,8 +312,8 @@ export class EnvManager {
     const mat = new THREE.ShaderMaterial({
       vertexShader: SKY_VERT,
       fragmentShader: SKY_FRAG,
-      defines: { THEME: theme.shader },
-      uniforms: { uSat: { value: theme.sat ?? 1 } },
+      defines: { THEME: SKY.shader },
+      uniforms: { uSat: { value: SKY.sat ?? 1 } },
       depthTest: false,
       depthWrite: false
     });
@@ -324,62 +330,51 @@ export class EnvManager {
     quad.geometry.dispose();
     mat.dispose();
 
-    const env = this.pmrem.fromEquirectangular(rt.texture).texture;
-    return { rt, env, theme, sky: rt.texture };
+    return { rt, sky: rt.texture, env: this.pmrem.fromEquirectangular(rt.texture).texture };
   }
 
-  /* Only the sky you can actually see is baked at boot; the others are
-     baked the first time they are asked for, which keeps the cold start
-     to a single render + PMREM instead of four. */
+  /* One bake, one PMREM, at boot.  `keys` is still taken so callers do
+     not have to change, but it now only decides which light moods are
+     addressable — every one of them lights from the same map. */
   async build(keys) {
-    this.keys = keys.filter(k => THEMES[k]);
-    this._ensure(DEFAULT_THEME);
+    this.keys = (keys || []).filter(k => THEMES[k]);
+    this.sky = this._bake();
+    this.dome.material.uniforms.uSky.value = this.sky.sky;
+    this.scene.environment = this.sky.env;
+
+    /* a real .hdr, if one was dropped in, quietly replaces the bake */
+    loadHdriOverride(SKY.key).then(over => {
+      if (!over) return;
+      this.sky.sky = over;
+      this.sky.env = this.pmrem.fromEquirectangular(over).texture;
+      this.dome.material.uniforms.uSky.value = over;
+      this.scene.environment = this.sky.env;
+    });
+
     this.set(DEFAULT_THEME, true);
   }
 
-  _ensure(key) {
-    if (this.maps.has(key)) return this.maps.get(key);
-    if (!THEMES[key]) return null;
-    const baked = this._bake(key);
-    this.maps.set(key, baked);
-    /* a real .hdr, if one was dropped in, quietly replaces the bake */
-    loadHdriOverride(key).then(over => {
-      if (!over) return;
-      baked.sky = over;
-      baked.env = this.pmrem.fromEquirectangular(over).texture;
-      if (this.activeKey() === key) this.set(key, true);
-    });
-    return baked;
-  }
-
+  /* Changes the mood, not the room: light colours, fog and the two
+     intensity scalars.  The sky and the IBL are already loaded and stay
+     put, so there is nothing to bake, swap or cross-fade here. */
   set(key, instant = false) {
     if (!THEMES[key]) key = DEFAULT_THEME;
-    this._ensure(key);
     if (key === (this.next ?? this.current) && !instant) return;
 
-    const u = this.dome.material.uniforms;
     if (instant || !this.current) {
       this.current = key;
       this.next = null;
       this.t = 1;
-      this.swapped = true;
-      u.uA.value = this.maps.get(key).sky;
-      u.uB.value = this.maps.get(key).sky;
-      u.uMix.value = 0;
       this._apply(key, 1);
       return;
     }
-    /* whatever is showing now becomes A, the target becomes B */
-    u.uA.value = this.maps.get(this.t < 1 && this.next ? this.next : this.current).sky;
+    /* whatever is showing now becomes the start of the blend */
     if (this.t < 1 && this.next) this.current = this.next;
-    u.uB.value = this.maps.get(key).sky;
-    u.uMix.value = 0;
     this.next = key;
     this.t = 0;
-    this.swapped = false;
   }
 
-  /* light + fog + IBL settings for a theme, blended by `k` from neutral */
+  /* light + fog + intensity settings for a theme */
   _apply(key, k) {
     const th = THEMES[key];
     this.dome.material.uniforms.uIntensity.value = th.bgI;
@@ -389,27 +384,21 @@ export class EnvManager {
     if (kl) { kl.color.setHex(th.key); kl.intensity = th.keyI; }
     if (rim) { rim.color.setHex(th.rim); rim.intensity = th.rimI; }
     if (bounce) { bounce.color.setHex(th.bounce); bounce.userData.base = th.bounceI; }
-    this.scene.environment = this.maps.get(key).env;
   }
 
   update(dt) {
     if (this.t >= 1) return;
     this.t = Math.min(1, this.t + dt / FADE);
     const e = this.t * this.t * (3 - 2 * this.t);           // smoothstep
-    const u = this.dome.material.uniforms;
-    u.uMix.value = e;
 
     const from = THEMES[this.current];
     const to = THEMES[this.next];
 
-    /* dip the IBL through the middle so the PMREM swap is invisible */
-    const dip = 0.55 + 0.45 * Math.abs(e * 2 - 1);
-    if (!this.swapped && e >= 0.5) {
-      this.scene.environment = this.maps.get(this.next).env;
-      this.swapped = true;
-    }
-    this.scene.environmentIntensity = THREE.MathUtils.lerp(from.envI, to.envI, e) * dip;
-    u.uIntensity.value = THREE.MathUtils.lerp(from.bgI, to.bgI, e);
+    /* No exposure dip any more — it existed only to hide the PMREM
+       swapping mid-fade, and there is nothing left to swap. */
+    this.scene.environmentIntensity = THREE.MathUtils.lerp(from.envI, to.envI, e);
+    this.dome.material.uniforms.uIntensity.value =
+      THREE.MathUtils.lerp(from.bgI, to.bgI, e);
 
     if (this.scene.fog) {
       this._fogA.setHex(from.fog);

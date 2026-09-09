@@ -1,16 +1,22 @@
 /* ------------------------------------------------------------------
    Environment themes.
 
-   The system is monochrome.  Each sector is told apart by the *shape*
-   of its light — overhead strips, hanging bulbs, a horizon band — not
-   by colour, and `sat` desaturates each baked sky down to near-grey.
-   Push a theme's `sat` back towards 1 to bring its original hue back.
+   ONE SKY.  There used to be four — a dark hall, a brass workshop, a
+   neon horizon and a neutral studio — and hovering a slice cross-faded
+   the whole sky and its image-based lighting from one to the next.
+   That meant four equirect bakes, four PMREM chains, a dome shader
+   sampling two skies per pixel, and a PMREM swap hidden under a dip in
+   the exposure.
 
-   The one colour in the palette is the fluorescent orange bounce
-   sitting under everything, which is also the hover accent.
+   Now the sky is baked once, from SKY below, and never changes.  What
+   changes on hover is the *backdrop geometry* — the exploded
+   assemblies, the gear train, the terrain and the character — which is
+   what actually told the three worlds apart anyway.
 
-   shader     which branch of the procedural equirect shader to render
-   sat        0 = greyscale, 1 = the shader's own colour
+   The per-sector entries below are what is left: scalars and colours,
+   lerped on hover, costing nothing. They keep each world's mood without
+   re-lighting the scene from a different map.
+
    bgI        how bright the sky dome is drawn behind the UI
    envI       scene.environmentIntensity — how hard it lights the glass
    fog        fog / horizon tint
@@ -20,9 +26,19 @@
 
 const ACCENT = 0xff5a12;
 
+/* The one sky, and the only place `shader` and `sat` still mean
+   anything.  `shader` picks a branch of the procedural equirect shader
+   in procedural.js — 0 studio, 1 foundry, 2 workshop, 3 neon — and
+   `sat` desaturates it (0 = greyscale, 1 = its own colour).  Change
+   these two numbers to re-light the whole site. */
+export const SKY = {
+  key: 'sky',        // the filename a real .hdr override would use
+  shader: 0,         // 0 studio · 1 foundry · 2 workshop · 3 neon
+  sat: 0.06          // 0 = greyscale, 1 = the shader's own colour
+};
+
 export const THEMES = {
   'neutral': {
-    shader: 0, sat: 0.06,
     bgI: 0.70, envI: 1.05,
     fog: 0x0c0c10,
     key: 0xffffff, keyI: 1.35,
@@ -30,9 +46,8 @@ export const THEMES = {
     bounce: ACCENT, bounceI: 9
   },
 
-  /* a dark hall under skylight strips, one furnace burning off-axis */
+  /* a hard, bright hall: the strongest key, the coolest rim */
   'industrial-design': {
-    shader: 1, sat: 0.08,
     bgI: 0.78, envI: 1.40,
     fog: 0x111114,
     key: 0xffffff, keyI: 1.55,
@@ -40,9 +55,8 @@ export const THEMES = {
     bounce: ACCENT, bounceI: 16
   },
 
-  /* hanging bulbs, steam, a wet floor — light in points, not planes */
+  /* warmer and dimmer — tungsten key, the rim pulled back */
   'technical-art': {
-    shader: 2, sat: 0.08,
     bgI: 0.72, envI: 1.45,
     fog: 0x101010,
     key: 0xfff4ea, keyI: 1.40,
@@ -50,9 +64,8 @@ export const THEMES = {
     bounce: ACCENT, bounceI: 14
   },
 
-  /* one hard horizon and a low sun — light as a band */
+  /* the coldest key and the brightest sky, over the strongest bounce */
   'visualization': {
-    shader: 3, sat: 0.10,
     bgI: 0.86, envI: 1.35,
     fog: 0x0d0d14,
     key: 0xeaf2ff, keyI: 1.30,

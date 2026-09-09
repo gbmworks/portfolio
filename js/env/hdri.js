@@ -1,17 +1,21 @@
 /* ------------------------------------------------------------------
    Optional real-HDRI override.
 
-   The procedural skies are the default.  To swap one for a real
-   equirectangular .hdr — your own Blender render, or a CC0 capture —
-   drop the file in assets/hdri/ and list its theme key in
-   assets/hdri/manifest.json:
+   The site has one sky now, so there is one override.  The procedural
+   bake is the default; to replace it with a real equirectangular .hdr —
+   your own Blender render, or a CC0 capture — drop the file in
+   assets/hdri/ named after SKY.key in env/themes.js, and list that name
+   in assets/hdri/manifest.json:
 
-     ["technical-art", "visualization"]
+     ["sky"]
 
-   ...loads assets/hdri/technical-art.hdr and visualization.hdr and
-   uses them for both the sky and the image-based lighting.  Anything
-   not listed stays procedural, and nothing is requested at all while
-   the manifest is empty.
+   ...loads assets/hdri/sky.hdr and uses it for both the visible dome
+   and the image-based lighting.  With the manifest empty nothing is
+   requested at all, which is the default.
+
+   This still takes a key rather than hardcoding one: the loader has no
+   opinion about how many skies there are, and per-sector .hdr files
+   would work again the moment the manager asked for them.
    ------------------------------------------------------------------ */
 
 import * as THREE from 'three';

@@ -1,14 +1,24 @@
 /* ------------------------------------------------------------------
-   The work, as projects.
+   The work, in two tiers.
 
-   A project is a thing you made, not a link you posted.  It owns its
-   own page, carries its own media, and can belong to more than one
-   sector — Fitmint is technical art *and* visualization, the John
-   Jacobs line is industrial design *and* visualization.  Before this
-   file existed, each of those was typed out once per sector and a
-   de-duplication pass tried to hide the copies.
+   PROJECTS are case studies.  A case study has something to say — a
+   write-up, its own media, or a set of posts — so it earns a page at
+   project.html?p=<slug>, a row in its sector's index and a line in the
+   sitemap.
 
-   Fields
+   ARCHIVE is everything else: published galleries that are a cover, a
+   title and a year.  Twenty-two of the forty records here used to be
+   case studies whose entire page read "this one lives as a published
+   gallery rather than a write-up".  They are not less real, they are
+   just not written up, so they now sit in one grid per sector and link
+   straight out to Behance.  Nothing was deleted; promote an entry by
+   moving the record into PROJECTS and giving it a body.
+
+   A project can belong to more than one sector — Fitmint is technical
+   art *and* visualization, the John Jacobs line is industrial design
+   *and* visualization — so it is written once and tagged with each.
+
+   PROJECTS fields
      slug      the URL: project.html?p=<slug>
      sectors   one or more SECTIONS ids; the first is where it lives
      title     display name
@@ -25,10 +35,15 @@
      posts     [{ code, kind, title, cover }] — Instagram entries
      feature   pulled to the top of its sector's index
 
-   Anything with no page worth building stays a POST: a one-off on
-   Instagram, linked out from the sector index, never pretending to be
-   a case study.
+   ARCHIVE fields are a subset: slug, sectors, title, year, cover,
+   behance and an optional summary.  No body, no media, no page.
+
+   Anything that is a one-off rather than a project stays a POST: an
+   Instagram entry listed under its sector, linked straight out.
    ------------------------------------------------------------------ */
+
+import { PAGES, pageRefs } from './pages.js';
+import { coverUrl, igUrl, behanceUrl, projectUrl } from './links.js';
 
 export const PROJECTS = [
 
@@ -74,6 +89,37 @@ export const PROJECTS = [
       'One mesh per gender had to cover diverse body types, skin tones, outfits and ' +
       'animation without the rig or the clothing breaking at the extremes. I built ' +
       'and maintained that system for eight months.'
+    ]
+  },
+
+  /* The 2024 freelance run is one entry, not four.  Suta, The Eyewear
+     Project, Soul Jams and Besodetres were four separate records with a
+     one-line summary, no artwork and nothing to link to — four pages
+     that said nothing.  The CV lists them as one role, so they are one
+     project here.  Hrutul and Diaz came out of the same six months but
+     have their own work to show, so they keep their own pages. */
+  {
+    slug: 'freelance-2024',
+    sectors: ['visualization', 'industrial-design'],
+    title: 'Freelance, 2024',
+    client: 'Suta · The Eyewear Project · Soul Jams · Besodetres',
+    role: '3D Generalist',
+    year: '2024',
+    tools: [],
+    feature: true,
+    summary:
+      'Eight months freelancing across five cities — character work, product ' +
+      'visualization, brand iconography and launch visuals.',
+    body: [
+      'Suta (Mumbai) — 3D character development of the two founders, composited ' +
+      'onto real footage for a store launch.',
+      'The Eyewear Project (Goa) — 1300+ eyewear product renders for their website, ' +
+      'produced as a repeatable pipeline rather than one-off shots.',
+      'Soul Jams (Bangalore) — 3D iconography for a rebrand, worked to the brand ' +
+      'guidelines.',
+      'Besodetres (Tulum) — brand identity and launch visuals for a techno duo.',
+      'The same stretch also produced the Youforia visuals for Hrutul Patel and the ' +
+      'Diaz techno night in Goa, both of which have their own pages.'
     ]
   },
 
@@ -186,21 +232,6 @@ export const PROJECTS = [
   },
 
   {
-    slug: 'dfo-headphones',
-    sectors: ['industrial-design'],
-    title: 'Headphone Concepts',
-    client: 'Zebronics, via DesignFlyOver',
-    role: 'Industrial Design intern',
-    year: '2019',
-    tools: [],
-    cover: 'projects/max_808/5c576d94654855.Y3JvcCwxMzkwLDEwODcsMTcsNDQ.png',
-    summary:
-      'Premium-range headphones for Zebronics, exploring folding mechanisms — a ' +
-      'summer internship at DesignFlyOver.',
-    behance: { id: '94654855', slug: 'Headphone-Concepts-Internship-at-DFO-2019' }
-  },
-
-  {
     slug: 'hecoll-protective-range',
     sectors: ['industrial-design'],
     title: 'Anti-Viral Protective Range',
@@ -218,7 +249,7 @@ export const PROJECTS = [
   },
 
   /* ============================================================
-     Industrial design — published case studies
+     Studio, student and self-directed — industrial design
      ============================================================ */
 
   {
@@ -250,40 +281,6 @@ export const PROJECTS = [
       { code: 'CKbrJJHp8kK', kind: 'p',    title: 'Café racer — feature', cover: 'assets/covers/instagram/CKbrJJHp8kK.jpg' },
       { code: 'CKbq7F2pErQ', kind: 'p',    title: 'Café racer — build',   cover: 'assets/covers/instagram/CKbq7F2pErQ.jpg' }
     ]
-  },
-
-  {
-    slug: 'e-waste-system-design',
-    sectors: ['industrial-design'],
-    title: 'E-Waste & Consumerism',
-    role: 'System design',
-    year: '',
-    tools: [],
-    cover: 'project_modules/disp/80c843116688785.6066e5354f11b.png',
-    summary: '',
-    behance: { id: '116688785', slug: 'E-Waste-Consumerism-System-Design' }
-  },
-
-  {
-    slug: 'aloka-2',
-    sectors: ['industrial-design'],
-    title: 'Aloka 2.0 — Smart Eyewear',
-    year: '2020',
-    tools: [],
-    cover: 'project_modules/disp/97cad3112336929.60128b37c82a0.png',
-    summary: '',
-    behance: { id: '112336929', slug: 'Aloka-20-Smart-Eyewear-2020' }
-  },
-
-  {
-    slug: 'aloka',
-    sectors: ['industrial-design'],
-    title: 'Aloka — Smart Eyewear',
-    year: '2019',
-    tools: [],
-    cover: 'project_modules/disp/f0d94898908263.5ee737466d4a2.png',
-    summary: '',
-    behance: { id: '98908263', slug: 'Aloka-Smart-Eyewear-2019' }
   },
 
   {
@@ -335,39 +332,6 @@ export const PROJECTS = [
   },
 
   {
-    slug: 'monsoon-fiesta-trophy',
-    sectors: ['industrial-design'],
-    title: 'Monsoon Fiesta — Trophy Design',
-    year: '2019',
-    tools: [],
-    cover: 'projects/max_808/69b80a94660631.Y3JvcCwxMDgxLDg0NiwyMTksMA.png',
-    summary: '',
-    behance: { id: '94660631', slug: 'Monsoon-Fiesta-Trophy-Design-2019' }
-  },
-
-  {
-    slug: 'form-studies',
-    sectors: ['industrial-design'],
-    title: 'Form Studies',
-    year: '',
-    tools: [],
-    cover: 'projects/max_808/0de8d394018607.Y3JvcCwxMDA3LDc4OCwyMjksMA.png',
-    summary: '',
-    behance: { id: '94018607', slug: 'Form-Studies' }
-  },
-
-  {
-    slug: 'red-raven-toy',
-    sectors: ['industrial-design'],
-    title: 'Red Raven — Retro Collectible Toy',
-    year: '2018',
-    tools: [],
-    cover: 'projects/max_808/0836d194656165.Y3JvcCw1MTEzLDQwMDAsNTY5LDA.jpg',
-    summary: '',
-    behance: { id: '94656165', slug: 'Red-Raven-A-Retro-Collectible-Toy-2018' }
-  },
-
-  {
     slug: 'xoxo-stool',
     sectors: ['industrial-design'],
     title: 'XOXO — 10,000 BC Cross Stool',
@@ -396,67 +360,8 @@ export const PROJECTS = [
     ]
   },
 
-  {
-    slug: 'product-teardown',
-    sectors: ['industrial-design'],
-    title: 'Product Tear-down & Scaled Model Making',
-    year: '2018',
-    tools: [],
-    cover: 'project_modules/disp/81a06c79570257.5cc7639cb6504.jpg',
-    summary: '',
-    behance: { id: '79570257', slug: 'Product-tear-down-Scaled-down-model-making-2018' }
-  },
-
-  {
-    slug: 'worldskills-regionals',
-    sectors: ['industrial-design'],
-    title: 'WorldSkills Regionals — BIEC',
-    year: '2018',
-    tools: [],
-    cover: 'project_modules/disp/63c9d779651289.5cc9dc25d8c20.jpg',
-    summary: '',
-    behance: { id: '79651289', slug: 'Worldskills-Regionals-BIEC-21-23rd-June-2018' }
-  },
-
-  {
-    slug: 'nid-foundation',
-    sectors: ['industrial-design'],
-    title: 'Foundation Year — NID Ahmedabad',
-    year: '2017 — 18',
-    tools: [],
-    cover: 'project_modules/disp/8b35f579560199.5cc72c64c763d.jpg',
-    summary: '',
-    behance: { id: '79560199', slug: 'Foundation-year-2017-18-NID-Ahmedabad' }
-  },
-
-  {
-    slug: 'old-works',
-    sectors: ['industrial-design'],
-    title: 'A Collection of My Old Works',
-    year: 'pre-2017',
-    tools: [],
-    cover: 'project_modules/disp/0fd03d79545819.5ee7570719394.jpg',
-    summary: '',
-    behance: { id: '79545819', slug: 'A-Collection-Of-my-old-works-Before-2017' }
-  },
-
   /* ============================================================
-     Technical art
-     ============================================================ */
-
-  {
-    slug: 'strandbeest',
-    sectors: ['technical-art'],
-    title: 'Strandbeest — Theo Jansen Mechanism',
-    year: '2018',
-    tools: [],
-    cover: 'project_modules/disp/3f9aa579602877.5cc867b21aede.jpg',
-    summary: '',
-    behance: { id: '79602877', slug: 'Strandbeast-Theo-jansen-mechanism-2018' }
-  },
-
-  /* ============================================================
-     Visualization
+     Visualization, motion and live work
      ============================================================ */
 
   {
@@ -518,118 +423,6 @@ export const PROJECTS = [
   },
 
   {
-    slug: 'suta-bombay',
-    sectors: ['visualization'],
-    title: 'Suta — Store Launch',
-    client: 'Suta, Mumbai',
-    role: '3D & compositing · Freelance',
-    year: '2024',
-    tools: [],
-    summary:
-      '3D character development of the founders, composited onto real footage for a ' +
-      'store launch.'
-  },
-
-  {
-    slug: 'the-eyewear-project',
-    sectors: ['visualization', 'industrial-design'],
-    title: 'The Eyewear Project',
-    client: 'The Eyewear Project, Goa',
-    role: 'Product visualization · Freelance',
-    year: '2024',
-    tools: [],
-    summary: '1300+ eyewear product renders for their website.'
-  },
-
-  {
-    slug: 'soul-jams',
-    sectors: ['visualization'],
-    title: 'Soul Jams — Rebrand Iconography',
-    client: 'Soul Jams, Bangalore',
-    role: '3D iconography · Freelance',
-    year: '2024',
-    tools: [],
-    summary: '3D iconography for a rebrand, worked to the brand guidelines.'
-  },
-
-  {
-    slug: 'besodetres',
-    sectors: ['visualization'],
-    title: 'Besodetres',
-    client: 'Besodetres, Tulum',
-    role: 'Brand identity & visuals · Freelance',
-    year: '2024',
-    tools: [],
-    summary: 'Brand identity and launch visuals for a techno duo.'
-  },
-
-  {
-    slug: 'dreamhome',
-    sectors: ['visualization'],
-    title: 'Dreamhome',
-    year: '',
-    tools: [],
-    cover: 'projects/max_808/f1b200134159883.61cf7fb5866dc.jpg',
-    summary: '',
-    behance: { id: '134159883', slug: 'Dreamhome' }
-  },
-
-  {
-    slug: 'product-visualisation',
-    sectors: ['visualization'],
-    title: 'Product Visualisation',
-    year: '',
-    tools: [],
-    cover: 'project_modules/disp/34e1ff100310627.6654537f465c1.png',
-    summary: '',
-    behance: { id: '100310627', slug: 'Product-Visualisation-3D' }
-  },
-
-  {
-    slug: '3d-rendering',
-    sectors: ['visualization'],
-    title: '3D Rendering',
-    year: '',
-    tools: [],
-    cover: 'project_modules/disp/586aaa81079963.5ee75b55371ba.jpg',
-    summary: '',
-    behance: { id: '81079963', slug: '3D-Rendering' }
-  },
-
-  {
-    slug: 'mobius-ring',
-    sectors: ['visualization'],
-    title: 'Mobius Ring — Exploration',
-    year: '',
-    tools: [],
-    cover: 'project_modules/disp/2880c679602537.5cc865857f372.jpg',
-    summary: '',
-    behance: { id: '79602537', slug: 'Mobius-Ring-Exploration' }
-  },
-
-  {
-    slug: 'digital-illustration',
-    sectors: ['visualization'],
-    title: 'Digital Illustration',
-    year: '',
-    tools: [],
-    cover: 'project_modules/disp/4a9cbb79562775.5e7349a597d97.jpg',
-    summary: '',
-    behance: { id: '79562775', slug: 'Digital-Illustration' }
-  },
-
-  {
-    slug: 'photography',
-    sectors: ['visualization'],
-    title: 'Photography',
-    year: '',
-    tools: [],
-    cover: 'project_modules/disp/3b4d5079603139.5cc869393f5b2.jpg',
-    summary: '',
-    behance: { id: '79603139', slug: 'Photography' }
-  },
-
-  {
     slug: 'loops-and-studies',
     sectors: ['visualization'],
     title: 'Loops & Studies',
@@ -657,11 +450,176 @@ export const PROJECTS = [
 ];
 
 /* ------------------------------------------------------------------
-   Loose posts.
+   The archive — published galleries, not case studies.
 
-   Instagram entries that belong to no project — a technique, a study,
-   a one-off.  They link straight out; they never get a page.
+   Each is a cover, a title, a year and a link to Behance.  They appear
+   as one grid at the foot of their sector and nowhere else: no page,
+   no prev/next, no sitemap entry.  Covers come from the same unsigned,
+   stable Behance CDN path the tiles already use, so nothing is
+   re-hosted here either.
    ------------------------------------------------------------------ */
+
+export const ARCHIVE = [
+
+  /* --- Industrial Design --- */
+  {
+    slug: 'dfo-headphones',
+    sectors: ['industrial-design'],
+    title: 'Headphone Concepts',
+    client: 'Zebronics, via DesignFlyOver',
+    year: '2019',
+    summary: 'Premium-range headphones exploring folding mechanisms — a summer internship at DesignFlyOver.',
+    cover: 'projects/max_808/5c576d94654855.Y3JvcCwxMzkwLDEwODcsMTcsNDQ.png',
+    behance: { id: '94654855', slug: 'Headphone-Concepts-Internship-at-DFO-2019' }
+  },
+  {
+    slug: 'e-waste-system-design',
+    sectors: ['industrial-design'],
+    title: 'E-Waste & Consumerism',
+    year: '',
+    cover: 'project_modules/disp/80c843116688785.6066e5354f11b.png',
+    behance: { id: '116688785', slug: 'E-Waste-Consumerism-System-Design' }
+  },
+  {
+    slug: 'aloka-2',
+    sectors: ['industrial-design'],
+    title: 'Aloka 2.0 — Smart Eyewear',
+    year: '2020',
+    cover: 'project_modules/disp/97cad3112336929.60128b37c82a0.png',
+    behance: { id: '112336929', slug: 'Aloka-20-Smart-Eyewear-2020' }
+  },
+  {
+    slug: 'aloka',
+    sectors: ['industrial-design'],
+    title: 'Aloka — Smart Eyewear',
+    year: '2019',
+    cover: 'project_modules/disp/f0d94898908263.5ee737466d4a2.png',
+    behance: { id: '98908263', slug: 'Aloka-Smart-Eyewear-2019' }
+  },
+  {
+    slug: 'monsoon-fiesta-trophy',
+    sectors: ['industrial-design'],
+    title: 'Monsoon Fiesta — Trophy Design',
+    year: '2019',
+    cover: 'projects/max_808/69b80a94660631.Y3JvcCwxMDgxLDg0NiwyMTksMA.png',
+    behance: { id: '94660631', slug: 'Monsoon-Fiesta-Trophy-Design-2019' }
+  },
+  {
+    slug: 'form-studies',
+    sectors: ['industrial-design'],
+    title: 'Form Studies',
+    year: '',
+    cover: 'projects/max_808/0de8d394018607.Y3JvcCwxMDA3LDc4OCwyMjksMA.png',
+    behance: { id: '94018607', slug: 'Form-Studies' }
+  },
+  {
+    slug: 'red-raven-toy',
+    sectors: ['industrial-design'],
+    title: 'Red Raven — Retro Collectible Toy',
+    year: '2018',
+    cover: 'projects/max_808/0836d194656165.Y3JvcCw1MTEzLDQwMDAsNTY5LDA.jpg',
+    behance: { id: '94656165', slug: 'Red-Raven-A-Retro-Collectible-Toy-2018' }
+  },
+  {
+    slug: 'product-teardown',
+    sectors: ['industrial-design'],
+    title: 'Product Tear-down & Scaled Model Making',
+    year: '2018',
+    cover: 'project_modules/disp/81a06c79570257.5cc7639cb6504.jpg',
+    behance: { id: '79570257', slug: 'Product-tear-down-Scaled-down-model-making-2018' }
+  },
+  {
+    slug: 'worldskills-regionals',
+    sectors: ['industrial-design'],
+    title: 'WorldSkills Regionals — BIEC',
+    year: '2018',
+    cover: 'project_modules/disp/63c9d779651289.5cc9dc25d8c20.jpg',
+    behance: { id: '79651289', slug: 'Worldskills-Regionals-BIEC-21-23rd-June-2018' }
+  },
+  {
+    slug: 'nid-foundation',
+    sectors: ['industrial-design'],
+    title: 'Foundation Year — NID Ahmedabad',
+    year: '2017 — 18',
+    cover: 'project_modules/disp/8b35f579560199.5cc72c64c763d.jpg',
+    behance: { id: '79560199', slug: 'Foundation-year-2017-18-NID-Ahmedabad' }
+  },
+  {
+    slug: 'old-works',
+    sectors: ['industrial-design'],
+    title: 'A Collection of My Old Works',
+    year: 'pre-2017',
+    cover: 'project_modules/disp/0fd03d79545819.5ee7570719394.jpg',
+    behance: { id: '79545819', slug: 'A-Collection-Of-my-old-works-Before-2017' }
+  },
+
+  /* --- Technical Art --- */
+  {
+    slug: 'strandbeest',
+    sectors: ['technical-art'],
+    title: 'Strandbeest — Theo Jansen Mechanism',
+    year: '2018',
+    cover: 'project_modules/disp/3f9aa579602877.5cc867b21aede.jpg',
+    behance: { id: '79602877', slug: 'Strandbeast-Theo-jansen-mechanism-2018' }
+  },
+
+  /* --- Visualization --- */
+  {
+    slug: 'dreamhome',
+    sectors: ['visualization'],
+    title: 'Dreamhome',
+    year: '',
+    cover: 'projects/max_808/f1b200134159883.61cf7fb5866dc.jpg',
+    behance: { id: '134159883', slug: 'Dreamhome' }
+  },
+  {
+    slug: 'product-visualisation',
+    sectors: ['visualization'],
+    title: 'Product Visualisation',
+    year: '',
+    cover: 'project_modules/disp/34e1ff100310627.6654537f465c1.png',
+    behance: { id: '100310627', slug: 'Product-Visualisation-3D' }
+  },
+  {
+    slug: '3d-rendering',
+    sectors: ['visualization'],
+    title: '3D Rendering',
+    year: '',
+    cover: 'project_modules/disp/586aaa81079963.5ee75b55371ba.jpg',
+    behance: { id: '81079963', slug: '3D-Rendering' }
+  },
+  {
+    slug: 'mobius-ring',
+    sectors: ['visualization'],
+    title: 'Mobius Ring — Exploration',
+    year: '',
+    cover: 'project_modules/disp/2880c679602537.5cc865857f372.jpg',
+    behance: { id: '79602537', slug: 'Mobius-Ring-Exploration' }
+  },
+  {
+    slug: 'digital-illustration',
+    sectors: ['visualization'],
+    title: 'Digital Illustration',
+    year: '',
+    cover: 'project_modules/disp/4a9cbb79562775.5e7349a597d97.jpg',
+    behance: { id: '79562775', slug: 'Digital-Illustration' }
+  },
+  {
+    slug: 'photography',
+    sectors: ['visualization'],
+    title: 'Photography',
+    year: '',
+    cover: 'project_modules/disp/3b4d5079603139.5cc869393f5b2.jpg',
+    behance: { id: '79603139', slug: 'Photography' }
+  }
+];
+
+
+/* ------------------------------------------------------------------
+   One-offs.  An Instagram entry that belongs to no project: listed
+   under its sector, linked straight out, never dressed as a project.
+   ------------------------------------------------------------------ */
+
 export const POSTS = {
   'industrial-design': [
     { code: 'DEm5d3BtpuF', kind: 'reel', title: 'Grilled iPhone — BMW Motorsport', cover: 'assets/covers/instagram/DEm5d3BtpuF.jpg' },
@@ -696,28 +654,123 @@ export const POSTS = {
 /* lookups                                                            */
 /* ---------------------------------------------------------------- */
 
-/* Featured first, then source order — which already runs newest to oldest. */
-export const bySector = (id) =>
-  PROJECTS.filter(p => p.sectors.includes(id))
-          .sort((a, b) => (b.feature ? 1 : 0) - (a.feature ? 1 : 0));
+/* look-ups by id — the page lists in pages.js reference these */
 
 export const bySlug = (slug) => PROJECTS.find(p => p.slug === slug) || null;
 
-export const projectUrl = (p) => 'project.html?p=' + p.slug;
+export const archiveBySlug = (slug) => ARCHIVE.find(p => p.slug === slug) || null;
+
+/* Slugs that used to be their own page and are not any more.  The four
+   2024 freelance jobs became one record, so a link to any of them still
+   lands somewhere true rather than on a 404. */
+export const MOVED = {
+  'suta-bombay': 'freelance-2024',
+  'the-eyewear-project': 'freelance-2024',
+  'soul-jams': 'freelance-2024',
+  'besodetres': 'freelance-2024'
+};
 
 /* The still to represent a project with: its own cover, or failing that
-   the thumbnail of the first post attached to it.  A project with
-   neither has no artwork in the repo at all and says so. */
+   the thumbnail of the first post attached to it. */
 export const projectStill = (p) =>
   p.cover || (p.posts && p.posts.length && p.posts[0].cover) || '';
 
-/* Where a project sits in a sector's list — for prev / next. */
-export const neighbours = (p, sectorId) => {
-  const list = bySector(sectorId);
-  const i = list.findIndex(x => x.slug === p.slug);
+/* ------------------------------------------------------------------
+   One page, one list.
+
+   js/pages.js says what is on each page and in what order.  Everything
+   in that list is rendered the same way — same tile, same row, no
+   heading telling you which of these is "really" a project.  All this
+   resolver does is answer three questions about a reference: what is
+   it called, what picture represents it, and where does clicking it
+   go.
+
+     'muse-watch'       a project, opens project.html?p=muse-watch
+     'aloka'            a published gallery, opens on Behance
+     'ig:Cy75XuoSpS8'   an Instagram post, opens there
+
+   `kind` comes back so a caller can decide whether to use the client
+   and year, or whether the link leaves the site — not so it can print
+   a category label.
+   ------------------------------------------------------------------ */
+
+/* every Instagram post, wherever it was written down */
+const IG_BY_CODE = new Map();
+for (const p of PROJECTS) for (const x of (p.posts || [])) IG_BY_CODE.set(x.code, x);
+for (const list of Object.values(POSTS)) for (const x of list) IG_BY_CODE.set(x.code, x);
+
+export const postByCode = (code) => IG_BY_CODE.get(code) || null;
+
+export function resolveEntry(ref) {
+  if (typeof ref !== 'string' || !ref) return null;
+
+  if (ref.startsWith('ig:')) {
+    const post = IG_BY_CODE.get(ref.slice(3));
+    if (!post) return null;
+    return {
+      kind: 'post', ref, id: post.code,
+      title: post.title,
+      meta: '',
+      still: post.cover || '',
+      clip: '',
+      href: igUrl(post),
+      external: true
+    };
+  }
+
+  const project = bySlug(ref);
+  if (project) {
+    const still = projectStill(project);
+    return {
+      kind: 'project', ref, id: project.slug,
+      title: project.title,
+      meta: [project.client, project.year].filter(Boolean).join(' · '),
+      still: still ? coverUrl(still) : '',
+      clip: project.preview || '',
+      href: projectUrl(project),
+      external: false,
+      project
+    };
+  }
+
+  const gallery = archiveBySlug(ref);
+  if (gallery) {
+    return {
+      kind: 'gallery', ref, id: gallery.slug,
+      title: gallery.title,
+      meta: [gallery.client, gallery.year].filter(Boolean).join(' · '),
+      still: gallery.cover ? coverUrl(gallery.cover) : '',
+      clip: '',
+      href: gallery.behance ? behanceUrl(gallery.behance) : '',
+      external: true
+    };
+  }
+
+  return null;
+}
+
+/* the page, in order, with anything unresolvable dropped rather than
+   rendered as a hole */
+export const pageEntries = (sectorId) =>
+  pageRefs(sectorId).map(resolveEntry).filter(Boolean);
+
+/* Where a project sits in the running order of its page — for prev /
+   next.  It walks the page, not the sector tag, so it matches what the
+   visitor actually clicked through. */
+export function neighbours(p, sectorId) {
+  const list = pageEntries(sectorId).filter(e => e.kind === 'project');
+  const i = list.findIndex(x => x.id === p.slug);
   if (i === -1) return { prev: null, next: null };
   return {
-    prev: list[(i - 1 + list.length) % list.length],
-    next: list[(i + 1) % list.length]
+    prev: list[(i - 1 + list.length) % list.length].project,
+    next: list[(i + 1) % list.length].project
   };
-};
+}
+
+/* which page a project belongs to, by where it is actually listed */
+export function homeSector(p) {
+  for (const s of Object.keys(PAGES)) {
+    if (pageRefs(s).includes(p.slug)) return s;
+  }
+  return p.sectors[0];
+}

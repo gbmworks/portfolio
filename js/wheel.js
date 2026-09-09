@@ -7,6 +7,8 @@
 import * as THREE from 'three';
 import { damp } from './stage.js';
 import { PALETTE, frostedGlass, chrome, brushedChrome } from './env/materials.js';
+import { ACCENT_GLOW } from './site.js';
+import { sectorUrl } from './links.js';
 
 const TAU = Math.PI * 2;
 
@@ -167,8 +169,8 @@ export class Wheel {
     return this.sectors.map(s => {
       const el = document.createElement('a');
       el.className = 'label';
-      el.href = s.def.id + '.html';
-      el.style.setProperty('--lc', s.def.glow);
+      el.href = sectorUrl(s.def);
+      el.style.setProperty('--lc', ACCENT_GLOW);
       el.innerHTML =
         '<div class="label__icon">' + s.def.icon + '</div>' +
         '<h2 class="label__title">' + s.def.title + '</h2>';
