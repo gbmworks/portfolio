@@ -29,6 +29,9 @@
      summary   one paragraph, shown on the index row and the page lede
      body      further paragraphs, shown only on the project page
      cover     hero still — 'assets/...' local, or a Behance CDN path
+     live      a running thing on this site rather than a write-up — the
+               game at game/unicorn.  A record with one is opened by that
+               URL wherever it is listed: clicking the row plays it.
      preview   a local clip; plays in the index preview stage and hero
      media     [{ src, title }] shown as a grid on the project page
      behance   { id, slug } — the published case study
@@ -191,18 +194,27 @@ export const PROJECTS = [
   {
     slug: 'lenskart-ar-game',
     sectors: ['technical-art'],
-    title: 'Tap-to-Play AR Game',
+    title: 'Unicorn and the Crystalverse',
     client: 'Lenskart',
     role: 'XR & Game Designer',
     year: '2022 — 23',
-    tools: ['three.js', 'WebGL'],
+    tools: ['three.js', 'WebGL', 'Blender', 'Draco'],
+    /* The only entry on the site that is neither a page here nor a link
+       out: it is the thing itself, deployed at game/unicorn, and clicking
+       the row plays it. */
+    live: 'game/unicorn/',
+    cover: 'assets/covers/unicorn-crystalverse.jpg',
     summary:
-      'A mobile-optimised 3D game for children, launched by QR code and tied to a ' +
-      'related eyewear collection.',
+      'A 3D game for children that runs in a phone browser — find seven crystals ' +
+      'scattered across a floating island and carry them back to the magic pot.',
     body: [
       'An experimental role at Lenskart developing AR media. The game had to run in a ' +
-      'browser on a phone, open from a scan with no install, and stay tied to the ' +
-      'product it was promoting — built on three.js and WebGL.'
+      'browser on a phone, open from a QR scan with no install, and stay tied to the ' +
+      'eyewear collection it was promoting — built on three.js and WebGL.',
+      'The island is a navmesh: tapping the ground asks three-pathfinding for a route ' +
+      'and the unicorn walks it rather than sliding towards the tap. Every model is ' +
+      'Draco-compressed, four characters are selectable, and the whole thing — world, ' +
+      'characters, sound and the illustrated story that opens it — is about 16 MB.'
     ]
   },
 
@@ -689,6 +701,10 @@ export const projectStill = (p) =>
      'aloka'            a published gallery, opens on Behance
      'ig:Cy75XuoSpS8'   an Instagram post, opens there
 
+   One record answers the third question differently: the Lenskart game
+   carries `live`, so its row opens the game at game/unicorn rather than
+   a page describing it.
+
    `kind` comes back so a caller can decide whether to use the client
    and year, or whether the link leaves the site — not so it can print
    a category label.
@@ -730,7 +746,9 @@ export function resolveEntry(ref) {
          something paints without touching the video */
       still: still ? coverUrl(still) : posterUrl(clip),
       clip,
-      href: projectUrl(project),
+      /* a record with something running on this site opens that, not a
+         page about it — see `live` in the field list */
+      href: project.live || projectUrl(project),
       external: false,
       project
     };

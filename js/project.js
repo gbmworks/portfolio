@@ -119,6 +119,10 @@ function projectHTML(p, sector) {
   ].filter(([, v]) => v);
 
   const links = [];
+  /* If the work is playable, that is the first thing to offer.  Nothing on
+     the site links here — the sector index goes straight to the game — but
+     an old or shared project URL should still lead to it. */
+  if (p.live) links.push(['Play the game', p.live]);
   if (p.behance) links.push(['Full case study on Behance', behanceUrl(p.behance)]);
   links.push(['More on Instagram', SITE.instagram]);
 
@@ -149,8 +153,10 @@ function projectHTML(p, sector) {
             ? `<p class="proj__thin">Not written up — what there is to see is the
                  gallery and the posts below.</p>` : ''}
           <ul class="proj__links">
-            ${links.map(([label, href]) => `
-              <li><a href="${href}" target="_blank" rel="noopener noreferrer">${label} ↗</a></li>`).join('')}
+            ${links.map(([label, href]) => {
+              const out = /^https?:/i.test(href);
+              return `<li><a href="${href}"${out ? ' target="_blank" rel="noopener noreferrer"' : ''}>${label}${out ? ' ↗' : ''}</a></li>`;
+            }).join('')}
           </ul>
         </div>
       </div>
@@ -168,9 +174,9 @@ function projectHTML(p, sector) {
         </section>` : ''}
 
       <nav class="panel__nav pnav">
-        ${prev ? `<a href="${projectUrl(prev)}" style="--lc:${ACCENT_GLOW}">
+        ${prev ? `<a href="${prev.live || projectUrl(prev)}" style="--lc:${ACCENT_GLOW}">
           <span>Previous</span><strong>${esc(prev.title)}</strong></a>` : '<span></span>'}
-        ${next ? `<a href="${projectUrl(next)}" style="--lc:${ACCENT_GLOW}" class="is-next">
+        ${next ? `<a href="${next.live || projectUrl(next)}" style="--lc:${ACCENT_GLOW}" class="is-next">
           <span>Next</span><strong>${esc(next.title)}</strong></a>` : '<span></span>'}
       </nav>
     </article>`;

@@ -5,3 +5,6 @@
 *.webm binary
 *.glb binary
 *.hdr binary
+*.mp3 binary
+*.mp4 binary
+*.wasm binary

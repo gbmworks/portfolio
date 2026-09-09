@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!--
+	Unicorn and the Crystalverse — the playable build.
+
+	This file is authored here and copied verbatim to game/unicorn/ by
+	deploy.mjs, which also drops the production bundle beside it. Every path
+	in it is relative, so the game runs wherever the folder is served from:
+	the portfolio at /game/unicorn/, or webpack-dev-server at /.
+
+	The one exception is the "back to the portfolio" link, which is
+	root-absolute because it points at a page outside this folder.
+-->
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+
+		<title>Unicorn and the Crystalverse</title>
+		<meta name="description" content="A browser game for children — find the seven crystals scattered across a floating island and return them to the magic pot. Built in three.js for Lenskart." />
+
+		<meta property="og:type" content="website" />
+		<meta property="og:title" content="Unicorn and the Crystalverse" />
+		<meta property="og:description" content="A browser game for children — find the seven crystals and save the rainbow." />
+		<meta property="og:image" content="https://www.govindbmohan.com/assets/covers/unicorn-crystalverse.jpg" />
+		<meta property="og:url" content="https://www.govindbmohan.com/game/unicorn/" />
+		<link rel="canonical" href="https://www.govindbmohan.com/game/unicorn/" />
+
+		<link rel="stylesheet" href="style.css" />
+
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap" rel="stylesheet" />
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.4/lottie.min.js"></script>
+
+		<link rel="apple-touch-icon" sizes="180x180" href="favicon_io/apple-touch-icon.png" />
+		<link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png" />
+		<link rel="icon" type="image/png" sizes="16x16" href="favicon_io/favicon-16x16.png" />
+		<link rel="manifest" href="favicon_io/site.webmanifest" />
+	</head>
+
+	<body>
+		<!-- Only on the splash screen; index.ts hides it the moment play starts. -->
+		<a id="exit" href="/technical-art.html">← Portfolio</a>
+
+		<div id="endScreen">
+			<img src="gemUI/end.png" width="70%" style="display: block; margin: 0 20%; transform: translate(0px, -150px)" />
+			<button class="buttonStyle" id="endScreenButton" style="position: relative; top: 280px">Play Again</button>
+		</div>
+
+		<div id="mute">
+			<img src="gemUI/soundOn.svg" id="sound" />
+		</div>
+
+		<div id="unicornSelection">
+			<p>Select your Player</p>
+			<div id="unicornVideo"></div>
+			<h2 id="unicornName">Jade</h2>
+			<div id="unicornIcons"></div>
+		</div>
+
+		<div id="instructions"></div>
+
+		<div id="crystals">
+			<div style="display: flex; justify-content: center">
+				<div id="red" class="gemContainer">
+					<img src="gemUI/red.png" class="gemImage" />
+				</div>
+				<div id="orange" class="gemContainer">
+					<img src="gemUI/orange.png" class="gemImage" />
+				</div>
+				<div id="yellow" class="gemContainer">
+					<img src="gemUI/yellow.png" class="gemImage" />
+				</div>
+				<div id="green" class="gemContainer">
+					<img src="gemUI/green.png" class="gemImage" />
+				</div>
+				<div id="blue" class="gemContainer">
+					<img src="gemUI/blue.png" class="gemImage" />
+				</div>
+				<div id="indigo" class="gemContainer">
+					<img src="gemUI/indigo.png" class="gemImage" />
+				</div>
+				<div id="violet" class="gemContainer">
+					<img src="gemUI/violet.png" class="gemImage" />
+				</div>
+			</div>
+		</div>
+
+		<script src="index.js"></script>
+
+		<!-- The three onboarding animations, and the line of text under them.
+		     Lottie is loaded from the CDN above; the JSON sits in gemUI/. -->
+		<script>
+			["pinchZoom", "tapDrag", "tapMove"].forEach(function (name) {
+				var elem = document.createElement("div");
+				elem.setAttribute("id", name);
+				document.getElementById("instructions").appendChild(elem);
+
+				bodymovin.loadAnimation({
+					container: elem,
+					path: "gemUI/" + name + ".json",
+					renderer: "svg",
+					loop: true,
+					autoplay: true,
+					name: name,
+				});
+			});
+
+			var instructionText = document.createElement("p");
+			instructionText.setAttribute("id", "instructionText");
+			document.getElementById("instructions").appendChild(instructionText);
+		</script>
+	</body>
+</html>

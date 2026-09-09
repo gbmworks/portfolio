@@ -33,7 +33,8 @@ for (const s of SECTIONS) {
 const urls = [
   { loc: '', priority: '1.0' },
   ...SECTIONS.map(s => ({ loc: sectorUrl(s), priority: '0.8' })),
-  ...listed.map(p => ({ loc: projectUrl(p), priority: '0.6' }))
+  /* the game is its own URL, not a page about itself */
+  ...listed.map(p => ({ loc: p.live || projectUrl(p), priority: '0.6' }))
 ];
 
 const xml =

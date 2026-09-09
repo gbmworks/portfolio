@@ -1,7 +1,7 @@
 # Work log
 
-A record of the restructuring done in one session, in the order it
-happened. Kept beside `allocation_new.csv` because that spreadsheet is
+A record of the restructuring, in the order it happened. Sections 1-8
+are the first session; section 9 is the second, which deployed the game. Kept beside `allocation_new.csv` because that spreadsheet is
 the thing most of it now hangs off.
 
 The README is the reference for *how the site works today*. This file is
@@ -21,6 +21,7 @@ www.govindbmohan.com.
 | `allocation_new.csv` | **The source of truth for what is on each page.** Three columns — ID, VIZ, TD — one entry per cell, top to bottom in display order. `node tools/allocate.mjs` turns it into `js/pages.js`. |
 | `allocation.csv` | The full list as it stood *before* trimming — all 40 projects and 49 Instagram posts. Kept as a menu of everything available to put back. |
 | `WORKLOG.md` | This file. |
+| `NOTES.md` | How to work on the repo — commands, the checks worth re-running, the traps, and what is next. |
 
 Editing loop:
 
@@ -54,7 +55,7 @@ are drawn identically. `resolveEntry()` in `projects.js` turns all three
 into one shape so nothing in the renderer branches on type.
 
 Final: **ID 18, VIZ 26, TD 9.** All 53 entries verified to have a
-thumbnail and a destination.
+thumbnail and a destination. (TD is 10 now — see section 9.)
 
 **The 2024 freelance run became one record.** Suta, The Eyewear Project,
 Soul Jams and Besodetres were four records with a one-line summary, no
@@ -219,14 +220,100 @@ the whole deploy. Not worth the migration.
 
 ---
 
+## 9. The game, deployed (second session)
+
+*Unicorn and the Crystalverse* — the Lenskart game — was sitting in
+`content/Unicorn` as a working folder: an npm project built on the
+`tamani-coding/threejs-navmesh-example` scaffold, with the game grafted
+onto it. It is now the **first entry on Technical Art**, and clicking
+that row plays it.
+
+**How it hangs off the site.** One new field: `live: 'game/unicorn/'` on
+the record in `projects.js`. `resolveEntry()` returns it as the entry's
+`href`, so every place the game is listed — the sector index, another
+project's prev/next — opens the game rather than a page about it. The
+sitemap emits that URL too. `project.html?p=lenskart-ar-game` still
+renders, with the write-up and a *Play the game* link first, so an old
+or shared link does not dead-end.
+
+**It costs the site nothing until clicked.** Measured on a cold load of
+Technical Art: zero requests under `game/`. The row's 53 KB cover — the
+island illustration from the game's own story screens — is fetched on
+hover like every other still.
+
+### What shipped, and what did not
+
+`dist/` is 59 MB and the game loads 12 of it. `Crystalverse.gltf`
+(16 MB), `mapTrees.glb` (11 MB), `Unicorn4.gltf`, `mushroom1.glb` and
+the navmesh example's demo level have never been requested by a browser.
+So `content/Unicorn/deploy.mjs` copies a **manifest**, not a folder:
+`MODELS` lists the twenty models `src/index.ts` actually asks for, and it
+refuses to write if one is missing rather than shipping something that
+404s mid-level. Deployed: **16.2 MB**, of which 11.6 is models.
+
+The bundle was a *development* build — 3.8 MB, almost all of it an inline
+source map. `webpack.config.js` now takes its mode from `--mode` and
+writes production straight into `game/unicorn/`: **573 KB**.
+
+The originals stay in `content/Unicorn/dist`, untracked, the same split
+as `assets/media` → `assets/web`. **Keep that folder backed up somewhere
+that is not the repo.**
+
+### Four things fixed on the way
+
+1. **`setDecoderPath("/")`.** Ten of the twenty models are
+   Draco-compressed, and an absolute path asked for the decoder at the
+   site root — fine when the game was served at `/`, silently fatal at
+   `/game/unicorn/`. Now `"draco/"`, with the three decoder files in a
+   folder of their own.
+2. **A duplicate `<div id="unicornSelection">`.** `createScreen()` was
+   called a third time with the story screen's elements, appending a
+   second element with that id holding a copy of the six story images.
+   Hidden, never shown, never needed — the story button already reveals
+   the real one.
+3. **A Firebase SDK** was initialised in `index.html` and used for
+   nothing: no analytics, no database, no auth. Removed, along with the
+   config block and the extra origin it loaded from.
+4. **Seven leftover `console.log`s**, a stale `mobile-preview.html`
+   harness describing a mobile gate the game no longer has, and the
+   example's own README and screenshot.
+
+### Verified in a browser, not assumed
+
+Splash → story → character select → play, on the deployed copy at
+`/game/unicorn/`: the island renders, every Draco model decodes, and a
+click on the ground paths the unicorn across the navmesh. No console
+errors.
+
+The character-select videos show blank **in the automated browser only**
+— the tab reports `document.visibilityState: "hidden"`, and Chrome will
+not decode video in a tab it thinks nobody is looking at. `networkState`
+is 2 (loading) and the files are h264 400×400, served with the right
+type. This is the same false negative recorded in open item 6 below;
+worth one look by hand.
+
+### Still open on the game
+
+- The story screen is a long scroll on a desktop window — authored for a
+  phone, and centred rather than re-laid-out.
+- `src/` still holds `ver1.ts`, `jsonver.ts` and `messy.ts` — earlier
+  passes, none of them imported. Kept as history.
+- The Instagram post *"Crystalverse — web-based 3D game"* is still listed
+  separately on Technical Art, four rows below the game itself. Both are
+  real published things, but it reads as a duplicate; delete that cell
+  from the sheet if it does.
+
+---
+
 ## 8. Open items
 
 1. **Five projects still have no artwork** — Primetrace, Metabrix,
    Lenskart AR, Hecoll, Freelance 2024. All are unlisted, so nothing
    renders as a bare plate. Drop a file into `assets/web/<slug>/`, set
    `cover:`, add a line to the sheet, and it returns everywhere at once.
-2. **Technical Art has 0 project pages** — 9 entries, all linking out.
-   Adding Fitmint back is one line in the sheet.
+2. **Technical Art has 0 project pages** — 10 entries now: nine link out
+   and one, the game, plays. Adding Fitmint back is one line in the
+   sheet.
 3. **`SITE.links` vs `SITE.beacons`** — pick one.
 4. **HTTPS is not enforced.** `http://` returns 200 rather than
    redirecting. One command:

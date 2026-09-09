@@ -40,3 +40,19 @@ assets/3d/butterfly.fbx
 # content/ IS tracked. It holds the allocation sheet that tools/allocate.mjs
 # turns into js/pages.js — the running order of every page — so a clone
 # without it cannot rebuild the site's content. It also holds WORKLOG.md.
+
+# ---------------------------------------------------------------
+# The game — content/Unicorn.
+#
+# What is tracked is the source: src/, the two authored files in
+# dist/ (index.html, style.css), the webpack config and deploy.mjs.
+# What is not is the working copy — 59 MB of models, of which the
+# game loads 12 — and node_modules. `npm run deploy` writes the
+# trimmed, production copy into game/unicorn/, and THAT is what
+# ships, the same split as assets/media -> assets/web.
+# ---------------------------------------------------------------
+content/Unicorn/node_modules/
+content/Unicorn/blender/
+content/Unicorn/dist/*
+!content/Unicorn/dist/index.html
+!content/Unicorn/dist/style.css

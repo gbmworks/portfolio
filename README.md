@@ -25,6 +25,8 @@ What ships and what does not:
 | `assets/media/` | no, 328 MB | the original footage, local only |
 | `assets/3d/*.blend` | no, 257 MB each | over GitHub's 100 MB file limit |
 | `assets/1x/` | no | unused working files |
+| `game/unicorn/` | yes, 16 MB | the playable game — models, sound, bundle |
+| `content/Unicorn/` | source only | its 59 MB working folder stays local |
 
 To re-encode after adding footage:
 
@@ -70,6 +72,7 @@ technical-art.html         ├ section pages — thin shells, content from proje
 visualization.html         ┘
 project.html               one shell for every case study — project.html?p=<slug>
 404.html                   hand-written, root-absolute paths — see "Resilience"
+game/unicorn/              a game, not a page about one — see "The game"
 
 css/                       one cascade cut into six readable files, loaded in order
   base.css                 tokens, reset, the canvas, the fallback page
@@ -110,6 +113,9 @@ tools/sitemap.mjs          regenerates sitemap.xml from the content
 assets/
   posters/                 one ~40 KB JPEG per clip — what the tiles show
   hdri/manifest.json       empty by default — see "Real HDRIs" below
+content/Unicorn/           the game's source — its own README, its own build
+content/NOTES.md           how to work on this repo: commands, traps, what is next
+content/WORKLOG.md         why it is the way it is — the history
 ```
 
 ### What is still copied into every HTML file, and why
@@ -232,8 +238,12 @@ public interface.
 | page | entries | with a page here | link out |
 |---|---|---|---|
 | Industrial Design | 18 | 7 | 11 |
-| Technical Art | 9 | 0 | 9 |
+| Technical Art | 10 | 0 | 9, and one that plays |
 | Visualization | 26 | 2 | 24 |
+
+The tenth Technical Art entry is the game, first in the running order.
+It is neither a page here nor a link out: clicking it plays the thing
+itself. See "The game".
 
 ### Editing it
 
@@ -259,11 +269,12 @@ directly on a page instead, which is why they still appear.
 
 ### Every entry has a picture
 
-All 53 have a thumbnail and a destination — checked against the files on
-disk and the Behance CDN. The five projects that had no artwork at all
-(Primetrace, Metabrix, Lenskart AR, Hecoll, Freelance 2024) are not
-listed on any page, so nothing renders as a bare typographic plate any
-more. Give one of them a `cover:` and add it back to the sheet and it
+All 54 have a thumbnail and a destination — checked against the files on
+disk and the Behance CDN. The four projects that still have no artwork
+(Primetrace, Metabrix, Hecoll, Freelance 2024) are not listed on any
+page, so nothing renders as a bare typographic plate any more. The fifth
+was the Lenskart game, and its cover is now one of the story illustrations
+from the game — `gemUI/3.jpg`, the floating island under the rainbow. Give one of them a `cover:` and add it back to the sheet and it
 returns everywhere at once.
 
 ### Project records
@@ -286,6 +297,57 @@ returns everywhere at once.
 `homeSector()` prefers the page a project is actually listed on. Prev /
 next walks the page's running order, so it matches what the visitor
 clicked through.
+
+## The game
+
+`game/unicorn/` is *Unicorn and the Crystalverse* — a browser game made
+for Lenskart, and the first entry on Technical Art. It is the one thing
+on the site that is neither a page here nor a link out: clicking the row
+plays it.
+
+**The site pays nothing for it until then.** The game is a separate page
+with its own bundle, so a visit to Technical Art fetches none of it —
+measured: zero requests under `game/` on load, and the one 55 KB cover
+only when a row is hovered. Clicking it wipes to `/game/unicorn/` the
+same way any internal link does, and the splash screen paints while the
+island loads behind it.
+
+| | |
+|---|---|
+| what it is | tap the ground, the unicorn walks a navmesh route, seven crystals go back in the pot |
+| built with | three.js, `three-pathfinding`, Draco-compressed glTF, Lottie for the onboarding |
+| deployed | `game/unicorn/` — 16 MB, of which 11.6 is models |
+| source | `content/Unicorn/`, which has its own README |
+
+`live: 'game/unicorn/'` on the record in `projects.js` is what does it —
+`resolveEntry()` hands that back as the entry's `href`, so every place
+the game is listed opens the game. `project.html?p=lenskart-ar-game`
+still renders a real page with the write-up and a *Play the game* link
+at the top, because an old or shared URL should not dead-end.
+
+### Building it
+
+```bash
+cd content/Unicorn
+npm install
+npm run deploy      # webpack --mode production, then deploy.mjs
+```
+
+`deploy.mjs` is the interesting half. `content/Unicorn/dist/` is a 59 MB
+working folder, and **40 MB of it is never loaded** — an uncompressed
+`Crystalverse.gltf`, a `mapTrees.glb`, the navmesh example's own demo
+level. So the deploy is a manifest, not a recursive copy: `MODELS` in
+that file lists the twenty models `src/index.ts` actually asks for, and
+it refuses to write anything if one of them is missing rather than
+shipping a folder that 404s halfway through the first level.
+
+The bundle was also a development build — 3.8 MB, nearly all of it an
+inline source map. Production, it is 573 KB.
+
+Two things that will bite anyone editing it: the Draco decoder path has
+to stay relative (`draco/`, not `/`, or every compressed model fails
+silently once the game is not at the site root), and the game's own
+`README.md` explains the rest.
 
 ## Three layouts, one system
 
