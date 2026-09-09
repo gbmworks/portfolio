@@ -690,9 +690,32 @@ by hand from the loose maps beside it — `diffuse_new.jpg`, `normal_new.jpg`,
 `rough_new.png`, `metal_new.png`. glTF UVs need `flipY = false`, which is why
 the textures are loaded there rather than dropped straight in.
 
-It plays whichever clip matches `/run/i`, falling back to the first. To use
-`Action` instead, change that test in `loadCharacter()`. Position, scale and
-facing are the `hero` group in `buildVisualization()`.
+**The GLB has two clips, and only one is an animation.** `Running_M` is a
+7.03s locomotion cycle. `Action` — Blender's default name for an unnamed
+action — is 0.07s with zero joint travel: a single held pose, the figure
+crouched with its arms folded over its knees. Playing it simply holds
+that pose.
+
+So the character has two framings, set by `props: { hero: { closeUp } }`
+through `createStage`:
+
+| | where | clip | framing |
+|---|---|---|---|
+| far | landing page, on hover | `Running_M` | small, off to one side, running on the deck |
+| close-up | `visualization.html` | `Action` | brought forward, turned to camera, held in the folded pose |
+
+On its own page the visualization world is not just a backdrop, so the
+model is the thing you look at. `HERO` in `buildVisualization()` holds
+both framings; `y` is set outright rather than by screen fraction because
+the figure has to stand at a known height to clear the tile wall.
+
+**The wall had to move for this.** `.gal` is 93% opaque across the full
+width, so the character was invisible from the first tile down. A mosaic
+page now leaves a clear band above the wall
+(`body[data-layout="gallery"] .gal:first-of-type`), about 30vh, dropping
+to 80px on a phone where a full screen of scrolling before any work is a
+bad trade. Delete that rule and the character goes back to being hidden;
+nothing else changes.
 
 The model and its maps (~3 MB) are only fetched the first time the
 visualization world is actually shown — the other two sectors never pay for

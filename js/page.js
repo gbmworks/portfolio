@@ -57,8 +57,13 @@ export async function initSection(id) {
   /* a backdrop, not the subject: no bloom (thirteen fullscreen passes
      the scrim would hide anyway, and four modules never fetched), a
      smaller pixel budget, and 24fps for a drift this slow */
-  const stage = await createStage(canvas, SECTIONS.map(s => s.id),
-    { fps: 24, quality: 0.84, bloom: false });
+  const stage = await createStage(canvas, SECTIONS.map(s => s.id), {
+    fps: 24, quality: 0.84, bloom: false,
+    /* On its own page the visualization world is not just a backdrop —
+       bring the character forward, turned to camera and held in its
+       folded pose, instead of running past in the distance. */
+    props: { hero: { closeUp: id === 'visualization' } }
+  });
   stage.env.set(def.id, true);
 
   function layout() {

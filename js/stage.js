@@ -51,7 +51,7 @@ function budgetedRatio(maxDpr, budget) {
    pixel budget and no bloom — the drift is slow enough that nobody can
    tell, and it leaves the main thread to the content. */
 export async function createStage(canvas, themeKeys,
-    { fps = 0, quality = 1, bloom = true, budget = bloom ? 'hero' : 'backdrop' } = {}) {
+    { fps = 0, quality = 1, bloom = true, budget = bloom ? 'hero' : 'backdrop', props: propOpts = {} } = {}) {
   const t0 = performance.now();
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
   const maxDpr = (LOW_POWER ? 1.25 : 1.5) * quality;
@@ -82,7 +82,7 @@ export async function createStage(canvas, themeKeys,
   const env = new EnvManager(renderer, scene, { key, rim, bounce });
   await env.build([DEFAULT_THEME, ...themeKeys]);
 
-  const props = createProps(scene, themeKeys);
+  const props = createProps(scene, themeKeys, propOpts);
 
   /* drifting dust, always on */
   const N = LOW_POWER ? 220 : 420;

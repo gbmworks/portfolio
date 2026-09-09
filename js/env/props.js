@@ -61,13 +61,13 @@ function fadeable(group) {
 }
 
 function wrap(builder) {
-  return () => {
+  return (opts = {}) => {
     let mats;
     const api = {
       /* async additions (a loaded glTF) call this so they fade too */
       refresh: () => { mats = fadeable(built.group); }
     };
-    const built = builder(api);
+    const built = builder(api, opts);
     mats = fadeable(built.group);
     let weight = 0;
     built.group.visible = false;
@@ -92,7 +92,11 @@ function wrap(builder) {
    carries no materials, so the PBR set in assets/3d/ is wired up by
    hand (glTF UVs need flipY = false).
    ---------------------------------------------------------------- */
-function loadCharacter(onReady) {
+/* `pose` picks the static one.  The GLB carries two clips: Running_M, a
+   7s locomotion cycle, and Action — 0.07s with zero joint travel, i.e. a
+   single held pose rather than an animation.  Playing Action just holds
+   the model in that pose. */
+function loadCharacter(onReady, { pose = false } = {}) {
   const texLoader = new THREE.TextureLoader().setPath('assets/3d/');
   const tex = (file, srgb = false) => {
     const t = texLoader.load(file);
@@ -125,8 +129,12 @@ function loadCharacter(onReady) {
     const clips = gltf.animations || [];
     if (clips.length) {
       mixer = new THREE.AnimationMixer(root);
-      const clip = clips.find(c => /run/i.test(c.name)) || clips[0];
-      mixer.clipAction(clip).play();
+      const clip = pose
+        ? (clips.find(c => !/run/i.test(c.name)) || clips[0])
+        : (clips.find(c => /run/i.test(c.name)) || clips[0]);
+      const action = mixer.clipAction(clip);
+      if (pose) { action.clampWhenFinished = true; action.loop = THREE.LoopOnce; }
+      action.play();
     }
     onReady(root, mixer, clips);
   }, undefined, (err) => {
@@ -346,7 +354,7 @@ const buildTechnical = wrap(() => {
 /* ================================================================
    03 · Visualization — neon terrain and drifting solids
    ================================================================ */
-const buildVisualization = wrap((api) => {
+const buildVisualization = wrap((api, opts = {}) => {
   const group = new THREE.Group();
 
   const W = 8 * Math.PI;                 // the z period the terrain wraps on
@@ -415,21 +423,37 @@ const buildVisualization = wrap((api) => {
     group.add(solid);
   }
 
-  /* the rigged character, running on the neon deck */
+  /* The rigged character.  Two framings:
+
+       far      running on the neon deck, small, off to one side — the
+                backdrop role it plays behind the wheel
+       closeUp  held in its folded pose, brought forward and turned to
+                camera so the model itself is the thing you look at */
+  const closeUp = !!(opts.hero && opts.hero.closeUp);
+  /* `sy` is ignored — y is set outright below, because the figure has to
+     stand at a known height rather than at a screen fraction.  Close up,
+     that height is chosen so the whole figure sits in the clear band
+     above the tile wall (which begins around 53% down) and to the right
+     of the page title. */
+  const HERO = closeUp
+    ? { sx: 0.30, sy: 0, z: -1.15, y: 0.60, rot: -0.34, scale: 1.30 }
+    : { sx: -0.70, sy: 0, z: -5.2,  y: -4.35, rot: 0.42, scale: 3.0 };
+
   const hero = new THREE.Group();
-  hero.position.copy(place(-0.70, 0, -5.2));
-  hero.position.y = -4.35;                    // feet stay on the deck
-  hero.rotation.y = 0.42;
-  hero.scale.setScalar(3.0);
+  hero.position.copy(place(HERO.sx, HERO.sy, HERO.z));
+  hero.position.y = HERO.y;
+  hero.rotation.y = HERO.rot;
+  hero.scale.setScalar(HERO.scale);
   group.add(hero);
 
   let mixer = null;
 
-  /* a pool of light under the runner */
-  const spot = new THREE.PointLight(PALETTE.accent, 14, 12, 2);
-  spot.position.copy(place(-0.70, 0, -5.2));
-  spot.position.y = -1.4;
-  spot.position.z = -3.6;
+  /* a pool of light under the figure; close up it becomes a key from
+     the front rather than a glow from below */
+  const spot = new THREE.PointLight(PALETTE.accent, closeUp ? 9 : 14, closeUp ? 7 : 12, 2);
+  spot.position.copy(place(HERO.sx, HERO.sy, HERO.z));
+  spot.position.y = closeUp ? -0.6 : -1.4;
+  spot.position.z = closeUp ? -0.2 : -3.6;
   group.add(spot);
 
   let scroll = 0;
@@ -441,10 +465,11 @@ const buildVisualization = wrap((api) => {
       hero.add(root);
       mixer = m;
       api.refresh();                  // pick up the glTF materials for fading
-    }),
+    }, { pose: closeUp }),
     tick: (dt, t) => {
       if (mixer) mixer.update(dt);
-      hero.position.y = -4.35 + Math.sin(t * 0.4) * 0.05;
+      /* a held pose still breathes, just less */
+      hero.position.y = HERO.y + Math.sin(t * 0.4) * (closeUp ? 0.02 : 0.05);
       spot.intensity = 14 + Math.sin(t * 2.2) * 5;
       scroll = (scroll + dt * 3.2) % W;
       terrain.position.z = -10 + scroll;
@@ -467,7 +492,9 @@ const BUILDERS = {
   'visualization': buildVisualization
 };
 
-export function createProps(scene, keys) {
+/* `opts` reaches the world builders — currently only how the
+   visualization world frames its character.  See buildVisualization. */
+export function createProps(scene, keys, opts = {}) {
   const props = new Map();
   const weights = new Map(keys.filter(k => BUILDERS[k]).map(k => [k, 0]));
 
@@ -476,7 +503,7 @@ export function createProps(scene, keys) {
      are never looked at on any given visit. */
   const ensure = (k) => {
     if (props.has(k) || !BUILDERS[k]) return props.get(k);
-    const p = BUILDERS[k]();
+    const p = BUILDERS[k](opts);
     scene.add(p.group);
     props.set(k, p);
     return p;
