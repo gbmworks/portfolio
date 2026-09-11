@@ -47,12 +47,18 @@ function panelHTML() {
       <button class="win__close" data-close="about" type="button" aria-label="Close">×</button>
 
       <header class="win__head">
-        <h2>About</h2>
-        <p class="win__lede">${SUMMARY}</p>
-        <p class="win__meta">
-          <a href="mailto:${SITE.email}">${SITE.email}</a>
-          <span>${SITE.based}</span>
-        </p>
+        <figure class="win__portrait">
+          <img src="assets/portrait.jpg" width="760" height="760"
+               alt="${SITE.name}" decoding="async" loading="lazy">
+        </figure>
+        <div class="win__intro">
+          <h2>About</h2>
+          <p class="win__lede">${SUMMARY}</p>
+          <p class="win__meta">
+            <a href="mailto:${SITE.email}">${SITE.email}</a>
+            <span>${SITE.based}</span>
+          </p>
+        </div>
       </header>
 
       <div class="win__body">

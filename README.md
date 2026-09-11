@@ -96,6 +96,7 @@ js/
   pages.js                 what is on each page and in what order — GENERATED
   sectors.js               the three sectors — the shape of the site
   site.js                  the person's card: name, role line, links, the accent
+  icons.js                 the social marks, drawn once at one stroke weight
   links.js                 every outbound URL, built from a reference
   cv.js                    the person's history: work, education, awards, skills
   boot.js                  icons, conditional module preloads, the boot guard —
@@ -106,6 +107,7 @@ js/
   wheel.js                 slice geometry, projected labels, hover animation
   main.js                  landing page logic
   reel.js                  the strip of selected work under the wheel
+                           — and below it the ground, from shell.js
   page.js                  section page logic (sheet index / mosaic)
   project.js               case study logic, and what a retired slug says instead
   tiles.js                 every tile wall + the lazy playback engine

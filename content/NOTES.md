@@ -173,6 +173,11 @@ Four findings are left standing on purpose and should not be "fixed":
   in `projects.js`); clicking the row plays it. Nothing of the game loads
   until then — measured, zero requests under `game/` on a section load.
 - ID 18 · TD 14 · VIZ 29, all 61 with a picture and a destination.
+- **`SITE.linkedin` is empty.** The footer under the reel is built from
+  `SOCIALS` in `site.js`, which drops any profile with no URL — so
+  LinkedIn is simply absent rather than a dead link. Paste the URL into
+  that one field and the icon appears, on the landing page and anywhere
+  else that reads `SOCIALS`.
 - **The landing page scrolls now.** Under the wheel is the reel — ten
   hand-picked pieces from `FEATURED` in `projects.js`, built by
   `js/reel.js` out of the same `.tile` the walls use. `body.has-reel` is

@@ -39,6 +39,36 @@
 }
 .win__close:hover{ color:var(--ink); }
 
+/* --- the head: a face, then the summary ---
+
+   The window is built from a CV and read by people deciding whether to
+   work with him, and until now it opened on a paragraph.  The portrait
+   sits first at reading width and the copy runs beside it; below 760px
+   the two stack and the picture caps so it never takes the whole screen
+   before a word of the text.
+
+   It is the one photograph on the site, so it is framed like the work:
+   a hairline, the same 12px corner as a tile, and no crop — the grid it
+   was shot against happens to be the drafting sheet two of the section
+   pages are built on. */
+.win__head{
+  display:grid; grid-template-columns:210px 1fr; gap:clamp(20px,3vw,38px);
+  align-items:start;
+}
+.win__portrait{
+  margin:0; border:1px solid var(--line); border-radius:12px; overflow:hidden;
+  background:#0c0c13;
+}
+.win__portrait img{
+  display:block; width:100%; height:auto;
+  /* the print is bright; this sits it in the room rather than on top of it */
+  filter:grayscale(1) contrast(1.02) brightness(.94);
+}
+@media (max-width:760px){
+  .win__head{ grid-template-columns:1fr; gap:20px; }
+  .win__portrait{ max-width:190px; }
+}
+
 .win__head h2{ margin:0; font-size:clamp(26px,3.2vw,40px); font-weight:700; }
 .win__lede{
   margin:16px 0 0; max-width:62ch; font-size:13.5px; line-height:1.8; color:var(--ink-dim);
@@ -162,4 +192,62 @@ body.is-narrow .lede__p{ display:none; }
   
   .panel__nav{ flex-direction:column; }
   .panel__nav a, .panel__nav a.is-next{ max-width:100%; text-align:left; }
+}
+
+/* ==================================================================
+   THE GROUND — the footer under the reel on the landing page
+
+   The other end of the top bar.  A page that ends on a wall of work
+   with nothing after it reads as a page that was cut off; this closes
+   it with the same card the bar opens with, and the way out to where
+   the work is actually published.
+
+   The icons are authored SVG from js/icons.js at one stroke weight,
+   not a glyph font and not emoji.  Each carries its name beside it —
+   a bare icon row makes a visitor guess, and there is room here.
+   ================================================================== */
+.ground{
+  position:relative; z-index:24;
+  padding:clamp(34px,5vw,60px) clamp(16px,4vw,64px) clamp(38px,5vw,64px);
+  background:var(--bg);
+  border-top:1px solid var(--line);
+}
+.ground__in{
+  display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between;
+  gap:clamp(20px,3vw,44px);
+}
+.ground__id strong{ display:block; font-size:15px; font-weight:600; letter-spacing:.01em; }
+.ground__id span{
+  display:block; margin-top:5px;
+  font-family:var(--mono); font-size:11px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-faint);
+}
+.ground__social{ display:flex; flex-wrap:wrap; gap:10px; }
+.ground__social a{
+  display:inline-flex; align-items:center; gap:9px;
+  padding:9px 15px 9px 12px;
+  border:1px solid var(--line); border-radius:999px;
+  font-family:var(--mono); font-size:11px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-dim);
+  transition:color .3s, border-color .3s, background .3s, transform .3s var(--ease);
+}
+.ground__social a:hover,
+.ground__social a:focus-visible{
+  color:var(--accent); border-color:color-mix(in srgb, var(--accent) 55%, transparent);
+  background:color-mix(in srgb, var(--accent) 8%, transparent);
+  transform:translateY(-2px);
+}
+.ground__social svg{ flex:none; }
+.ground__mail{
+  font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--ink-faint);
+  border-bottom:1px solid transparent; transition:color .3s, border-color .3s;
+}
+.ground__mail:hover{ color:var(--ink); border-bottom-color:var(--line); }
+
+@media (prefers-reduced-motion:reduce){
+  .ground__social a{ transition:color .3s, border-color .3s, background .3s; }
+  .ground__social a:hover{ transform:none; }
+}
+@media (max-width:640px){
+  .ground__in{ flex-direction:column; align-items:flex-start; gap:22px; }
 }

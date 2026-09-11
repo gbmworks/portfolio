@@ -267,7 +267,7 @@ body.has-reel #veil{ position:fixed; }
   /* fills the screen, so the page ends on the work rather than on a
      band of leftover world under it, and holds the strip in the middle
      of it rather than against the top */
-  min-height:100vh;
+  min-height:88vh;
   display:flex; flex-direction:column; justify-content:center;
   /* the top pad clears the fixed top bar, which goes on floating above
      this the way it does over every other scrolling page */

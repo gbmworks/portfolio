@@ -30,6 +30,9 @@ Desktop.ini
 _cv_read.pdf
 *.log
 
+# the portrait's 5 MB source; assets/portrait.jpg is the 51 KB copy that ships
+assets/PIC.png
+
 # unused duplicates of the .jpg maps the material actually loads
 assets/3d/diffuse_new.png
 assets/3d/normal_new.png

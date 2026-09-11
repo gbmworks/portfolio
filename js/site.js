@@ -31,8 +31,25 @@ export const SITE = {
      beacons.ai/govindbmohan instead — the two have not been
      reconciled, so this keeps what is currently deployed. */
   links:   'https://linktr.ee/govindbmwork',
-  beacons: 'https://beacons.ai/govindbmohan'
+  beacons: 'https://beacons.ai/govindbmohan',
+
+  /* The profiles the footer links out to, in the order they are shown.
+     Add `linkedin: '…'` above and it appears — SOCIALS drops anything
+     the card does not have a URL for, so a missing profile is a missing
+     icon rather than a dead link. */
+  linkedin: ''
 };
+
+/* name → SITE key, in display order */
+const SOCIAL_KEYS = [
+  ['LinkedIn',  'linkedin'],
+  ['Behance',   'behance'],
+  ['Instagram', 'instagram']
+];
+
+export const SOCIALS = SOCIAL_KEYS
+  .filter(([, key]) => SITE[key])
+  .map(([label, key]) => ({ label, key, url: SITE[key] }));
 
 /* '3D Generalist · Industrial Designer · Artist' */
 export const ROLE_LINE = SITE.roles.join(' · ');

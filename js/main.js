@@ -12,7 +12,7 @@ import { sectorUrl } from './links.js';
 import { createStage, reducedMotion } from './stage.js';
 import { Wheel } from './wheel.js';
 import { DEFAULT_THEME } from './env/themes.js';
-import { mountShell } from './shell.js';
+import { mountShell, mountGround } from './shell.js';
 import { bindNav } from './nav.js';
 import { mountReel } from './reel.js';
 
@@ -169,6 +169,7 @@ compose();
    here leaves the landing page exactly as it was rather than leaving a
    scrollbar over nothing. */
 mountReel({ onNavigate: nav.leave }) && document.body.classList.add('has-reel');
+mountGround();
 
 stage.start();
 document.documentElement.setAttribute('data-ready', '');

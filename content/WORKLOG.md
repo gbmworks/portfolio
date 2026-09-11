@@ -2,7 +2,7 @@
 
 A record of the restructuring, in the order it happened. Sections 1-8 are
 the first session; section 9 is the second, which deployed the game;
-sections 10 to 15 are the third, which fixed the mosaic's reading order,
+sections 10 to 16 are the third, which fixed the mosaic's reading order,
 deployed the avatar studio, gave both runnable projects a way back,
 added fifteen files of footage and a reel under the wheel, and then
 repaired what the first of those had quietly broken, then took a
@@ -833,6 +833,46 @@ visible in every screenshot ever taken of this site.
 
 Three of those are now registered in `.impeccable/config.json` with
 reasons attached, so the next run reports signal rather than taste.
+
+---
+
+## 16. A face, and a way out
+
+**The About window opened on a paragraph.** It is built from a CV and
+read by people deciding whether to work with him, and there was no
+photograph anywhere on the site. There is one now, first in the header
+with the summary beside it, stacking below 760px so the picture never
+takes a whole phone screen before a word of the text.
+
+The source was 2609x2609 and **5.1 MB**. It ships at 760px and **51 KB**,
+and `assets/PIC.png` joins the other heavy sources in `.gitignore`. It is
+framed like the work — a hairline, the same 12px corner as a tile, no
+crop — and darkened slightly so a bright print sits in the room rather
+than on top of it. The grid it was shot against happens to be the
+drafting sheet two of the section pages are built on.
+
+**The landing page ended on a wall of work with nothing after it**, which
+reads as a page that was cut off. `mountGround()` in `shell.js` closes it
+with the same card the top bar opens with, plus the way out to where the
+work is published.
+
+The marks are authored SVG in a new `js/icons.js` — 24x24, stroke 1.4,
+matching the sector icons — not a glyph font and not emoji. Each carries
+its name beside it, because a bare icon row makes a visitor guess and
+there is room here.
+
+`SOCIALS` in `site.js` is the list, and it **drops any profile with no
+URL**. LinkedIn is not in the repo anywhere and was not invented: the
+field is empty, so the icon is absent rather than pointing at a stranger.
+One line when the URL arrives.
+
+### One number moved twice
+
+`--ink-faint` went 2.7:1 → 4.9:1 in section 15, which cleared the floor
+on flat ground and then measured **4.4:1** over the reel's gradient — a
+tenth short, and only visible because the detector re-ran against the
+rendered page rather than the token. At `#86848f` it is 5.5:1 and clears
+every ground on the site.
 
 ---
 
