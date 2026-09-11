@@ -2,7 +2,7 @@
 
 A record of the restructuring, in the order it happened. Sections 1-8 are
 the first session; section 9 is the second, which deployed the game;
-sections 10 to 16 are the third, which fixed the mosaic's reading order,
+sections 10 to 17 are the third, which fixed the mosaic's reading order,
 deployed the avatar studio, gave both runnable projects a way back,
 added fifteen files of footage and a reel under the wheel, and then
 repaired what the first of those had quietly broken, then took a
@@ -873,6 +873,58 @@ on flat ground and then measured **4.4:1** over the reel's gradient — a
 tenth short, and only visible because the detector re-ran against the
 rendered page rather than the token. At `#86848f` it is 5.5:1 and clears
 every ground on the site.
+
+---
+
+## 17. The character comes off the section pages
+
+The rigged figure was the site's one piece of real-time character work,
+and section 5 of this file is about halving its textures to make it
+affordable. It is off both section pages now, and the reasoning is the
+same reasoning that put it there — just followed further.
+
+**Behind a wall of work it was competing with the work.** On
+Visualization it stood above twenty-nine pieces the visitor came to see,
+and the page held a 30vh band open at the top so it would be visible at
+all. That is a third of the first screen spent on decoration.
+
+**And it is the heaviest asset on the site.** 2.0 MB of GLB plus 0.5 MB
+of maps, paid on every load of that page.
+
+`props: { hero: false }` in `page.js` does not hide it — the group is
+never built, so `onFirstShow` never runs and the file is never requested.
+
+| | before | after |
+|---|---|---|
+| `assets/3d` requests, Visualization | 5 | **0** |
+| `assets/3d` requests, Technical Art | 0 | 0 |
+| page weight, either section page | ~2.7 MB | **222 KB** |
+
+Technical Art never loaded it — its world is the gear train — but it
+takes the same flag, so a future world that wanted a figure cannot pick
+one up by accident.
+
+**The band came down with it**, from `clamp(180px, 30vh, 340px)` to
+`clamp(96px, 14vh, 170px)`. Enough sky for the terrain and the drifting
+solids to read as a room before the work starts, and no more.
+
+**The landing page keeps it**, where the world is the subject and
+hovering the slice is what summons it — verified by driving the wheel
+rather than trusting the flag: `PORTFOLIO.glb` and all four maps still
+fetch there.
+
+One thing worth writing down, because it cost a few minutes: the first
+check said the landing page had *also* stopped loading it. It had not.
+`onFirstShow` fires from the render loop as a world's weight eases past
+0.01, and a backgrounded tab throttles `requestAnimationFrame` — no
+frames, no easing, no load. The same false negative as the video and the
+lazy tiles, in a third costume.
+
+### The session's detector total
+
+863 findings at the start, **425** now, across six surfaces at 390, 820
+and 1440. `undersized-ui-text` 380 → 0, `overused-font` 3 → 0,
+`low-contrast` 69 → 36, and four more rule classes cleared outright.
 
 ---
 

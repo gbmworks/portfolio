@@ -59,10 +59,12 @@ export async function initSection(id) {
      smaller pixel budget, and 24fps for a drift this slow */
   const stage = await createStage(canvas, SECTIONS.map(s => s.id), {
     fps: 24, quality: 0.84, bloom: false,
-    /* On its own page the visualization world is not just a backdrop —
-       bring the character forward, turned to camera and held in its
-       folded pose, instead of running past in the distance. */
-    props: { hero: { closeUp: id === 'visualization' } }
+    /* No character on a section page.  Behind a reading panel or a wall
+       of tiles it is decoration nobody looks at, and it is the heaviest
+       thing on the site — 2.5 MB that Visualization was paying on every
+       load.  `hero: false` means the GLB is never even requested. It
+       still runs on the landing page, where the world is the subject. */
+    props: { hero: false }
   });
   stage.env.set(def.id, true);
 

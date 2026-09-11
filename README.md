@@ -942,30 +942,37 @@ action — is 0.07s with zero joint travel: a single held pose, the figure
 crouched with its arms folded over its knees. Playing it simply holds
 that pose.
 
-So the character has two framings, set by `props: { hero: { closeUp } }`
-through `createStage`:
+**It runs on the landing page only.** `props: { hero }` through
+`createStage` decides: the landing page takes the default and gets the
+figure running on the deck when the Visualization slice is hovered; the
+section pages pass **`hero: false`** and get the world without it.
 
 | | where | clip | framing |
 |---|---|---|---|
 | far | landing page, on hover | `Running_M` | small, off to one side, running on the deck |
-| close-up | `visualization.html` | `Action` | brought forward, turned to camera, held in the folded pose |
+| close-up | *retired* | `Action` | held in the folded pose, brought forward |
+| none | every section page | — | `hero: false` |
 
-On its own page the visualization world is not just a backdrop, so the
-model is the thing you look at. `HERO` in `buildVisualization()` holds
-both framings; `y` is set outright rather than by screen fraction because
-the figure has to stand at a known height to clear the tile wall.
+It had a close-up on `visualization.html`, and it was the wrong call for
+two reasons. Behind a wall of twenty-nine pieces of work the figure is
+decoration competing with the thing a visitor came to see; and it is
+**the heaviest asset on the site** — 2.5 MB of GLB and maps that page was
+paying on every load. `hero: false` does not hide it, it never builds it,
+so `onFirstShow` never runs and the file is never requested. Measured:
+**zero requests under `assets/3d`** on either section page, and each is
+now 222 KB in total.
 
-**The wall had to move for this.** `.gal` is 93% opaque across the full
-width, so the character was invisible from the first tile down. A mosaic
-page now leaves a clear band above the wall
-(`body[data-layout="gallery"] .gal:first-of-type`), about 30vh, dropping
-to 80px on a phone where a full screen of scrolling before any work is a
-bad trade. Delete that rule and the character goes back to being hidden;
-nothing else changes.
+`HERO` in `buildVisualization()` still holds both framings and the
+close-up still works — put `hero: { closeUp: true }` back in `page.js`
+and it returns.
 
-The model and its maps (~3 MB) are only fetched the first time the
-visualization world is actually shown — the other two sectors never pay for
-it.
+**The mosaic's top band came back down with it.** `.gal` is 93% opaque
+across the full width, so the band above it
+(`body[data-layout="gallery"] .gal:first-of-type`) existed to keep the
+character visible. Holding 30vh open for something that is no longer
+there is holding it for nothing, so it is ~14vh now — enough sky for the
+terrain and the drifting solids to register as a room before the work
+starts, and no more.
 
 ### A real HDRI
 

@@ -429,6 +429,14 @@ const buildVisualization = wrap((api, opts = {}) => {
                 backdrop role it plays behind the wheel
        closeUp  held in its folded pose, brought forward and turned to
                 camera so the model itself is the thing you look at */
+  /* `hero: false` leaves the character out of this world entirely — no
+     group, no light, and `onFirstShow` never runs, so the 2 MB GLB and
+     its 0.5 MB of maps are not fetched at all.  The section pages ask
+     for that: behind a reading panel or a wall of tiles the figure is
+     decoration nobody looks at, and it is the heaviest thing on the
+     site.  The landing page still gets it, where the world *is* the
+     subject and hovering the slice is what summons it. */
+  const wantsHero = opts.hero !== false;
   const closeUp = !!(opts.hero && opts.hero.closeUp);
   /* `sy` is ignored — y is set outright below, because the figure has to
      stand at a known height rather than at a screen fraction.  Close up,
@@ -439,38 +447,48 @@ const buildVisualization = wrap((api, opts = {}) => {
     ? { sx: 0.30, sy: 0, z: -1.15, y: 0.60, rot: -0.34, scale: 1.30 }
     : { sx: -0.70, sy: 0, z: -5.2,  y: -4.35, rot: 0.42, scale: 3.0 };
 
-  const hero = new THREE.Group();
-  hero.position.copy(place(HERO.sx, HERO.sy, HERO.z));
-  hero.position.y = HERO.y;
-  hero.rotation.y = HERO.rot;
-  hero.scale.setScalar(HERO.scale);
-  group.add(hero);
-
+  let hero = null;
+  let spot = null;
   let mixer = null;
 
-  /* a pool of light under the figure; close up it becomes a key from
-     the front rather than a glow from below */
-  const spot = new THREE.PointLight(PALETTE.accent, closeUp ? 9 : 14, closeUp ? 7 : 12, 2);
-  spot.position.copy(place(HERO.sx, HERO.sy, HERO.z));
-  spot.position.y = closeUp ? -0.6 : -1.4;
-  spot.position.z = closeUp ? -0.2 : -3.6;
-  group.add(spot);
+  if (wantsHero) {
+    hero = new THREE.Group();
+    hero.position.copy(place(HERO.sx, HERO.sy, HERO.z));
+    hero.position.y = HERO.y;
+    hero.rotation.y = HERO.rot;
+    hero.scale.setScalar(HERO.scale);
+    group.add(hero);
+
+    /* a pool of light under the figure; close up it becomes a key from
+       the front rather than a glow from below */
+    spot = new THREE.PointLight(PALETTE.accent, closeUp ? 9 : 14, closeUp ? 7 : 12, 2);
+    spot.position.copy(place(HERO.sx, HERO.sy, HERO.z));
+    spot.position.y = closeUp ? -0.6 : -1.4;
+    spot.position.z = closeUp ? -0.2 : -3.6;
+    group.add(spot);
+  }
 
   let scroll = 0;
   return {
     group,
-    /* the 3 MB character + its maps are fetched the first time the
-       visualization world is hovered, not on every page load */
-    onFirstShow: () => loadCharacter((root, m) => {
-      hero.add(root);
-      mixer = m;
-      api.refresh();                  // pick up the glTF materials for fading
-    }, { pose: closeUp }),
+    /* the 2.5 MB character is fetched the first time the visualization
+       world is shown, not on every page load — and not at all where the
+       world was asked for without it */
+    onFirstShow: () => {
+      if (!wantsHero) return;
+      return loadCharacter((root, m) => {
+        hero.add(root);
+        mixer = m;
+        api.refresh();                // pick up the glTF materials for fading
+      }, { pose: closeUp });
+    },
     tick: (dt, t) => {
       if (mixer) mixer.update(dt);
-      /* a held pose still breathes, just less */
-      hero.position.y = HERO.y + Math.sin(t * 0.4) * (closeUp ? 0.02 : 0.05);
-      spot.intensity = 14 + Math.sin(t * 2.2) * 5;
+      if (hero) {
+        /* a held pose still breathes, just less */
+        hero.position.y = HERO.y + Math.sin(t * 0.4) * (closeUp ? 0.02 : 0.05);
+        spot.intensity = 14 + Math.sin(t * 2.2) * 5;
+      }
       scroll = (scroll + dt * 3.2) % W;
       terrain.position.z = -10 + scroll;
       solids.forEach(s => {

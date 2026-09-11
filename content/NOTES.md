@@ -178,6 +178,10 @@ Four findings are left standing on purpose and should not be "fixed":
   LinkedIn is simply absent rather than a dead link. Paste the URL into
   that one field and the icon appears, on the landing page and anywhere
   else that reads `SOCIALS`.
+- **The character is landing-page only.** `props: { hero: false }` in
+  `page.js` keeps `PORTFOLIO.glb` off both section pages entirely — not
+  hidden, never requested. Each section page is 222 KB now. The close-up
+  framing is still in `buildVisualization()` if it is ever wanted back.
 - **The landing page scrolls now.** Under the wheel is the reel — ten
   hand-picked pieces from `FEATURED` in `projects.js`, built by
   `js/reel.js` out of the same `.tile` the walls use. `body.has-reel` is

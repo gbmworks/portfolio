@@ -246,21 +246,22 @@ a:focus-visible, button:focus-visible, .tile:focus-visible, .gal-group__head:foc
    The stage band on a mosaic page.
 
    `.gal` is a 93% opaque wall across the full width, so the 3D world
-   behind it is invisible from the first tile down.  That is right for a
-   wall of work — but it left the Visualization page's character, the one
-   piece of the site that is a rigged model rather than a picture of one,
-   permanently behind it.
+   behind it is invisible from the first tile down.  This band used to
+   be 30vh, held open so the Visualization character could be seen above
+   the wall.
 
-   So the wall starts lower down and the band above it is left clear.
-   The gradient already fades in from transparent, so the seam is a fade
-   rather than an edge.  Revert by deleting this rule: the character goes
-   back to being hidden, nothing else changes.
+   The character is gone from the section pages now — `hero: false` in
+   page.js — so holding a third of the screen for it would be holding it
+   for nothing.  What is left is enough sky for the terrain and the
+   drifting solids to register as a room before the work starts, and no
+   more.  The gradient still fades in from transparent, so the seam is a
+   fade rather than an edge.
    ------------------------------------------------------------------ */
 body[data-layout="gallery"] .gal:first-of-type{
-  margin-top:clamp(180px, 30vh, 340px);
+  margin-top:clamp(96px, 14vh, 170px);
 }
 @media (max-width:900px){
-  /* on a phone the band costs a whole screen of scrolling before any
-     work is visible, which is a bad trade */
-  body[data-layout="gallery"] .gal:first-of-type{ margin-top:80px; }
+  /* on a phone the band costs scrolling before any work is visible,
+     which is a bad trade */
+  body[data-layout="gallery"] .gal:first-of-type{ margin-top:64px; }
 }
