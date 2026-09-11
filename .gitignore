@@ -94,3 +94,7 @@ content/Fitmint/AvatarStudio/tools/node_modules/
 # ---------------------------------------------------------------
 .claude/
 .impeccable/config.local.json
+
+# The device harness used to inspect phone layouts (see content/NOTES.md).
+# Served from the repo root so it is same-origin with the site; never shipped.
+_devphone.html

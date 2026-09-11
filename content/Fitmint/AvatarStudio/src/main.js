@@ -81,9 +81,17 @@ function trackDockObstruction() {
     const box = dock.getBoundingClientRect();
     const side = box.width < innerWidth * 0.7;
     const hiddenX = side ? innerWidth - box.left : 0;
-    app.viewer.setObstruction(hiddenX, side ? 0 : innerHeight - box.top);
+    const hiddenY = side ? 0 : innerHeight - box.top;
+    app.viewer.setObstruction(hiddenX, hiddenY);
     // Centre the stage bars over the free half too, not over the whole window.
     document.documentElement.style.setProperty('--dock-half', `${hiddenX / 2}px`);
+    /* Publish the measured height so the CSS can stop guessing it. The dock
+       sizes to its content on a phone — six skin tones need far less of the
+       screen than a wardrobe with a colour picker under it — and the camera
+       rail and the two floating bars all sit against the preview it leaves.
+       A fixed 42vh made them right for the tallest category and wrong for
+       every other one. */
+    document.documentElement.style.setProperty('--dock-h', `${Math.round(hiddenY)}px`);
   };
   new ResizeObserver(update).observe(dock);
   addEventListener('resize', update);

@@ -212,9 +212,54 @@ body:not(.is-section) #stage{ pointer-events:auto; }   /* except the wheel */
   .label__title{ font-size:12px; letter-spacing:.04em; margin-top:8px; }
 }
 
+/* ------------------------------------------------------------------
+   THE SHEET'S STRIP
+
+   Only exists where the preview stage does not — see sheetReel() in
+   js/page.js.  A `.tile` from the same engine as every other wall, laid
+   in a track you push along instead of a grid.
+   ------------------------------------------------------------------ */
+.sreel{ display:none; }
+
+.sreel__track{
+  display:flex; gap:10px;
+  overflow-x:auto; overscroll-behavior-x:contain;
+  scroll-snap-type:x proximity;
+  scrollbar-width:none;
+  /* the strip runs to both edges of the sheet rather than stopping at
+     its padding — a card cut by the edge is what says there are more */
+  margin:0 calc(var(--sheet-pad, 20px) * -1);
+  padding:2px var(--sheet-pad, 20px) 4px;
+}
+.sreel__track::-webkit-scrollbar{ display:none; }
+
+.sreel__cell{
+  flex:0 0 auto;
+  width:clamp(146px, 46vw, 196px);
+  scroll-snap-align:start;
+}
+
+/* A wall lets a tile be whatever height its picture is; a strip cannot —
+   one card taller than the rest sets the height of the track and leaves
+   the difference as a hole under every other card.  So in here the crop
+   is fixed, the title is clamped to two lines, and `contain-intrinsic-
+   size` is told the answer the wall's 340px guess gets wrong: without
+   it the cards still off screen claim a height nothing will ever have,
+   and the track is sized by cards nobody has seen yet. */
+.sreel__cell .tile{ height:100%; margin:0; contain-intrinsic-size:auto 192px; }
+.sreel__cell .tile__media{ aspect-ratio:4 / 3; max-height:none; }
+.sreel__cell .tile__title{
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  overflow:hidden; white-space:normal;
+}
+/* the wall's hover lift is a pointer idiom and this strip has none */
+.sreel .tile:hover{ transform:none; }
+
 @media (max-width: 900px) {
   /* the preview stage needs a cursor; on touch it is dead space */
   .stage{ display:none !important; }
+  /* so the work arrives as a strip instead */
+  .sreel{ display:block; margin:26px 0 4px; }
   body[data-layout="sheet"] .panel{ top:0; }
   
   body[data-layout="sheet"] .panel__scroll{ padding-top:76px; }
@@ -242,6 +287,95 @@ body:not(.is-section) #stage{ pointer-events:auto; }   /* except the wheel */
   .xp__head{ grid-template-columns:1fr; }
   .xp__when{ grid-row:auto; grid-column:1; }
   .tile__cap{ padding:9px 11px 10px; }
+}
+
+/* ================================================================
+   PHONE  (<=620px)
+
+   `is-narrow` used to run from a 900px tablet down to a 360px phone on
+   one set of values, and at the bottom of that range the page stopped
+   being a smaller desktop and became a different composition.  This is
+   that composition: one column of air with the wheel seated in it and
+   the type under it, everything sized for the screen it is on rather
+   than scaled down from the one it was drawn for.
+   ================================================================ */
+@media (max-width:620px){
+
+  /* --- the bar --- */
+  .topbar{ padding:8px clamp(14px,4vw,20px); }
+  body[data-layout="gallery"] .topbar,
+  body[data-layout="project"] .topbar,
+  body.has-reel .topbar{ padding-bottom:24px; }
+  .topbar__id strong{ font-size:12.5px; letter-spacing:.22em; }
+  .topbar__nav{ gap:2px; }
+  /* 44px of touch under an 11px label.  The padding does the reaching
+     and the bar's own padding comes off, so the target grows without
+     the bar growing with it. */
+  .topbar__nav a{
+    display:flex; align-items:center; min-height:44px; padding:0 8px;
+    font-size:11px; letter-spacing:.10em;
+  }
+
+  /* --- the landing composition --- */
+  /* The reel's cue owns the last 84px of the first screen.  The lede
+     ran to 802 of 844 and the cue began at 760, so the hint line and
+     the cue were drawn through each other; this gives the cue its band
+     back and lifts the copy clear of it. */
+  body.is-phone .lede{ left:20px; width:calc(100% - 40px); bottom:104px; }
+  body.is-phone .lede__h{ font-size:clamp(25px,6.8vw,33px); line-height:1.06; }
+  body.is-phone .lede .hint{ margin-top:18px; }
+  .hint{ font-size:11px; letter-spacing:.10em; gap:8px; }
+
+  /* The sector labels are projected onto a radius, so at full size on a
+     390px screen they left the pie, crossed the tick ring and ran off
+     the edge — "VISUALIZATION" showed it first, having no space to wrap
+     at.  This width holds it on one line and "INDUSTRIAL DESIGN" on two
+     at the 11px the labels must keep to stay legible; the wheel is
+     scaled to fit around this type, not the other way round. */
+  .label{ width:128px; }
+  .label__icon{ width:26px; height:26px; }
+  .label__title{ margin-top:7px; font-size:11px; letter-spacing:.04em; }
+  .hub__k{ font-size:11px; letter-spacing:.22em; }
+  .hub__v{ font-size:12px; }
+
+  /* --- the mosaic header --- */
+  .galbar{ padding:78px 16px 14px; gap:12px; row-gap:4px; }
+  .galbar__title{ font-size:20px; gap:10px; }
+  .galbar__count{ font-size:11px; letter-spacing:.16em; }
+  .galbar .sectors{ margin-top:12px; padding-top:12px; gap:6px; }
+  /* The switcher holds one line.  Three pills wanted 386px of a 336px
+     row and wrapped 2 + 1, which reads as two groups rather than as one
+     set of three — and the odd one out is Visualization, the page most
+     likely to be the one you want.
+
+     The register numeral is what costs it: 13px of glyph plus the 8px
+     gap after it, 63px across three pills, and it is the one thing here
+     that is said twice — the header above already carries "01 / 03" for
+     the sector you are on.  It stays on every wider screen.  With it
+     gone and the padding trimmed the row needs 301px, which fits a
+     360px phone as well as a 390px one; `nowrap` with a scroll is the
+     valve for anything narrower, so the row bends before it breaks. */
+  .sectors{ flex-wrap:nowrap; gap:6px; overflow-x:auto; scrollbar-width:none; }
+  .sectors::-webkit-scrollbar{ display:none; }
+  /* the pills are the sector switcher's whole surface, so they carry the
+     44px themselves rather than relying on the text they wrap */
+  .sectors a{
+    flex:0 0 auto;
+    min-height:44px; align-items:center;
+    padding:0 10px; font-size:11px; white-space:nowrap;
+  }
+  .sectors a span{ display:none; }
+  /* the back link shares a baseline row with the title, so its tap area
+     is padding the row does not pay for */
+  .galbar__back{
+    display:inline-flex; align-items:center; font-size:11px;
+    padding:14px 2px; margin:-14px 0;
+  }
+
+  /* a caption in a two-column wall has half the width it used to */
+  .tile__cap{ padding:8px 9px 9px; }
+  .tile__title{ font-size:11px; line-height:1.28; }
+  .tile__src, .tile__group{ font-size:11px; letter-spacing:.10em; }
 }
 
 /* iOS: honour the safe area so nothing hides under the home indicator */

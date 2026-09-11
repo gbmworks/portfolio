@@ -48,11 +48,64 @@ iris are base-colour map swaps on materials already in `Male.glb`.
 | Bottom | Animation bar with play/pause |
 | Right dock | Category rail + wardrobe grid, HSB colour pickers, face sliders |
 
+The camera snaps stay on the left edge at every width, including a phone. They
+used to cross the top of a narrow screen as a row, which put four buttons over
+the avatar's face — the one part of the preview that every framing exists to
+show.
+
+The category rail is **one line that scrolls**, with an arrow at each end that
+moves it by a page and greys out when there is nowhere left to go. Eleven
+categories used to wrap to two rows, which cost the preview a second band of
+chrome on every screen and read as a grid of equals rather than as one list you
+move along. A category opened by anything other than a click on its own tab —
+a reset, a keyboard — scrolls its tab back into view.
+
+**Fit is solved against the visible area, not the canvas.** The dock covers
+part of the viewport and `#applyFocusOffset` slides the picture into what is
+left — but sliding is not scaling, so a shot solved for the whole canvas is
+sized for room the dock is standing on. And `controls.maxDistance` is the
+hand-orbit ceiling, not a framing limit: on a phone `full` asked for 6.9 and
+was clamped to 6, which delivered a shot 13% too close and stood the avatar's
+feet under the light bar. `frame()` now raises the ceiling to whatever the
+shot needs and lowers it again for the close framings. Desktop, tablet and the
+375x667 phone are arithmetically unchanged — none of them ever hit the clamp.
+
 Opening a category also moves the camera to the framing that suits it (hair and
 face snap to the head, footwear to the feet), and stops doing so once you have
 orbited by hand. Randomise snaps back to Fit, since a fresh look is worth seeing
 whole. The dock's width is fed to the camera as a view offset, so the
 avatar sits in the middle of the space the panel leaves free.
+
+**On a phone the thumbnails are a line too.** The wardrobe grid was the last
+thing in the dock still spending the screen vertically, so below 900px it runs
+as one row you push along, the way the categories above it and the animations
+above those already do. The colour block underneath cannot be a row — three
+HSB tracks *are* the control — so it is tightened instead. On a desktop the
+dock is a tall column with room to spare and the grid stays a grid; the
+carousel is what a bottom sheet wants, not what a side panel wants.
+
+The trade is deliberate and worth knowing: a row shows four items at a time
+where a grid showed a dozen, so a long category is more scrolling. It buys
+the preview about 100px on every screen, which on a phone is the difference
+between seeing the avatar and seeing part of it.
+
+**The chrome is sized to leave the preview the room.** `--dock-w` is 316px
+(was 372). `--dock-h` is not a guess: `trackDockObstruction()` in `main.js`
+already measures the dock for the camera's view offset, and it now writes that
+height to the root as well. So the dock takes the height its content needs —
+six skin tones are not a wardrobe with a colour picker under them — and the
+camera rail and both floating bars position against the preview that leaves
+rather than against the window. A fixed height made them right for the tallest
+category and wrong for every other one. The value in the stylesheet is only
+what holds before the first measurement.
+
+The thumbnails on desktop are laid on `minmax()` rather than a column count,
+so the same rule holds in a 316px dock and in a phone's full-width one.
+
+One rule survives all of it: **functional text holds at 11px.** The camera
+labels went to 10px in a first pass and the detector was right to call them
+back; what shrank instead was the icon, the padding and the redundant "Camera"
+caption over four buttons that already say their own names.
 
 **Lighting.** A real HDRI drives the lighting — image-based reflections, bounce
 colour, the lot — but it is never shown. The stage behind the avatar is a flat

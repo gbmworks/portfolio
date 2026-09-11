@@ -21,7 +21,7 @@ import { ACCENT, ACCENT_GLOW } from './site.js';
 import { sectorUrl } from './links.js';
 import { pageEntries } from './projects.js';
 import { createStage } from './stage.js';
-import { buildMosaic, startTiles } from './tiles.js';
+import { buildMosaic, entryTile, startTiles } from './tiles.js';
 import { initStage } from './preview.js';
 import { mountShell } from './shell.js';
 import { bindNav } from './nav.js';
@@ -42,7 +42,14 @@ export async function initSection(id) {
   mountShell();
   if (isGallery) {
     document.body.classList.add('is-gallery');
-    buildMosaic($('#page'), def, entries, { foot: sectorFoot(index) });
+    /* The same sector switcher the sheet layout carries.  The mosaic was
+       built with only the prev/next footer, which meant the one page on
+       the site laid out as a gallery was also the one page you could not
+       leave for another sector without scrolling past 29 tiles first. */
+    buildMosaic($('#page'), def, entries, {
+      nav:  sectorNav(index),
+      foot: sectorFoot(index)
+    });
   } else {
     buildPanel(def, index, entries);
     initStage({
@@ -163,6 +170,30 @@ function entryRow(e, i) {
     </a>`;
 }
 
+/* The section's work at a glance, for the screens with no preview stage.
+
+   The stage beside the sheet is a hover affordance: hovering a row plays
+   that project in it. Below 900px it is `display:none` — there is no
+   cursor to hover with — and what was left was a section page with no
+   picture on it at all, which for a portfolio is the wrong thing to be.
+
+   This is the stage's job in a touch idiom: the same entries, as a strip
+   you push along, each one a tap from its page. It is the same move the
+   landing page makes with the reel under the wheel, and like the reel it
+   is a `.tile` from the same engine — lazy poster, the rules about where
+   a click goes — so nothing about playback or navigation is written
+   twice. The numbered list below stays the index you scan by name; this
+   is the one you browse by eye. */
+function sheetReel(entries) {
+  if (!entries.length) return '';
+  return `
+    <section class="sreel" aria-label="The work at a glance">
+      <div class="sreel__track" role="list">
+        ${entries.map(e => `<div class="sreel__cell" role="listitem">${entryTile(e)}</div>`).join('')}
+      </div>
+    </section>`;
+}
+
 function buildPanel(def, index, entries) {
   const hl = IG_HIGHLIGHTS[def.id] || [];
 
@@ -179,6 +210,7 @@ function buildPanel(def, index, entries) {
         <p class="panel__blurb">${def.blurb}</p>
       </header>
       ${sectorNav(index)}
+      ${sheetReel(entries)}
 
       <section class="plinks">
         <header class="plinks__head">

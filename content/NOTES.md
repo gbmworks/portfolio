@@ -134,6 +134,12 @@ opacity 0 until `is-ready`).
 
 Four findings are left standing on purpose and should not be "fixed":
 
+**Functional text holds at 11px.** This has now been learned twice — once
+on the portfolio's phone tier and once on the studio's camera labels —
+both times by shrinking labels to make something else fit, and both times
+called back by `undersized-ui-text`. What shrinks instead is the icon, the
+padding, and any label that restates what its buttons already say.
+
 | finding | why it stays |
 |---|---|
 | `all-caps-body`, `wide-tracking` | the mono label system *is* the identity |
@@ -166,6 +172,29 @@ Four findings are left standing on purpose and should not be "fixed":
 6. **The automated browser reports `visibilityState: "hidden"`**, so Chrome
    will not decode video in it. A blank `<video>` there is not a bug — check
    `networkState` and the codec before chasing it.
+7. **A hidden tab does not run `requestAnimationFrame`,** which is the same
+   fact wearing a different hat and it costs an hour if you meet it cold.
+   Everything the wheel positions — the hub, the three labels, the rig's
+   scale and seat — is damped toward its target inside the frame loop, so
+   in a backgrounded tab it never arrives. `getBoundingClientRect()` on
+   `#hub` returns `0,0` and the labels carry five-digit transforms, **while
+   a screenshot of the same tab looks correct**, because capturing it makes
+   it visible for long enough to advance a few frames. Do not measure the
+   wheel through the DOM in an automated browser. Screenshot it, and take
+   several in a row to let the damping settle.
+8. **Phone emulation via window resize does not work here** — the resize
+   reports success and `innerWidth` does not move (`outerWidth` reads 0).
+   What does work is an iframe at the device size, served from the dev
+   server so it is same-origin: the iframe is a real viewport, so media
+   queries, layout and scrolling all behave. Give the inner document
+   `scrollbar-width:none`, or a classic scrollbar steals 15px and every
+   measurement is off by that much.
+
+   `_devphone.html` at the repo root is that harness — page and device
+   pickers across the four pages, a project and the studio. It is
+   gitignored: it has to sit in the root to be same-origin with the site,
+   and it must never ship. Open it at
+   `http://127.0.0.1:8123/_devphone.html`.
 
 ## Current state
 
@@ -173,11 +202,9 @@ Four findings are left standing on purpose and should not be "fixed":
   in `projects.js`); clicking the row plays it. Nothing of the game loads
   until then — measured, zero requests under `game/` on a section load.
 - ID 18 · TD 14 · VIZ 29, all 61 with a picture and a destination.
-- **`SITE.linkedin` is empty.** The footer under the reel is built from
-  `SOCIALS` in `site.js`, which drops any profile with no URL — so
-  LinkedIn is simply absent rather than a dead link. Paste the URL into
-  that one field and the icon appears, on the landing page and anywhere
-  else that reads `SOCIALS`.
+- The footer under the reel is built from `SOCIALS` in `site.js`, which
+  drops any profile with no URL — so an unset one is absent rather than a
+  dead link. All of them are set now, LinkedIn included.
 - **The character is landing-page only.** `props: { hero: false }` in
   `page.js` keeps `PORTFOLIO.glb` off both section pages entirely — not
   hidden, never requested. Each section page is 222 KB now. The close-up
@@ -223,21 +250,75 @@ Four findings are left standing on purpose and should not be "fixed":
     return want && Math.abs(r.width/r.height-want)/want > 0.04;
   }).map(t=>t.dataset.title)   // must be []
   ```
+- **Below 620px is its own tier**, not a scaled desktop: `body.is-phone`
+  from `compose()` in `js/main.js`, and every rule hanging off it in
+  `css/project.css`. The wheel is scaled to its labels rather than the
+  other way round — **labels hold at 11px**, the detector's floor for UI
+  text, and the wheel takes `0.78` to fit around them. Its vertical seat
+  is measured, not nudged: `seatY()` centres it in the band between the
+  top bar and the headline, so it composes on a 667px phone as well as a
+  932px one. Check a phone change by screenshot, not by the numbers —
+  see the trap about the throttled tab below.
+- **The mosaic is two columns on a phone, and that is deliberate.** One
+  column made each 9:16 tile 671px tall on an 844px screen: 29 pieces,
+  18.8 screens, readable only one at a time. Two columns is 5.9 screens.
+  A landscape tile keeps `grid-column:span 2` there, which is the full
+  width.
+- **Both walls and both layouts now carry the sector switcher.**
+  `buildMosaic` takes `nav` alongside `foot`; `sectorNav()` is the one
+  function that builds it, for the sheet and the mosaic alike.
+- **The sheet pages carry a strip on phone and tablet.** `sheetReel()` in
+  `js/page.js`, shown only where the preview stage is hidden (<=900px),
+  styled as `.sreel` in `css/project.css`. In a strip the cards must be
+  uniform: the crop is pinned to 4:3, the title clamped to two lines, and
+  `contain-intrinsic-size` overridden — the wall's 340px guess is made by
+  cards still off screen, and a flex track sized by those leaves a hole
+  under the ones you can see.
+- **The avatar studio's chrome is sized off two variables.** `--dock-w`
+  (316px) and `--dock-h`. The camera rail and both floating bars position
+  against the preview those leave, not against the window, so changing the
+  dock moves all of them together.
+
+  **`--dock-h` is measured, not written.** `trackDockObstruction()` in
+  `src/main.js` observes the dock and writes its real height to the root
+  every time it resizes; the value in the stylesheet is only what holds
+  before the first measurement. That is what lets the dock be
+  `height:auto` on a phone — 234px for a category with no colour picker,
+  367px for one with. **Do not hardcode a dock height in the CSS and
+  expect the bars to follow**; they follow the measurement.
+
+  On a phone everything in the dock is a line you push along: the
+  category rail (with arrows — `#railEnds()` in `src/ui.js` greys them at
+  the ends), and the wardrobe grid. On a desktop the grid stays a grid,
+  because the dock there is a tall column with the room for it.
+
+  **`controls.maxDistance` is the hand-orbit ceiling, not a framing
+  limit.** `frame()` in `src/viewer.js` raises it to whatever a shot needs
+  and lets it fall back afterwards. It used to clamp the solver instead,
+  which is how Fit came out 13% too close on a phone — it asked for 6.91
+  and got 6, with nothing to say it had been overruled. The solve also
+  runs against the *visible* axes, since the dock hides part of the canvas
+  and shifting the picture into what is left is not the same as scaling it.
+
+  **Edit the source and run `node deploy.mjs`** — `studio/fitmint/` is a
+  build output, and editing it directly is undone by the next deploy.
 - Four records still have no artwork (Primetrace, Metabrix, Hecoll,
   Freelance 2024) and are unlisted, so nothing renders as a bare plate.
 
 ## Next, in the order I would do it
 
-0. **The Visualization wall, from an Impeccable critique** — open, in
-   the order I would take them: the wall ends on one dangling tile with
-   four empty columns beside it; the 29 tiles are `<figure role="link">`
+0. **The Visualization wall, from an Impeccable critique** — still open,
+   in the order I would take them: the 29 tiles are `<figure role="link">`
    rather than `<a href>`, so no ⌘-click and nothing crawlable; 24 of 29
    leave the site and nothing on the wall says which (`tile()` already
    takes a `mark` badge, `entryTile` never passes one); the 8px tracks
    mean no two neighbours share a top edge while 18 tiles are identical,
    so it is neither aligned nor varied — coarsen to ~48px tracks or
-   commit to masonry, not both; two "All work" affordances; the top band
-   is a 118px sliver that slices the backdrop solids in half.
+   commit to masonry, not both; two "All work" affordances, which the
+   sheet pages have too and which should be settled for both at once.
+   ~~No way to another sector~~ — done, the switcher is in the bar.
+   The `<a href>` one is the pick of these: it buys keyboard,
+   middle-click and crawlability in a single change.
 1. **`SITE.links` vs `SITE.beacons`** — linktr.ee is live, the CV says
    beacons.ai. Pick one, delete the other.
 2. **The Instagram post "Crystalverse — web-based 3D game"** still sits three

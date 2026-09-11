@@ -26,8 +26,11 @@
   border-left:1px solid var(--line);
 }
 .panel__scroll{
+  /* named because the strip in .sreel bleeds to the sheet's edge and has
+     to cancel exactly this much, not a number that resembles it */
+  --sheet-pad:clamp(24px,4vw,52px);
   height:100%; overflow-y:auto; overscroll-behavior:contain; overflow-anchor:none;
-  padding:clamp(26px,4vw,44px) clamp(24px,4vw,52px) 72px;
+  padding:clamp(26px,4vw,44px) var(--sheet-pad) 72px;
 }
 .panel__scroll::-webkit-scrollbar{ width:6px; }
 .panel__scroll::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.14); border-radius:99px; }
@@ -202,6 +205,14 @@ body[data-layout="sheet"] .plink::after{
   margin-left:auto;
   font-family:var(--mono); font-size:11.5px; letter-spacing:.24em;
   text-transform:uppercase; color:var(--ink-faint);
+}
+/* The sector switcher takes a line of its own under the title rather
+   than a place in the baseline row — it is a different kind of thing
+   from the back link and the count, and sharing their row would make
+   four competing items out of what should read as a header and a nav. */
+.galbar .sectors{
+  flex:1 0 100%;
+  margin:clamp(14px,2vw,20px) 0 0; padding-top:clamp(14px,2vw,20px);
 }
 .gal--mosaic{ background:rgba(6,6,10,.86); padding-top:0; }
 /* An entry with no artwork in the repo says its own name instead of

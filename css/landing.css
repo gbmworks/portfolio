@@ -261,6 +261,16 @@ body.has-reel .topbar{
 body.has-reel{ overflow-y:auto; overflow-x:hidden; height:auto; min-height:100%; }
 body.has-reel #veil{ position:fixed; }
 
+/* #stage is `touch-action:none` in base.css, so a drag on the canvas
+   orbits the world instead of moving the page.  The moment the page can
+   scroll, that rule eats every upward swipe on the first screen — and on
+   a phone the first screen IS the canvas, edge to edge, so the reel
+   below it became unreachable by touch while the desktop wheel scrolled
+   it fine.  `pan-y` hands vertical drags back to the page and leaves the
+   tap that picks a sector alone.  The gallery and project layouts have
+   always done this; the landing page grew a scroll and never got it. */
+body.has-reel #stage{ touch-action:pan-y; }
+
 .reel{
   position:relative; z-index:24;
   margin-top:100vh;

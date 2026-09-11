@@ -135,12 +135,13 @@ export const grid = (html, extra = '') =>
 /* ------------------------------------------------------------------
    the gallery layout: the page's running order as one wall
    ------------------------------------------------------------------ */
-export function buildMosaic(container, def, entries, { foot = '' } = {}) {
+export function buildMosaic(container, def, entries, { nav = '', foot = '' } = {}) {
   container.innerHTML = `
     <header class="galbar">
       <a class="galbar__back" href="index.html" data-home>← All work</a>
       <h1 class="galbar__title"><span>${def.index}</span>${def.title}</h1>
       <span class="galbar__count">${entries.length} pieces</span>
+      ${nav}
     </header>
 
     ${grid(entries.map(entryTile).join(''))}

@@ -77,6 +77,10 @@ const el = (tag, className, html) => {
   return node;
 };
 
+const ARROW_SVG = (d) =>
+  `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor"
+     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+
 const button = (className, html, onClick, { title, type = 'button' } = {}) => {
   const node = el('button', className, html);
   node.type = type;
@@ -137,8 +141,21 @@ export class UI {
     const panel = el('section', 'panel');
     panel.append(this.panelTitle, this.panelBody);
 
+    /* The eleven categories used to wrap to two rows, which cost the
+       preview a second band of chrome on every screen and read as a
+       grid of equals rather than as one list you move along. One line
+       that scrolls says the same thing in half the height. */
+    const wrap = el('div', 'rail-wrap');
+    const arrow = (dir, path, label) =>
+      button('rail-arrow', ARROW_SVG(path), () => this.#scrollRail(dir), { title: label });
+    this.railPrev = arrow(-1, 'M15 5l-7 7 7 7', 'Previous categories');
+    this.railNext = arrow(1, 'M9 5l7 7-7 7', 'Next categories');
+    this.railPrev.dataset.dir = '-1';
+    this.railNext.dataset.dir = '1';
+    wrap.append(this.railPrev, this.rail, this.railNext);
+
     const dock = el('aside', 'dock');
-    dock.append(this.rail, panel);
+    dock.append(wrap, panel);
     root.append(dock);
 
     for (const [key, category] of this.dockCategories) {
@@ -151,7 +168,28 @@ export class UI {
       tab.setAttribute('role', 'tab');
       this.rail.append(tab);
     }
-    this.rail.style.setProperty('--rail-cols', String(Math.ceil(this.dockCategories.length / 2)));
+
+    /* an arrow that cannot go anywhere says so rather than sitting
+       there looking live */
+    this.rail.addEventListener('scroll', () => this.#railEnds(), { passive: true });
+    addEventListener('resize', () => this.#railEnds());
+    this.#railEnds();
+  }
+
+  #scrollRail(dir) {
+    /* a whole page of tabs, less one, so the tab at the edge stays
+       visible and the visitor keeps their place */
+    const step = Math.max(this.rail.clientWidth - 56, 80);
+    this.rail.scrollBy({ left: step * dir, behavior: 'smooth' });
+  }
+
+  #railEnds() {
+    if (!this.rail) return;
+    const max = this.rail.scrollWidth - this.rail.clientWidth - 1;
+    const overflowing = max > 0;
+    this.rail.parentElement.classList.toggle('is-scrollable', overflowing);
+    this.railPrev.disabled = !overflowing || this.rail.scrollLeft <= 0;
+    this.railNext.disabled = !overflowing || this.rail.scrollLeft >= max;
   }
 
   // ------------------------------------------------------------ stage chrome
@@ -196,8 +234,11 @@ export class UI {
 
   #mountCameraRail(root) {
     const rail = el('div', 'camera-rail');
+    /* The rail used to carry a visible "Camera" caption over four buttons
+       that already say Fit, Torso, Face and Feet. It was a row of height
+       spent restating the group, and the group keeps its name here where
+       a screen reader can still reach it. */
     rail.setAttribute('aria-label', 'Camera');
-    rail.append(el('span', 'bar-label', 'Camera'));
     for (const snap of CAMERA_SNAPS) {
       const node = button(
         'camera-snap',
@@ -275,6 +316,10 @@ export class UI {
       const on = tab.dataset.key === key;
       tab.classList.toggle('is-active', on);
       tab.setAttribute('aria-selected', String(on));
+      /* one line means the active tab can be off the end of it — a
+         category opened by anything other than a click on its own tab
+         (a keyboard, a reset) has to bring its tab back into view */
+      if (on) tab.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
     }
     this.#renderPanel();
     const framing = FRAMING[key];

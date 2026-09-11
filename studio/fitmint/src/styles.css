@@ -15,7 +15,11 @@
   --radius-sm: 10px;
   --shadow-sm: 0 1px 2px rgb(16 22 36 / 6%), 0 2px 8px rgb(16 22 36 / 5%);
   --shadow: 0 8px 30px rgb(16 22 36 / 10%), 0 2px 8px rgb(16 22 36 / 6%);
-  --dock-w: 372px;
+  --dock-w: 316px;
+  /* how much of the screen the dock takes on a phone, where it sits
+     along the bottom. The camera rail and the two floating bars are
+     all positioned against the preview area this leaves. */
+  --dock-h: 0px;
   /* Abstract studio sweep: white overhead falling to grey at the floor. */
   --stage-0: #ffffff;
   --stage-1: #f2f3f5;
@@ -189,15 +193,6 @@ body {
 }
 .env-bar .bar-label { margin-right: 2px; }
 .anim-bar .bar-label { margin: 0 4px 0 12px; }
-.camera-rail .bar-label {
-  padding: 4px 0 5px;
-  text-align: center;
-  font-size: 11px;
-  letter-spacing: .07em;
-  border-bottom: 1px solid var(--line);
-  margin-bottom: 2px;
-}
-
 .env-spin {
   display: flex;
   align-items: center;
@@ -253,14 +248,17 @@ body {
 
 .camera-rail {
   position: absolute;
-  left: 22px;
-  top: 50%;
+  left: 16px;
+  /* the middle of the preview, not of the window — on a phone the dock
+     takes the bottom of the screen and centring on the window would
+     bury this behind it */
+  top: calc((100% - var(--dock-h)) / 2);
   transform: translateY(-50%);
   display: grid;
-  gap: 2px;
-  padding: 6px;
+  gap: 1px;
+  padding: 4px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 13px;
   background: color-mix(in srgb, var(--surface) 84%, transparent);
   backdrop-filter: blur(8px);
   box-shadow: var(--shadow-sm);
@@ -269,21 +267,21 @@ body {
 .camera-snap {
   display: grid;
   justify-items: center;
-  gap: 2px;
-  width: 54px;
-  padding: 8px 2px 6px;
+  gap: 1px;
+  width: 46px;
+  padding: 6px 2px 5px;
   border: 0;
-  border-radius: 11px;
+  border-radius: 9px;
   background: transparent;
   color: var(--ink-3);
   font: inherit;
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: .03em;
+  letter-spacing: .01em;
   cursor: pointer;
   transition: background .15s, color .15s;
 }
-.camera-snap svg { width: 20px; height: 20px; }
+.camera-snap svg { width: 16px; height: 16px; }
 .camera-snap:hover { background: var(--surface-2); color: var(--ink-2); }
 .camera-snap.is-selected { background: var(--accent-soft); color: var(--accent); }
 
@@ -367,38 +365,76 @@ body {
   min-height: 0;
 }
 
-.rail {
-  display: grid;
-  grid-template-columns: repeat(var(--rail-cols, 6), 1fr);
+/* The rail and its two arrows. The arrows sit outside the scroller so
+   they do not scroll away with the thing they drive. */
+.rail-wrap {
+  position: relative;
+  display: flex;
+  align-items: stretch;
   gap: 2px;
-  padding: 6px;
-  scrollbar-width: none;
+  padding: 4px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: color-mix(in srgb, var(--surface) 92%, transparent);
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow-sm);
 }
+
+.rail {
+  display: flex;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  /* the tabs at each end fade rather than being cut mid-glyph, so the
+     line reads as continuing instead of ending */
+  mask-image: linear-gradient(90deg, transparent 0, #000 14px,
+                              #000 calc(100% - 14px), transparent 100%);
+}
 .rail::-webkit-scrollbar { display: none; }
+/* nothing to scroll, nothing to fade */
+.rail-wrap:not(.is-scrollable) .rail { mask-image: none; }
+.rail-wrap:not(.is-scrollable) .rail-arrow { display: none; }
+
+.rail-arrow {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: background .15s, color .15s, opacity .15s;
+}
+.rail-arrow:hover:not(:disabled) { background: var(--surface-2); color: var(--ink-2); }
+.rail-arrow:disabled { opacity: .28; cursor: default; }
 
 .rail-tab {
+  flex: 0 0 auto;
+  width: 60px;
+  scroll-snap-align: center;
   display: grid;
   justify-items: center;
-  gap: 3px;
-  padding: 9px 2px 7px;
+  gap: 2px;
+  padding: 7px 2px 6px;
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-3);
   font: inherit;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 550;
-  line-height: 1.15;
+  line-height: 1.12;
   text-align: center;
   cursor: pointer;
   transition: background .15s, color .15s;
 }
-.rail-tab svg { width: 21px; height: 21px; }
+.rail-tab svg { width: 17px; height: 17px; }
 .rail-tab:hover { background: var(--surface-2); color: var(--ink-2); }
 .rail-tab.is-active { background: var(--accent-soft); color: var(--accent); }
 
@@ -417,8 +453,8 @@ body {
 
 .panel-title {
   margin: 0;
-  padding: 16px 18px 12px;
-  font-size: 15px;
+  padding: 11px 14px 9px;
+  font-size: 13.5px;
   font-weight: 650;
   letter-spacing: -0.01em;
   border-bottom: 1px solid var(--line);
@@ -427,7 +463,7 @@ body {
 .panel-body {
   flex: 1;
   min-height: 0;
-  padding: 14px;
+  padding: 11px;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -449,17 +485,19 @@ body {
 
 /* ------------------------------------------------------------------- grid */
 
+/* Sized by the thumbnail rather than by a column count, so the same
+   rule holds in a 316px dock and in a phone's full-width one. */
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 9px;
+  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+  gap: 6px;
 }
 
 .tile {
   position: relative;
   display: grid;
-  gap: 6px;
-  padding: 7px 7px 9px;
+  gap: 4px;
+  padding: 5px 5px 6px;
   border: 1.5px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--surface);
@@ -485,11 +523,11 @@ body {
   color: var(--ink-3);
 }
 .tile-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.tile-art svg { width: 26px; height: 26px; }
-.tile-initial { font-size: 15px; font-weight: 600; letter-spacing: .02em; }
+.tile-art svg { width: 20px; height: 20px; }
+.tile-initial { font-size: 13px; font-weight: 600; letter-spacing: .02em; }
 
 .tile-label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 550;
   line-height: 1.2;
   text-align: center;
@@ -752,50 +790,94 @@ body {
 /* ------------------------------------------------------------- responsive */
 
 @media (max-width: 900px) {
-  :root { --dock-w: auto; }
+  :root {
+    --dock-w: auto;
+    /* Only the value before the first measurement — trackDockObstruction()
+       in main.js writes the real height here every time the dock resizes. */
+    --dock-h: 210px;
+  }
 
+  /* The dock takes the height its content needs and no more. Six skin tones
+     are not a wardrobe with a colour picker under them, and giving both the
+     same slab of screen meant the preview paid for the tallest category on
+     every one of them. */
   .dock {
     top: auto;
     left: 10px;
     right: 10px;
     bottom: 10px;
-    height: min(52vh, 430px);
+    height: auto;
+    max-height: min(52vh, 400px);
   }
+  .panel { flex: 0 1 auto; }
+
+  /* The thumbnails run as one line you push along, the way the categories
+     above them and the animations above those already do. A grid of them
+     was the last thing in here still spending the screen vertically. */
+  .grid {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    mask-image: linear-gradient(90deg, transparent 0, #000 12px,
+                                #000 calc(100% - 12px), transparent 100%);
+  }
+  .grid::-webkit-scrollbar { display: none; }
+  .grid > .tile {
+    flex: 0 0 auto;
+    width: 76px;
+    scroll-snap-align: start;
+  }
+
+  /* The colour block is the other half of what the panel spends, and it
+     cannot be a row — three HSB tracks are the control. So it is tightened
+     instead: the label rides the same line as the chip and the hex rather
+     than taking one of its own, and the tracks lose the padding they were
+     carrying between them. */
+  .swatches { margin-top: 12px; }
+  .swatches-title { margin-bottom: 6px; }
+  .picker { margin-bottom: 10px; }
+  .picker + .picker { padding-top: 10px; }
+  .picker-head { margin-bottom: 5px; }
+  .picker-chip { width: 19px; height: 19px; }
+  .hsb { padding: 0; gap: 7px; }
   .toolbar { right: 14px; top: 14px; }
   .tool span { display: none; }
   .tool { padding: 0 10px; }
   .brand { top: 14px; left: 14px; }
-  .grid { grid-template-columns: repeat(4, 1fr); }
-  .rail { grid-template-columns: repeat(6, 1fr); }
 
   .env-bar {
     top: auto;
-    bottom: calc(min(52vh, 430px) + 74px);
+    bottom: calc(var(--dock-h) + 66px);
     left: 14px;
     transform: none;
     padding: 5px 8px 5px 11px;
   }
   .env-spin input[type='range'] { width: 56px; }
   .env-spin output { display: none; }
-  .camera-rail {
-    left: auto;
-    right: 14px;
-    top: 68px;
-    transform: none;
-    grid-auto-flow: column;
-  }
-  .camera-rail .bar-label { display: none; }
+
+  /* The camera rail used to cross the top of the screen as a row, which
+     on a phone put four buttons across the avatar's face — the one part
+     of the preview every framing exists to show. It stays where it is on
+     a desktop: down the left edge, clear of the model. */
+  .camera-rail { left: 10px; padding: 3px; }
+  /* the icon and label stay small; the 44px is padding around them, so
+     the control reads light and still takes a thumb */
+  .camera-snap { width: 44px; min-height: 44px; align-content: center; padding: 4px 2px; }
+  .camera-snap svg { width: 15px; height: 15px; }
+  .rail-arrow { width: 30px; }
+
   .anim-bar .bar-label { display: none; }
-  .camera-snap { width: 46px; }
   .anim-bar {
     left: 10px;
     right: 10px;
-    bottom: calc(min(52vh, 430px) + 20px);
+    bottom: calc(var(--dock-h) + 14px);
   }
 }
 
 @media (max-width: 520px) {
-  .grid { grid-template-columns: repeat(3, 1fr); }
   .brand-text { display: none; }
 }
 

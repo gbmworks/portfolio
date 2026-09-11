@@ -81,13 +81,41 @@ const PHI_X = 0.618;
 function compose() {
   wheel.fitCamera(stage.camera);
   const perPx = wheel.perPixel(stage.camera);
+  /* Three tiers, not two.  `narrow` used to run from a 900px tablet all
+     the way down to a 360px phone on one scale, and at the bottom of
+     that range the wheel outgrew the screen: the sector labels sit on a
+     radius, so they left the pie, crossed the tick ring and ran off the
+     side.  A phone gets its own scale and its own vertical seat, which
+     is what leaves room under the wheel for the headline. */
   const narrow = innerWidth <= 900;
+  const phone  = innerWidth <= 620;
+  /* the tier classes go on first: the seat below is measured off the
+     bar and the headline, and both are sized by them */
+  document.body.classList.toggle('is-narrow', narrow);
+  document.body.classList.toggle('is-phone', phone);
+
   wheel.view.rigX = narrow ? 0 : (innerWidth * PHI_X - innerWidth / 2) * perPx;
-  wheel.view.rigY = narrow ? -0.10 : 0;
-  wheel.view.scale = narrow ? 0.86 : 1;
+  wheel.view.scale = phone ? 0.78 : narrow ? 0.86 : 1;
+  wheel.view.rigY = phone ? seatY(perPx) : narrow ? -0.10 : 0;
   /* the accent uplight belongs under the wheel, not under the page */
   stage.lights.bounce.position.x = wheel.view.rigX;
-  document.body.classList.toggle('is-narrow', narrow);
+}
+
+/* Where the wheel sits on a phone.
+
+   The page is a single column there — bar, wheel, headline — so the
+   wheel wants the middle of the band the other two leave it, not the
+   middle of the viewport.  Measuring that band rather than nudging the
+   rig by a constant is what keeps it seated on a 667px phone and a
+   932px one alike, and what stops the headline growing a line from
+   pushing the wheel out of the composition. */
+function seatY(perPx) {
+  const bar  = document.querySelector('.topbar');
+  const lede = document.querySelector('.lede');
+  const top    = bar  ? bar.getBoundingClientRect().bottom : 76;
+  const bottom = lede ? lede.getBoundingClientRect().top   : innerHeight - 220;
+  /* +Y is up, so a seat above the viewport's centre is a positive rig Y */
+  return (innerHeight / 2 - (top + bottom) / 2) * perPx;
 }
 
 stage.on({
@@ -105,6 +133,11 @@ stage.on({
 });
 
 /* ---------------- hover / selection ---------------- */
+/* index.html ships the hover wording because that is what a desktop
+   visitor sees first.  A touch device never hovers, and until now it
+   read "Hover a slice" until the first tap rewrote it. */
+if (!wheel.enableParallax) hintText.textContent = 'Tap a slice to preview';
+
 function setHover(i) {
   if (!wheel.setHover(i)) return;
   document.body.style.cursor = i === -1 ? '' : 'pointer';

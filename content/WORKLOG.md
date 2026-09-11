@@ -998,6 +998,280 @@ rather than guessed at.
 
 ---
 
+## 19. The phone was a smaller desktop
+
+Three faults, one cause: there was no phone tier. `is-narrow` covered
+everything from a 900px tablet to a 360px phone on one set of values,
+and at the bottom of that range the page was not a smaller desktop any
+more.
+
+### The reel could not be reached at all
+
+`#stage` is `position:fixed; inset:0; touch-action:none` — a drag on the
+canvas orbits the world instead of moving the page, which is right. The
+gallery and project layouts have always relaxed it to `pan-y`. The
+landing page grew a scroll in section 13 and never got that line.
+
+On a desktop the wheel scrolls the page and nothing looks wrong. On a
+phone the first screen **is** the canvas, edge to edge, so every upward
+swipe was swallowed by the compositor before the page saw it. The reel,
+the ground, the whole second screen: unreachable by the only input the
+device has. One rule: `body.has-reel #stage{ touch-action:pan-y; }`.
+
+Worth naming the shape of it — the bug was introduced by a feature in a
+file that had no reason to mention the feature, and it was invisible in
+every environment except the one it broke.
+
+### Three things drawn through each other
+
+At 390x844 the landing page's bottom band held `.lede` ending at 802,
+`.reel__cue` spanning 760-810 and `#hintText` at 787-802. The lede is
+anchored to the viewport bottom and the cue to the top of `.reel` at
+`100vh - 84px`; neither knew about the other, and on a screen this short
+they landed on top of each other. `.lede` now stops at 104px, which
+gives the cue its band back.
+
+The hint also read **"Hover a slice · the world changes"** on a device
+that cannot hover. `main.js` has always had the touch wording; it only
+applied it on the first tap, so the wrong line was the one every touch
+visitor read first.
+
+### The wheel outgrew the screen before it clipped
+
+`fitCamera` sizes the wheel as a fraction of the viewport **half-height**,
+with a guard against overflowing the width. On a tall narrow screen the
+guard is what binds, and the wheel came out at 85% of the width — but
+the sector labels ride a radius, so they left the pie, crossed the tick
+ring and ran off the side well before the wheel itself did.
+"VISUALIZATION" showed it first, because it is the one name with no
+space to wrap at.
+
+So: a `phone` tier at 620px, scale `0.78`, and a seat computed rather
+than nudged — `seatY()` measures the band between the bar and the
+headline and centres the wheel in it, which is what keeps it composed on
+a 667px phone as well as a 932px one.
+
+The first pass took the labels to 9.5px to make room. The detector was
+right to call that back: **11px is the floor**, and the correct move was
+the other direction — hold the type and scale the wheel to fit around
+it. 0.62 with 9.5px labels became 0.78 with 11px ones.
+
+### A wall 19 screens long
+
+Visualization at one column gave each piece the full 358px, which a 9:16
+crop turned into 671px of tile. Twenty-nine of those is **15,882px of
+document — 18.8 screens**, and a mosaic that could only ever be read one
+piece at a time, which is the one thing a mosaic is for.
+
+Two columns to the bottom of the range: **4,973px, 5.9 screens**, 174px
+tiles, and a landscape piece keeping its two-column span because there
+that is the full width. The rule that had forced landscape tiles to a
+single column below 520px only existed to serve the single-column wall
+and came out with it.
+
+### The one page you could not leave
+
+`sectorNav()` has always built the three-sector switcher, and
+`buildPanel` has always rendered it. `buildMosaic` was given only the
+prev/next `foot`. So the single page on the site laid out as a gallery
+was also the single page with no way to another sector short of
+scrolling past 29 tiles to the footer — on a desktop as much as on a
+phone. It now takes `nav` the same way it takes `foot`.
+
+### What the pass cost and what it did not touch
+
+Seven files. The desktop composition is untouched: the wheel still sits
+on the golden section at 1440, the wall is still four columns at 1600,
+and the only desktop change anywhere is the switcher that Visualization
+was missing.
+
+Detector, three device classes, four pages: the only findings left are
+the four standing on purpose, plus the `low-contrast` readings on the
+sheet pages that were there before this pass and are the same
+`.panel`-gradient artefact recorded in `NOTES.md`.
+
+## 20. The studio's chrome, and the page with no picture
+
+### The avatar studio was wearing too much
+
+Four faults, all of them the same fault: the chrome was drawn at the size
+it would be on a desktop and then carried down to a phone unchanged.
+
+- The **camera snaps** were 54px buttons with 20px icons under a caption
+  reading "Camera", over four buttons that already say Fit, Torso, Face
+  and Feet. Below 900px the rail also turned into a row across the top —
+  which put those four buttons **across the avatar's face**, the one part
+  of the preview every framing exists to show. It is now 46px buttons,
+  16px icons, no caption, and the left edge at every width.
+- The **category rail** wrapped eleven categories onto two rows. That is
+  a second band of chrome on every screen, and it reads as a grid of
+  equals rather than as one list you move along. Now one line that
+  scrolls, an arrow at each end that moves it by a page and greys out at
+  the ends, and a tab that scrolls itself back into view when a category
+  is opened by something other than a click on it.
+- The **thumbnails** were a fixed three columns. They are laid on
+  `minmax()` now, so the same rule fills a 316px desktop dock and a
+  phone's full-width one without a second column count to keep in step.
+- **The preview got all of it back.** `--dock-w` 372 -> 316, and on a
+  phone `--dock-h` 52vh -> 42vh. The clear preview on a 390x844 screen
+  went from **309px to 405px — about a third more**, and the avatar now
+  stands head to feet inside it instead of being cut off at the shins.
+
+`--dock-h` is the piece worth keeping in mind: the camera rail and both
+floating bars used to repeat the literal `min(52vh, 430px)` in their own
+`bottom` and `top` values. They are all positioned against the variable
+now, so the dock's height is stated once and nothing can drift out of
+step with it.
+
+And the same lesson as section 19, learned again in a different app: the
+first pass took the camera labels to 10px to make the buttons smaller,
+and the detector called them back. **Functional text holds at 11px.**
+What shrinks is the icon, the padding, and the label that was restating
+what the buttons already said.
+
+### A section page with no picture on it
+
+The sheet layout's preview stage is a hover affordance, and below 900px
+it has always been `display:none` — correctly, there is no cursor to
+hover with. Nobody looked at what that left: Industrial Design and
+Technical Art on a phone were a title, a paragraph and a numbered list of
+names. **No image anywhere on the page.** For a portfolio that is the
+wrong thing to be, and it had been true since the sheet layout existed.
+
+`sheetReel()` is the stage's job in a touch idiom — the same entries as a
+strip under the header, each a tap from its page. Like the reel under the
+wheel it is a `.tile` from the same engine, so the lazy poster and the
+rules about where a click goes are not written a second time.
+
+The one thing a strip needs that a wall does not is uniform cards, and
+the reason is worth recording. The first build left a **160px hole**
+under the strip. The cards on screen were 197-214px tall; the ones still
+off screen were reporting 340px, because `contain-intrinsic-size` on
+`.tile` guesses that height until a tile has rendered once. A flex track
+takes the height of its tallest child, so the track was being sized by
+cards nobody had seen yet. Fixed 4:3 crop, title clamped to two lines,
+and the intrinsic size told the real answer: every card 179x197, track
+361 -> 203.
+
+### The dock stopped being a fixed slab
+
+The first pass shrank the dock from 52vh to 42vh, which was the wrong
+kind of fix: it still gave every category the same slab of screen. Six
+skin tones and a wardrobe with a colour picker under it do not need the
+same room, and setting one height for both means the preview pays for
+the tallest category on every one of them.
+
+Two changes finished it.
+
+**The thumbnails became a line.** The wardrobe grid was the last thing in
+the dock still spending the screen vertically, so below 900px it runs as
+one row you push along — the same idiom as the categories above it and
+the animations above those. The colour block cannot be a row (three HSB
+tracks *are* the control) so it was tightened instead: the chip, the hex
+and the reset share a line, and the tracks lost the padding between them.
+
+The trade is real and worth recording rather than glossing: a row shows
+four items where a grid showed a dozen, so a long category costs more
+scrolling. It buys about 100px of preview on every screen, which on a
+phone is the difference between seeing the avatar and seeing part of it.
+
+**`--dock-h` stopped being a guess.** `trackDockObstruction()` in
+`main.js` has always measured the dock to feed the camera its view
+offset; it now writes that measured height to the root as well. So the
+dock is `height:auto` with a cap, and the camera rail and both floating
+bars follow whatever it actually is. The stylesheet value is only what
+holds before the first measurement.
+
+On a 390x844 screen, the clear preview by category:
+
+| | dock | preview |
+|---|---|---|
+| before this session | 430px | 309px |
+| after the first pass | 342px | 405px |
+| Skin — no colour picker | **234px** | **537px** |
+| Top — with colour picker | **367px** | **404px** |
+
+The simple categories are where most of the time goes, and they are now
+almost three-quarters preview.
+
+Desktop is untouched: the dock there is a tall column with room to
+spare, the grid stays a grid, and `--dock-h` measures 0 because a side
+dock obstructs nothing vertically. A carousel is what a bottom sheet
+wants, not what a side panel wants.
+
+### The switcher was wrapping 2 + 1
+
+Three pills wanted **386px of a 336px row**, so they wrapped — Industrial
+Design and Technical Art on one line, Visualization alone on the next.
+That reads as two groups rather than as one set of three, and the odd
+one out is the page most likely to be the one you want.
+
+Trimming padding and gaps recovers about 45px, which is not enough and
+leaves nothing for a 360px phone. The **register numeral** is what
+actually costs it: 13px of glyph plus the 8px gap after it, 63px across
+three pills — and it is the one thing in that row that is said twice,
+because the header directly above already carries `01 / 03` for the
+sector you are on. Dropping it on phone and trimming the padding to 10px
+brings the row to **301px**, which fits a 375px SE as well as a 390px
+screen. `nowrap` with a scroll is the valve below that, so the row bends
+before it breaks rather than silently wrapping again.
+
+The numerals stay everywhere wider — verified still rendering at 820 and
+1440, where the row has always fitted on one line.
+
+### Fit was not fitting
+
+The avatar still stood with its feet under the light bar on a phone, and
+the cause was not the dock at all.
+
+`frame()` solves the distance that makes a preset's `fit` fill the
+shorter viewport axis, then clamps it between `controls.minDistance` and
+`controls.maxDistance`. **`maxDistance` is 6, and on a 390x844 screen
+`full` asks for 6.91.** So Fit quietly delivered a shot 13% closer than
+the one it had computed, every time, and nothing said so. The orbit
+ceiling exists to stop somebody flying away from the avatar; it had been
+silently deciding how wide a framing was allowed to be.
+
+Two changes. `frame()` now lifts `maxDistance` to whatever the shot needs
+and lets it fall back for the close framings — measured returning to 6
+for Torso, Face and Feet. And the solve runs against the **visible** axes
+rather than the canvas: the dock hides part of the viewport and
+`#applyFocusOffset` slides the picture into what is left, but sliding is
+not scaling, so a shot solved for the whole canvas is sized for room the
+dock is standing on.
+
+Which viewports that actually moves, worked out from the two formulas
+rather than guessed:
+
+| | before | after | |
+|---|---|---|---|
+| Desktop 1440x820 | 3.195 | 3.195 | unchanged |
+| Tablet 820x1180 | 4.597 | 4.597 | unchanged |
+| iPhone SE 375x667 | 5.682 | 5.682 | unchanged |
+| **iPhone 14 390x844** | **6** (clamped) | **6.914** | fixed |
+| **Pro Max 430x932** | **6** (clamped) | **6.926** | fixed |
+
+Only the screens tall enough to have been hitting the clamp change,
+which is the whole of the bug. The SE never clipped because its shorter
+aspect asked for 5.68 and got it.
+
+A note on how this was checked, because the obvious method failed:
+swapping the committed `viewer.js` back in to measure the before state
+did not work — the browser served the module from cache and reported the
+new numbers under the old file. The table above is the two formulas
+evaluated side by side, which is exact; the measured desktop and tablet
+figures agree with it to three decimals.
+
+### Checked
+
+Detector at 390, 820 and 1440 across four pages and the studio: nothing new.
+The studio's remaining `low-contrast` readings were verified against the
+committed build before this pass — same rule, same count — and are the
+app's own accent-on-accent-soft selection pairing sampled through a
+translucent bar over a moving 3D canvas. Raising the bar's opacity was
+tried and moved the number not at all, so it was reverted rather than
+left in the diff doing nothing.
+
 ## 8. Open items
 
 1. **Five projects still have no artwork** — Primetrace, Metabrix,

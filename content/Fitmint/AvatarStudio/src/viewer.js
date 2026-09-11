@@ -79,6 +79,11 @@ const RIG_DECAY = 1.6;
 const _offset = new THREE.Vector3();
 const _place = new THREE.Vector3();
 
+/* How far the viewer may orbit out by hand. `frame()` raises it when a shot
+   genuinely needs more room — the limit is there to stop somebody flying away
+   from the avatar, not to decide how wide a framing is allowed to be. */
+const ORBIT_MAX = 6;
+
 const FRAMINGS = {
   full: { target: [0, 0.94, 0], fit: 2.2, pitch: 4 },
   upper: { target: [0, 1.34, 0], fit: 1.15, pitch: 3 },
@@ -122,7 +127,7 @@ export class Viewer {
     this.controls.dampingFactor = 0.075;
     this.controls.enablePan = false;
     this.controls.minDistance = 0.45;
-    this.controls.maxDistance = 6;
+    this.controls.maxDistance = ORBIT_MAX;
     this.controls.minPolarAngle = 0.15;
     this.controls.maxPolarAngle = Math.PI * 0.52;
     this.controls.rotateSpeed = 0.85;
@@ -414,12 +419,29 @@ export class Viewer {
     this.userMoved = false;
     const target = new THREE.Vector3(...preset.target);
 
-    // Solve the distance that makes `fit` fill the shorter viewport axis.
+    /* Solve the distance that makes `fit` fill the shorter *visible* axis.
+
+       The dock covers part of the canvas and #applyFocusOffset slides the
+       picture into what is left — but sliding is not scaling. Solving against
+       the whole canvas sizes the avatar for room the dock is standing on, and
+       on a phone that is a third of the height. */
+    const cw = this.canvas.clientWidth || 1;
+    const ch = this.canvas.clientHeight || 1;
+    const visX = Math.max(0.3, (cw - this.obstruction.x) / cw);
+    const visY = Math.max(0.3, (ch - this.obstruction.y) / ch);
+
     const fovY = THREE.MathUtils.degToRad(this.camera.fov);
-    const vertical = preset.fit / 2 / Math.tan(fovY / 2);
-    const horizontal = preset.fit / 2 / (Math.tan(fovY / 2) * this.camera.aspect);
+    const vertical = preset.fit / 2 / (Math.tan(fovY / 2) * visY);
+    const horizontal = preset.fit / 2 / (Math.tan(fovY / 2) * this.camera.aspect * visX);
+    const wanted = Math.max(vertical, horizontal);
+
+    /* The orbit limit must not cap the framing. On a phone `full` asked for
+       6.9 and was clamped to 6, so Fit quietly delivered a shot 13% too close
+       and stood the avatar's feet under the light bar. Let the shot have the
+       room it asked for and lift the hand-orbit ceiling to match. */
+    this.controls.maxDistance = Math.max(ORBIT_MAX, wanted);
     const distance = THREE.MathUtils.clamp(
-      Math.max(vertical, horizontal),
+      wanted,
       this.controls.minDistance,
       this.controls.maxDistance
     );

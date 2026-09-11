@@ -507,7 +507,7 @@ same references a page list does, so an `ig:` post would work there too.
 |---|---|---|
 | Industrial Design | `sheet` | a drawing sheet down the **left** — drafting grid, an orange rule under the title, and the project index as a two-column register with corner ticks. The framed preview stage fills the space to its right. |
 | Technical Art | `sheet` | the same. A full-bleed stage was tried here and dropped: stretching a portrait clip across the whole viewport read as a distorted background rather than a preview. |
-| Visualization | `gallery` | a **mosaic** of project covers under a slim title bar; no hero. |
+| Visualization | `gallery` | a **mosaic** of project covers under a slim title bar; no hero. The bar carries the same sector switcher the sheet pages have — `buildMosaic` takes it as a `nav` string, the way it already took the prev/next `foot`. |
 | a project | `project` | a reading column over the sector's own world — hero, facts rail, copy, then its media in the same tile grid used everywhere else. |
 
 `body[data-layout]` and the page shell have to agree: a `sheet` page needs
@@ -520,6 +520,62 @@ One tile engine (`js/tiles.js`) draws every wall on the site — the mosaic,
 the archive grid, a project's own media, and the Instagram strips. Grey at rest, colour and play
 on hover, lazy everywhere: nothing decodes until it is near the viewport, and
 video is released again five seconds after it leaves.
+
+## On a phone
+
+Below **620px** the page is a different composition, not a smaller one. Three
+things make it:
+
+| | |
+|---|---|
+| `body.is-phone` | set by `compose()` in `js/main.js` alongside `is-narrow`, and the hook every phone rule in `css/project.css` hangs off |
+| the wheel's seat | `seatY()` measures the band between the top bar and the headline and puts the wheel's centre in the middle of it, so it stays seated on a 667px phone and a 932px one |
+| the wheel's scale | `0.78` against the tablet's `0.86`. The sector labels ride a radius, so a wheel that is too big for the screen throws them off the side before it clips itself |
+
+The label size is the fixed point, not the wheel. Labels hold at **11px** —
+the floor below which the detector calls UI text undersized — and the wheel
+is scaled to fit around them. Shrinking the type to make a bigger wheel fit
+is the move that looks right in a screenshot and is unreadable in a hand.
+
+Two other things change shape rather than size:
+
+- **The wall stays two columns.** One column gave each piece the full 358px,
+  which a 9:16 crop turned into 671px of tile — 80% of the viewport each,
+  29 of them, a wall 19 screens long read one piece at a time. Two columns
+  is 5.9 screens and a set you can see the shape of. A landscape piece keeps
+  its two-column span, which is the full width there.
+- **The landing page scrolls by touch.** `#stage` is `touch-action:none` so a
+  drag orbits the world; `body.has-reel #stage` relaxes that to `pan-y`. The
+  first screen of the landing page is canvas edge to edge, so without it
+  every upward swipe was swallowed and the reel could not be reached at all.
+
+Touch targets are 44px: the top-bar links, the sector pills and the mosaic's
+back link all carry it as padding, the back link with a matching negative
+margin so the header does not grow to pay for it.
+
+**The sector switcher drops its numerals here.** Three pills wanted 386px of a
+336px row and wrapped 2 + 1, which reads as two groups rather than one set of
+three — and the odd one out was Visualization. The register numeral is what
+cost it: 13px of glyph plus its 8px gap, 63px across three pills, and it is
+the one thing in the row said twice, since the header above already carries
+`01 / 03` for the sector you are on. Without it the row needs 301px and fits
+a 360px phone; the numerals stay on every wider screen.
+
+**The sheet pages get a strip.** The preview stage beside the drawing sheet is
+a hover affordance — hovering a row plays that project in it — and below 900px
+it is `display:none`, because there is no cursor to hover with. What was left
+was a section page with no picture on it at all, which for a portfolio is the
+wrong thing to be. `sheetReel()` in `js/page.js` puts the same entries under
+the header as a strip you push along, each one a tap from its page: the
+numbered list below stays the index you scan by name, this is the one you
+browse by eye. It is a `.tile` from the same engine as every other wall, so
+the lazy poster and the rules about where a click goes are not written again.
+
+A wall lets a tile be whatever height its picture is; a strip cannot, so in
+here the crop is fixed at 4:3, the title is clamped to two lines, and
+`contain-intrinsic-size` is told the real answer — the wall's 340px guess is
+made by cards still off screen, and a flex track sized by cards nobody has
+seen yet leaves a 160px hole under every card they have.
 
 ## Duplicates
 
