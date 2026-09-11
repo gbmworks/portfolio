@@ -797,17 +797,25 @@ body {
     --dock-h: 210px;
   }
 
-  /* The dock takes the height its content needs and no more. Six skin tones
-     are not a wardrobe with a colour picker under them, and giving both the
-     same slab of screen meant the preview paid for the tallest category on
-     every one of them. */
+  /* The dock takes the height its content needs and no more — six skin tones
+     are not a wardrobe with a colour picker under them — up to a ceiling that
+     leaves the preview 70% of the screen. Categories that want more than the
+     remaining 30% scroll inside the panel rather than taking it from the
+     character.
+
+     `dvh` rather than `vh` where it is supported: on a phone `vh` is the tall
+     viewport and ignores the browser's own chrome, so 30vh of a 844px screen
+     is 30% of a screen the visitor cannot entirely see. */
   .dock {
     top: auto;
     left: 10px;
     right: 10px;
     bottom: 10px;
     height: auto;
-    max-height: min(52vh, 400px);
+    /* the 10px it floats above the bottom edge counts against the 30%,
+       or the preview comes out at 68.8% rather than 70% */
+    max-height: calc(30vh - 10px);
+    max-height: calc(30dvh - 10px);
   }
   .panel { flex: 0 1 auto; }
 

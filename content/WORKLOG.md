@@ -1262,6 +1262,37 @@ new numbers under the old file. The table above is the two formulas
 evaluated side by side, which is exact; the measured desktop and tablet
 figures agree with it to three decimals.
 
+### The preview took 70%
+
+Asked for directly, and it turns the dock's ceiling into the one number
+that decides the split: `calc(30dvh - 10px)`. The 10px the dock floats
+above the bottom edge counts against the 30% — leave it out and the
+preview comes to 68.8%, which is the kind of miss that looks like a
+rounding error and is not one. `dvh` over `vh` because on a phone `vh`
+is the tall viewport and ignores the browser's own chrome, so 30vh is
+30% of a screen the visitor cannot entirely see.
+
+| | dock | preview |
+|---|---|---|
+| iPhone SE 375x667 | 190px | 70.0% |
+| iPhone 14, no colour picker | 234px | 71.1% |
+| iPhone 14, with colour picker | 243px | 70.0% |
+| Pro Max, no colour picker | 234px | 73.8% |
+| Pro Max, with colour picker | 270px | 70.0% |
+
+Never below 70%, and more when the category is short, because the dock
+is still auto-height under the cap.
+
+**The cost is real and is recorded rather than buried.** A category with
+a colour picker now has about 126px of visible panel. The thumbnail row
+fills it, so the H/S/B block sits below the fold — 123px of scrolling to
+reach the colour of the thing you just put on. Whether that is the right
+trade depends on how often colour gets used against how much the
+character being large matters, which is a judgement for whoever owns the
+work, not for the person who moved the number. The lever is that single
+ceiling: `calc(35dvh - 10px)` puts the colour block back on screen and
+the preview at 65%.
+
 ### Checked
 
 Detector at 390, 820 and 1440 across four pages and the studio: nothing new.

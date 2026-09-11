@@ -76,6 +76,30 @@ orbited by hand. Randomise snaps back to Fit, since a fresh look is worth seeing
 whole. The dock's width is fed to the camera as a view offset, so the
 avatar sits in the middle of the space the panel leaves free.
 
+**The preview keeps 70% of the screen.** The dock takes the height its content
+needs, up to a ceiling of `calc(30dvh - 10px)` — the 10px it floats above the
+bottom edge counts against the 30%, or the preview lands at 68.8%. Categories
+whose content wants more than the remaining 30% scroll inside the panel rather
+than taking it from the character. `dvh` rather than `vh` where supported: on a
+phone `vh` is the tall viewport and ignores the browser's own chrome.
+
+Measured, with the cap in place:
+
+| | dock | preview |
+|---|---|---|
+| iPhone SE 375x667 | 190px | 70.0% |
+| iPhone 14, no colour picker | 234px | 71.1% |
+| iPhone 14, with colour picker | 243px | 70.0% |
+| Pro Max, no colour picker | 234px | 73.8% |
+
+The preview is never below 70% and is more when the category is short.
+
+**The cost, which is real:** a category with a colour picker now has about
+126px of visible panel, so the thumbnails fill it and the H/S/B block sits
+below the fold — about 123px of scrolling to reach it. If that trade stops
+being worth it, the lever is this one ceiling: `calc(35dvh - 10px)` puts the
+colour block back on screen and the preview at 65%.
+
 **On a phone the thumbnails are a line too.** The wardrobe grid was the last
 thing in the dock still spending the screen vertically, so below 900px it runs
 as one row you push along, the way the categories above it and the animations

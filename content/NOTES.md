@@ -292,6 +292,14 @@ padding, and any label that restates what its buttons already say.
   the ends), and the wardrobe grid. On a desktop the grid stays a grid,
   because the dock there is a tall column with the room for it.
 
+  **The preview holds 70% of a phone screen.** The dock's ceiling is
+  `calc(30dvh - 10px)` — the 10px it floats above the bottom counts
+  against the 30%. One lever, one number: raise it and the preview
+  shrinks. The known cost is that a category with a colour picker has
+  ~126px of panel, so the H/S/B block is ~123px below the fold;
+  `calc(35dvh - 10px)` trades back to a 65% preview if that stops being
+  worth it.
+
   **`controls.maxDistance` is the hand-orbit ceiling, not a framing
   limit.** `frame()` in `src/viewer.js` raises it to whatever a shot needs
   and lets it fall back afterwards. It used to clamp the solver instead,
