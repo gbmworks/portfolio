@@ -1303,6 +1303,68 @@ translucent bar over a moving 3D canvas. Raising the bar's opacity was
 tried and moved the number not at all, so it was reverted rather than
 left in the diff doing nothing.
 
+## 21. Reproduction record — sections 19 to 20
+
+Sections 19 and 20 say *why*. This is the *what*, tight enough to rebuild
+from if the tree is ever lost, and honest about where the work actually
+lives.
+
+**It lives on `upstream` only.** `gbmworks/portfolio` has both commits;
+`gbmPrimetrace/portfolio` has neither and cannot be pushed from this
+machine — see "Where to push" in `NOTES.md` for the checked reason. A
+clone of the fork is well behind and none of what follows is in it;
+`git log --oneline main..upstream/main` says by how much.
+
+```
+351c580  Make the phone its own tier, not a narrower desktop   (20 files, +1165 -155)
+10f5913  Give the character 70% of a phone screen              ( 5 files,   +89  -10)
+```
+
+### The portfolio site
+
+| file | change |
+|---|---|
+| `css/landing.css` | `body.has-reel #stage{ touch-action:pan-y }` — without it a phone cannot scroll the landing page at all |
+| `css/project.css` | the whole `@media (max-width:620px)` phone tier; `.sreel` strip; sector pills to one line (`.sectors a span{display:none}`, `flex-wrap:nowrap`, padding 13→10) |
+| `css/tiles.css` | mosaic stays 2 columns to the bottom of the range — the ≤520 single-column rule and its landscape span-1 partner both deleted |
+| `css/sections.css` | `.galbar .sectors{flex:1 0 100%}`; `--sheet-pad` named on `.panel__scroll` so `.sreel` can bleed to exactly it |
+| `js/main.js` | `phone` tier at 620px, `is-phone` class, `wheel.view.scale = 0.78`, `seatY()` measuring the band between bar and headline; touch wording for the hint |
+| `js/page.js` | `sheetReel()`; `nav: sectorNav(index)` passed to `buildMosaic` |
+| `js/tiles.js` | `buildMosaic` accepts `nav` and renders it in `.galbar` |
+
+### The avatar studio
+
+Source of truth is `content/Fitmint/AvatarStudio/src/`; `studio/fitmint/`
+is its build output and both appear in every diff. **Never edit the
+output** — `node deploy.mjs` overwrites it.
+
+| file | change |
+|---|---|
+| `src/ui.js` | `.rail-wrap` with two arrows around a single-line `.rail`; `#scrollRail()`, `#railEnds()`; active tab `scrollIntoView`; the visible "Camera" caption removed (the `aria-label` stays) |
+| `src/main.js` | `trackDockObstruction()` also writes the measured dock height to `--dock-h` |
+| `src/viewer.js` | `ORBIT_MAX` constant; `frame()` solves against the **visible** axes and raises `controls.maxDistance` to whatever the shot needs instead of being capped by it |
+| `src/styles.css` | `--dock-w` 372→316; camera snaps 54→46px with 16px icons, left-vertical at every width; thumbnails on `minmax()`; on phone the grid becomes a scrolling row; dock `height:auto` capped at `calc(30dvh - 10px)` |
+
+### The numbers that matter
+
+| | before | after |
+|---|---|---|
+| Visualization on a phone | 15,882px · 18.8 screens | 4,973px · 5.9 screens |
+| Studio preview, 390x844, skin | 309px | 537px (71%) |
+| Studio preview, with colour picker | — | 591px (70%) |
+| `Fit` camera distance, 390x844 | 6 (clamped) | 6.914 |
+| Sector switcher | 386px into a 336px row, wrapped | 301px, one line |
+
+### Two rules this cost something to learn
+
+1. **Functional text holds at 11px.** Two separate passes shrank labels to
+   make something else fit; the detector called both back. What shrinks is
+   the icon, the padding, and any label restating what its buttons say.
+2. **Measure the rendered result, not the attribute** — and on a phone,
+   measure it in a screenshot. A backgrounded tab runs no `requestAnimation-
+   Frame`, so anything damped never arrives and the DOM reports a position
+   the eye never sees. Traps 7 and 8 in `NOTES.md`.
+
 ## 8. Open items
 
 1. **Five projects still have no artwork** — Primetrace, Metabrix,

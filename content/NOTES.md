@@ -18,9 +18,33 @@ origin    gbmPrimetrace/portfolio     a fork with no Pages site
 ```
 
 **`git push upstream main` is the deploy.** There is no build step on the
-host and no CI — the repo root *is* the site. Push `origin` too so the
-fork does not drift; it was four commits behind for a while and the site
-looked stale because of it.
+host and no CI — the repo root *is* the site.
+
+**`origin` cannot be pushed from this machine, and that is not a sandbox
+problem.** This clone is authenticated as `gbmworks`, and that account has
+no write access to the fork — checked, not guessed:
+
+```bash
+gh api repos/gbmPrimetrace/portfolio --jq .permissions   # push:false, admin:false
+git push origin main                                     # remote rejected: permission denied
+gh api repos/gbmPrimetrace/portfolio/collaborators/gbmworks -i | head -1   # 403
+```
+
+An earlier version of this file said to push `origin` too. Do not spend
+time on it. It needs one of: `gbmworks` added as a collaborator on the
+fork, `gh auth login` as `gbmPrimetrace`, or the remote dropped. Until
+then the fork drifts and **nothing on the live site depends on it** —
+Pages builds from `upstream`.
+
+**So if you ever find yourself on a clone of the fork, you are behind.**
+The work is on `upstream`, not on `origin`:
+
+```bash
+git remote add upstream https://github.com/gbmworks/portfolio.git   # if missing
+git fetch upstream
+git log --oneline main..upstream/main     # what you are missing
+git merge --ff-only upstream/main         # or: git reset --hard upstream/main
+```
 
 Pages takes 30-90 seconds. Check with:
 
