@@ -34,10 +34,9 @@ export const SITE = {
   beacons: 'https://beacons.ai/govindbmohan',
 
   /* The profiles the footer links out to, in the order they are shown.
-     Add `linkedin: '…'` above and it appears — SOCIALS drops anything
-     the card does not have a URL for, so a missing profile is a missing
-     icon rather than a dead link. */
-  linkedin: ''
+     SOCIALS drops anything the card has no URL for, so a profile that
+     is not here is a missing icon rather than a dead link. */
+  linkedin: 'https://www.linkedin.com/in/gbmworks/'
 };
 
 /* name → SITE key, in display order */
