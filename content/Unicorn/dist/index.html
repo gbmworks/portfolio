@@ -7,8 +7,9 @@
 	in it is relative, so the game runs wherever the folder is served from:
 	the portfolio at /game/unicorn/, or webpack-dev-server at /.
 
-	The one exception is the "back to the portfolio" link, which is
-	root-absolute because it points at a page outside this folder.
+	That now includes the "back to the portfolio" link: it was
+	root-absolute, and is relative too, so it resolves to the site root
+	from /game/unicorn/ and points one folder up anywhere else.
 -->
 <html lang="en">
 	<head>
@@ -39,8 +40,8 @@
 	</head>
 
 	<body>
-		<!-- Only on the splash screen; index.ts hides it the moment play starts. -->
-		<a id="exit" href="/technical-art.html">← Portfolio</a>
+		<!-- Stays for the whole session; index.ts only dims it once play starts. -->
+		<a id="exit" href="../../">← Portfolio</a>
 
 		<div id="endScreen">
 			<img src="gemUI/end.png" width="70%" style="display: block; margin: 0 20%; transform: translate(0px, -150px)" />

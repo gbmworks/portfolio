@@ -16,7 +16,7 @@ function panelHTML() {
   const jobs = EXPERIENCE.map(j => `
     <article class="xp${j.now ? ' is-now' : ''}">
       <header class="xp__head">
-        <h3 class="xp__role">${j.role}</h3>
+        <h4 class="xp__role">${j.role}</h4>
         <span class="xp__org">${j.org}</span>
         <span class="xp__when">${j.when}</span>
       </header>
@@ -57,23 +57,23 @@ function panelHTML() {
 
       <div class="win__body">
         <section class="win__col">
-          <h4 class="win__k">Work</h4>
+          <h3 class="win__k">Work</h3>
           ${jobs}
-          <h4 class="win__k win__k--gap">Skills</h4>
+          <h3 class="win__k win__k--gap">Skills</h3>
           <div class="skills">${skills}</div>
         </section>
 
         <aside class="win__side">
-          <h4 class="win__k">Education</h4>
+          <h3 class="win__k">Education</h3>
           <ul class="edus">${edu}</ul>
 
-          <h4 class="win__k">Awards</h4>
+          <h3 class="win__k">Awards</h3>
           <ul class="awards">${awards}</ul>
 
-          <h4 class="win__k">Languages</h4>
+          <h3 class="win__k">Languages</h3>
           <p class="win__tags">${LANGUAGES.map(l => `<span>${l}</span>`).join('')}</p>
 
-          <h4 class="win__k">Interests</h4>
+          <h3 class="win__k">Interests</h3>
           <p class="win__tags">${INTERESTS.map(i => `<span>${i}</span>`).join('')}</p>
         </aside>
       </div>

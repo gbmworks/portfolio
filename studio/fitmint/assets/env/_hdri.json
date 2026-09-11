@@ -1,0 +1,17 @@
+[
+  {
+    "id": "TCom_ColorfulAlley_colorful_alley_1K_hdri_sphere",
+    "source": "TCom_ColorfulAlley_colorful_alley_1K_hdri_sphere.exr",
+    "sourceSize": [
+      1024,
+      512
+    ],
+    "hdr": "TCom_ColorfulAlley_colorful_alley_1K_hdri_sphere.hdr",
+    "hdrBytes": 428591,
+    "probe": "TCom_ColorfulAlley_colorful_alley_1K_hdri_sphere.bin",
+    "probeSize": [
+      256,
+      128
+    ]
+  }
+]

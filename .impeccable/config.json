@@ -1,0 +1,25 @@
+{
+  "detector": {
+    "ignoreRules": [
+      "codex-grid-background"
+    ],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "space grotesk",
+        "createdAt": "2026-09-11T10:51:27.968Z",
+        "reason": "Brand face: the whole identity is set in it; changing it is a rebrand, not a fix"
+      },
+      {
+        "rule": "buried-raster",
+        "value": "*",
+        "files": [
+          "**/tiles.js"
+        ],
+        "createdAt": "2026-09-11T10:51:39.277Z",
+        "reason": "Tile wall lazy-load: .tile__el sits at opacity 0 until is-ready fires on load"
+      }
+    ]
+  }
+}

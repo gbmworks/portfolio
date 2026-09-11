@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fitmint Avatar Studio</title>
+<meta name="description" content="Full character customisation for the Fitmint male avatar - skin, hair, face shape, wardrobe and animation.">
+<meta name="theme-color" content="#eef1f6">
+
+<link rel="preload" href="assets/opt/Male.glb" as="fetch" type="model/gltf-binary" crossorigin>
+<!-- The app declared no typeface at all and took whatever the OS handed it,
+     which is the definition of undesigned.  Space Grotesk is the portfolio's
+     face, and a visitor arriving from there already has it cached. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="src/styles.css">
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three/build/three.module.js",
+    "three/addons/": "./vendor/three/addons/"
+  }
+}
+</script>
+</head>
+<body>
+
+<div id="app">
+  <canvas id="stage"></canvas>
+
+  <div class="brand">
+    <!-- The way back to the portfolio. Relative, like every other path in
+         here, so it resolves to the site root from /studio/fitmint/ and
+         simply points one folder up when this is served on its own. -->
+    <a class="brand-back" href="../../" title="Back to the portfolio" aria-label="Back to the portfolio">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+           stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M15 5l-7 7 7 7"/>
+      </svg>
+    </a>
+    <div class="brand-mark"></div>
+    <div class="brand-text">
+      <strong>Fitmint</strong>
+      <span>Avatar Studio</span>
+      <span class="brand-by">by Govind Mohan</span>
+    </div>
+  </div>
+</div>
+
+<div id="loader">
+  <p>Loading avatar</p>
+  <div class="loader-track"><div id="loader-bar"></div></div>
+</div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

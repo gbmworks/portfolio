@@ -32,17 +32,16 @@
 [data-stagger]:nth-child(4){ animation-delay:.60s; }
 @keyframes rise{ to{ opacity:1; transform:none; } }
 
-.intro__hello{
-  margin:0 0 10px;
-  font-family:var(--mono); font-size:12px; letter-spacing:.34em;
-  text-transform:uppercase; color:var(--ink-dim);
-}
 .intro__name{
   margin:0;
   font-size:clamp(52px, 13vw, 148px);
   font-weight:700; letter-spacing:.06em; line-height:.95;
-  background:linear-gradient(100deg,#6e6e78 0%, var(--ink) 40%, #9a9aa4 72%, #55555e 100%);
-  -webkit-background-clip:text; background-clip:text; color:transparent;
+  /* Solid, not a metal gradient across the letterforms.  The chrome in
+     this world is on the glass behind the type, where it is lit and
+     moving and means something; painting it onto the name as well was
+     the effect standing in for the thing, and it cost the one word on
+     the page its contrast. */
+  color:var(--ink);
 }
 .intro__roles{
   margin:20px 0 0;
@@ -60,7 +59,8 @@
   background:var(--line); overflow:hidden;
 }
 .intro__bar span{
-  display:block; height:100%; width:0%;
+  display:block; height:100%; width:100%;
+  transform:scaleX(0); transform-origin:left center;
   background:linear-gradient(90deg,var(--accent),var(--accent-glow));
 }
 
@@ -93,12 +93,25 @@ body:not(.is-section) .scrim{
   display:flex; justify-content:space-between; align-items:flex-start; gap:20px;
   padding:clamp(18px,3vw,34px);
 }
+/* On a page that scrolls, the bar is fixed and the work runs underneath
+   it: on the mosaic a tile caption arrives at the same baseline as the
+   wordmark and the two words interleave.  The bar carries its own
+   falloff on those layouts — the same language as .scrim, and a
+   gradient rather than a backdrop-filter because this sits over an
+   animating canvas and a blur there is recomputed every frame. */
+body[data-layout="gallery"] .topbar,
+body[data-layout="project"] .topbar,
+body.has-reel .topbar{
+  padding-bottom:clamp(34px,5vw,58px);
+  background:linear-gradient(180deg,
+    rgba(6,6,10,.94) 0%, rgba(6,6,10,.80) 46%, rgba(6,6,10,0) 100%);
+}
 .topbar__id strong{
   display:block; font-size:14px; letter-spacing:.30em; font-weight:600;
 }
 .topbar__id span{
   display:block; margin-top:6px;
-  font-family:var(--mono); font-size:10.5px; letter-spacing:.14em;
+  font-family:var(--mono); font-size:12px; letter-spacing:.14em;
   color:var(--ink-dim); text-transform:uppercase;
 }
 .topbar__nav{ display:flex; gap:22px; pointer-events:auto; }
@@ -177,10 +190,6 @@ body:not(.is-section) .scrim{
   width:min(30vw,380px);
   pointer-events:none;
 }
-.lede__k{
-  margin:0 0 14px; font-family:var(--mono); font-size:10px; letter-spacing:.34em;
-  text-transform:uppercase; color:var(--accent);
-}
 .lede__h{
   margin:0; font-size:clamp(30px,3.6vw,54px); font-weight:700; line-height:1.02;
   letter-spacing:-.015em; color:var(--ink);
@@ -201,7 +210,7 @@ body:not(.is-section) .scrim{
   will-change:transform;
 }
 .hub__k{
-  display:block; font-family:var(--mono); font-size:9px;
+  display:block; font-family:var(--mono); font-size:11px;
   letter-spacing:.34em; color:var(--ink-faint);
 }
 .hub__v{
@@ -216,13 +225,133 @@ body:not(.is-section) .scrim{
   position:absolute; left:0; right:0; bottom:clamp(18px,3vw,32px);
   display:flex; gap:10px; align-items:center; justify-content:center;
   flex-wrap:wrap;
-  font-family:var(--mono); font-size:10.5px; letter-spacing:.18em;
+  font-family:var(--mono); font-size:12px; letter-spacing:.18em;
   text-transform:uppercase; color:var(--ink-dim);
 }
+/* A 5px dot pulsing forever next to a static hint was liveness theatre —
+   nothing it marks is live.  It stays as the mark that opens the line,
+   and stops pretending to be a status light. */
 .hint__dot{
   width:5px; height:5px; border-radius:50%;
   background:var(--accent);
-  animation:pulse 2.4s ease-in-out infinite;
   transition:background .4s;
 }
-@keyframes pulse{ 0%,100%{opacity:.25; transform:scale(.8);} 50%{opacity:1; transform:scale(1);} }
+
+/* ==================================================================
+   THE REEL — selected work, one screen down
+
+   The landing page was exactly one screen: the wheel, or nothing. That
+   asks a visitor to commit to a sector before they have seen a single
+   piece of work. Scrolling now brings up a strip of ten, mixed across
+   all three sectors.
+
+   The page scrolls; the world does not. #stage, .scrim and .ui are all
+   `position:fixed`, so this section slides up over a wheel that stays
+   exactly where it was — which is the whole reason it is worth having
+   here rather than on a page of its own.
+
+   A card is a `.tile` from js/tiles.js — the same engine that draws
+   every other wall on the site, so hover-to-play, the lazy poster and
+   the rules about where a click goes are not written a second time.
+   What is below only makes it a strip instead of a wall.
+   ================================================================== */
+
+/* only the landing page grows past one screen, and only once the reel
+   has something in it — js/main.js sets this */
+body.has-reel{ overflow-y:auto; overflow-x:hidden; height:auto; min-height:100%; }
+body.has-reel #veil{ position:fixed; }
+
+.reel{
+  position:relative; z-index:24;
+  margin-top:100vh;
+  /* fills the screen, so the page ends on the work rather than on a
+     band of leftover world under it, and holds the strip in the middle
+     of it rather than against the top */
+  min-height:100vh;
+  display:flex; flex-direction:column; justify-content:center;
+  /* the top pad clears the fixed top bar, which goes on floating above
+     this the way it does over every other scrolling page */
+  padding:clamp(74px,9vw,116px) clamp(16px,4vw,64px) clamp(40px,6vw,80px);
+  background:
+    linear-gradient(180deg, rgba(6,6,10,0) 0%, rgba(6,6,10,.92) 7%, rgba(6,6,10,.985) 18%);
+}
+
+/* the cue that says there is anything down here at all.  It sits on the
+   last sliver of the first screen and leaves as soon as it is obeyed. */
+.reel__cue{
+  position:absolute; left:50%; top:-84px; transform:translateX(-50%);
+  display:flex; flex-direction:column; align-items:center; gap:9px;
+  font-family:var(--mono); font-size:11px; letter-spacing:.26em;
+  text-transform:uppercase; color:var(--ink-faint);
+  transition:opacity .45s var(--ease);
+  pointer-events:none;
+}
+.reel.is-in .reel__cue{ opacity:0; }
+.reel__cue span{ display:block; width:1px; height:26px; background:linear-gradient(var(--ink-faint), transparent); }
+@media (prefers-reduced-motion:no-preference){
+  .reel__cue span{ animation:reelCue 2.1s var(--ease) infinite; transform-origin:top; }
+}
+@keyframes reelCue{ 0%,100%{ transform:scaleY(.35); opacity:.35; } 45%{ transform:scaleY(1); opacity:1; } }
+
+.reel__head{
+  display:flex; align-items:baseline; gap:18px; flex-wrap:wrap;
+  margin:0 0 clamp(16px,2.2vw,26px);
+}
+.reel__title{ margin:0; font-size:clamp(19px,2.4vw,27px); font-weight:700; letter-spacing:-.01em; }
+.reel__note{
+  margin:0; flex:1 1 220px;
+  font-family:var(--mono); font-size:11.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-faint);
+}
+.reel__arrows{ display:flex; gap:8px; }
+.reel__arrow{
+  display:grid; place-items:center; width:34px; height:34px;
+  border:1px solid var(--line); border-radius:999px; color:var(--ink-dim);
+  transition:color .3s, border-color .3s, background .3s, opacity .3s;
+}
+.reel__arrow:hover:not(:disabled){ color:var(--accent); border-color:var(--accent); background:rgba(255,90,18,.08); }
+.reel__arrow:disabled{ opacity:.28; cursor:default; }
+
+/* --- the track --- */
+.reel__track{
+  display:flex; gap:18px;
+  overflow-x:auto; overflow-y:hidden;
+  scroll-snap-type:x proximity;
+  padding:6px 2px 16px;
+  /* the drift and the arrows both write scrollLeft; a hidden bar keeps
+     the strip reading as a strip rather than as a scrolling box */
+  scrollbar-width:none;
+}
+.reel__track::-webkit-scrollbar{ display:none; }
+
+.reel__cell{
+  flex:none; width:clamp(196px,19vw,268px);
+  scroll-snap-align:start;
+  opacity:0; transform:translateY(26px);
+  transition:opacity .7s var(--ease), transform .7s var(--ease);
+  transition-delay:calc(var(--i) * 55ms);
+}
+.reel.is-in .reel__cell{ opacity:1; transform:none; }
+@media (prefers-reduced-motion:reduce){
+  .reel__cell{ opacity:1; transform:none; transition:none; }
+}
+
+/* A wall lets a tile be 3:4 or 4:3 and stagger. A row cannot — the
+   cards have to agree on a height or the strip looks broken — so the
+   reel fixes the frame and lets `object-fit:cover` do the rest.
+
+   By #reel and not by class: tiles.css sets the ratio from the file's
+   own orientation at `.tile[data-orient="landscape"] .tile__media`, and
+   this sheet loads *before* it, so a class selector of equal weight
+   would lose. The id is the honest way to say "here, the wall's rule
+   does not apply". */
+.reel .tile{ margin:0; width:100%; content-visibility:visible; }
+#reel .tile__media{ aspect-ratio:4 / 5; max-height:none; }
+.reel .tile:hover,
+.reel .tile.is-live{ transform:translateY(-6px); }
+.reel .tile__cap{ padding:11px 12px 13px; }
+
+@media (max-width:700px){
+  .reel__cell{ width:clamp(168px,62vw,230px); }
+  .reel__arrows{ display:none; }
+}

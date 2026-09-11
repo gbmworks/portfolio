@@ -33,6 +33,8 @@ What ships and what does not:
 | `assets/1x/` | no | unused working files |
 | `game/unicorn/` | yes, 16 MB | the playable game — models, sound, bundle |
 | `content/Unicorn/` | source only | its 59 MB working folder stays local |
+| `studio/fitmint/` | yes, 19 MB | the avatar studio — models, textures, three |
+| `content/Fitmint/` | source only | 92 MB of art and a 59 MB build stage stay local |
 
 To re-encode after adding footage:
 
@@ -78,7 +80,8 @@ technical-art.html         ├ section pages — thin shells, content from proje
 visualization.html         ┘
 project.html               one shell for every case study — project.html?p=<slug>
 404.html                   hand-written, root-absolute paths — see "Resilience"
-game/unicorn/              a game, not a page about one — see "The game"
+game/unicorn/              a game, not a page about one — see "Things that run"
+studio/fitmint/            an avatar customiser, likewise
 
 css/                       one cascade cut into six readable files, loaded in order
   base.css                 tokens, reset, the canvas, the fallback page
@@ -102,6 +105,7 @@ js/
   stage.js                 renderer, camera, lights, post chain, frame loop
   wheel.js                 slice geometry, projected labels, hover animation
   main.js                  landing page logic
+  reel.js                  the strip of selected work under the wheel
   page.js                  section page logic (sheet index / mosaic)
   project.js               case study logic, and what a retired slug says instead
   tiles.js                 every tile wall + the lazy playback engine
@@ -120,6 +124,7 @@ assets/
   posters/                 one ~40 KB JPEG per clip — what the tiles show
   hdri/manifest.json       empty by default — see "Real HDRIs" below
 content/Unicorn/           the game's source — its own README, its own build
+content/Fitmint/           the avatar studio's source, art and Blender build
 content/NOTES.md           how to work on this repo: commands, traps, what is next
 content/WORKLOG.md         why it is the way it is — the history
 ```
@@ -244,12 +249,11 @@ public interface.
 | page | entries | with a page here | link out |
 |---|---|---|---|
 | Industrial Design | 18 | 7 | 11 |
-| Technical Art | 10 | 0 | 9, and one that plays |
-| Visualization | 26 | 2 | 24 |
+| Technical Art | 14 | 2 | 10, and two that run |
+| Visualization | 29 | 5 | 24 |
 
-The tenth Technical Art entry is the game, first in the running order.
-It is neither a page here nor a link out: clicking it plays the thing
-itself. See "The game".
+The first two entries on Technical Art are neither a page here nor a
+link out: clicking one runs the thing itself. See "Things that run".
 
 ### Editing it
 
@@ -275,7 +279,7 @@ directly on a page instead, which is why they still appear.
 
 ### Every entry has a picture
 
-All 54 have a thumbnail and a destination — checked against the files on
+All 61 have a thumbnail and a destination — checked against the files on
 disk and the Behance CDN. The four projects that still have no artwork
 (Primetrace, Metabrix, Hecoll, Freelance 2024) are not listed on any
 page, so nothing renders as a bare typographic plate any more. The fifth
@@ -304,7 +308,55 @@ returns everywhere at once.
 next walks the page's running order, so it matches what the visitor
 clicked through.
 
-## The game
+## Things that run
+
+Two entries on Technical Art are not write-ups. The work itself runs, in
+the browser, on this domain. Three fields on the record in `projects.js`
+carry it:
+
+| field | |
+|---|---|
+| `live` | where the running thing is |
+| `liveLabel` | what the button to it says |
+| `liveFromRow` | whether the sector row skips the page and runs it directly |
+
+**They are not reached the same way, and that is the point.** The game is
+the whole project — there is no write-up worth standing between you and
+it — so it sets `liveFromRow` and clicking its row plays it. The avatar
+studio is one output of a larger job that also has reels, posts and a
+write-up, so its row opens its **page**, and the page opens the studio
+with the one solid accent button on the site, above the fold.
+
+`entryHref()` in `projects.js` is the single function that answers "where
+does clicking this go" — a sector row, a prev/next arrow and the sitemap
+all call it, so they cannot drift apart.
+
+Both cost the site **nothing until clicked** — measured on a cold load of
+Technical Art, zero requests under `game/` or `studio/`; the whole page
+is 200 KB.
+
+**And both have a way back.** A visitor who lands in a full-screen game
+or a full-screen editor should not have to reach for the browser's back
+button, so each carries its own link to the portfolio — the game's
+`#exit` pill, the studio's arrow in its wordmark. Both are relative
+(`../../`), so they resolve to the site root from one folder down and
+still make sense when either is served on its own.
+
+Both are deployed the same way, and it is the same split as
+`assets/media` → `assets/web`: a working folder that stays on this
+machine, and a script that copies the shipped subset into the repo.
+Neither deploy is a recursive copy — each one checks first and refuses to
+write rather than shipping something that 404s halfway through.
+
+| | the game | the studio |
+|---|---|---|
+| URL | `game/unicorn/` | `studio/fitmint/` |
+| deployed | 16 MB | 19 MB |
+| source | `content/Unicorn/` | `content/Fitmint/AvatarStudio/` |
+| left behind | 59 MB working `dist/` | 92 MB of art, a 59 MB build stage |
+| build | webpack → `npm run deploy` | Blender/sharp → `npm run deploy` |
+
+### The game
 
 `game/unicorn/` is *Unicorn and the Crystalverse* — a browser game made
 for Lenskart, and the first entry on Technical Art. It is the one thing
@@ -350,10 +402,99 @@ shipping a folder that 404s halfway through the first level.
 The bundle was also a development build — 3.8 MB, nearly all of it an
 inline source map. Production, it is 573 KB.
 
+The `#exit` pill is the way back to the portfolio. It used to be
+`document.getElementById("exit")?.remove()` the moment play started — so
+once you were in, the only way out was the browser's back button. It
+stays now and takes a `.is-playing` class instead, which drops it to 35%
+opacity and back to full on hover: available, but not floating over the
+island. That is a change to `src/index.ts`, so it needs a webpack
+rebuild — `npm run deploy` does both.
+
 Two things that will bite anyone editing it: the Draco decoder path has
 to stay relative (`draco/`, not `/`, or every compressed model fails
 silently once the game is not at the site root), and the game's own
 `README.md` explains the rest.
+
+### The avatar studio
+
+`studio/fitmint/` is the **Fitmint Avatar Studio** — the character
+customiser behind the Fitmint avatar system, and the second entry on
+Technical Art. Six skin tones, eight hairstyles, a full wardrobe, 23
+face-shape sliders and seven animations, all on one skeleton: every
+garment was exported with its own copy of the same 275-bone rig, and the
+app re-binds each item to the avatar's bones on equip so a single
+`AnimationMixer` drives the body and everything it is wearing.
+
+It is `live: 'studio/fitmint/'` on the `fitmint-avatars` record — the
+same record that already carried the reels and the Instagram posts, so
+the work and the thing itself are one entry rather than two. It does
+**not** set `liveFromRow`: clicking Fitmint on Technical Art opens the
+project page, and *Edit an avatar* there opens the studio. The row's
+preview clip is `male.webm`, the character the studio edits.
+
+```bash
+cd content/Fitmint/AvatarStudio
+npm run deploy      # -> studio/fitmint, 19.1 MB
+```
+
+`deploy.mjs` ships `index.html`, `src/`, `vendor/` and four of the five
+asset folders. The fifth, `assets/items/`, is the 59 MB intermediate from
+build stage 1 and nothing at runtime reads a byte of it.
+
+Its guard is **derived rather than hand-written**, which is the one way
+it improves on the game's: it reads every `assets/...` path out of the
+generated `catalog.js`, `environments.js` and the preload in
+`index.html` — 96 of them — and checks each against the disk before it
+copies anything, then checks the copy too. A catalog row whose asset was
+never built fails at deploy rather than under somebody's click.
+
+Unlike the game it needed **no path fixes at all**: every reference in it
+is already relative and three is vendored locally rather than pulled from
+a CDN, so it ran at `/studio/fitmint/` unchanged. The asset URLs carry
+`?v=<mtime>`, baked in at build time, so a host can cache them hard and a
+rebuild still reaches the browser.
+
+Its own `README.md` and `PROJECT.md` are in the source folder and cover
+the lighting, the build stages and the known gaps.
+
+## The reel
+
+The landing page was exactly one screen: the wheel, or nothing. That
+asks a visitor to commit to a sector before they have seen a single
+piece of work. Scrolling now brings up **a strip of ten**, mixed across
+all three sectors, any of which is one click from its page.
+
+**The page scrolls; the world does not.** `#stage`, `.scrim` and `.ui`
+are all `position:fixed`, so the strip slides up over a wheel that stays
+exactly where it was — which is the whole reason it is worth having here
+rather than on a page of its own. `body.has-reel` is what allows the
+scroll at all, and `js/main.js` only sets it if the reel actually
+mounted, so a failure there leaves the landing page as it was rather
+than leaving a scrollbar over nothing.
+
+**A card is a `.tile`.** Same markup from `entryTile()`, same lazy
+poster, same hover-to-colour-and-play, same rules about where a click
+goes — `js/reel.js` adds only what a strip needs that a wall does not: a
+horizontal track, arrows, a staggered reveal and the drift. One
+override, and it needs the id to win: `#reel .tile__media` fixes every
+card at 4:5, because a row cannot let each tile take its own 3:4 or 4:3
+the way a masonry wall can, and `landing.css` loads *before* `tiles.css`
+so a class selector of equal weight would lose.
+
+- **The reveal** is staggered by `--i`, and fires on an
+  IntersectionObserver rather than on load — animating it while the
+  visitor is three seconds into the intro and a screen above would spend
+  it on nobody.
+- **The drift** creeps at 14px/s so the strip is never a dead row of
+  stills, and stops for good on the first `pointerdown`, `wheel`,
+  `touchstart`, `keydown` or hover. A carousel that keeps moving under a
+  pointer is a carousel that loses a click.
+- **The arrows** step one card and disable themselves at each end.
+
+What is in it is `FEATURED` in `js/projects.js` — the one list on the
+site that is not generated, because "what should somebody see first" is
+a judgement and the allocation sheet has no column for it. It takes the
+same references a page list does, so an `ig:` post would work there too.
 
 ## Three layouts, one system
 
@@ -397,7 +538,8 @@ nothing to de-duplicate:
 - **Same work, listed twice.** A page is an explicit ordered list, so a
   thing appears exactly as often as it is written down. Listing one entry
   on two pages is allowed and sometimes wanted — the John Jacobs line is
-  on Industrial Design and Visualization — and listing it twice on the
+  on Industrial Design and Visualization, and the projection-mapping post
+  is on Visualization and Technical Art — and listing it twice on the
   *same* page would be visible immediately in the sheet.
 
 The old `linkTiles()` de-duplication pass — which compared clip paths and
@@ -424,6 +566,21 @@ clip never played. The still is now the layer
 cross-fades over it on `loadeddata`, so sweeping a long index never flashes
 black between rows.
 
+**Where in the clip to look.** The frame is wide — 966×604 on a 1707px
+window — and most of these clips are 9:16, so `object-fit: cover` keeps
+about **35% of the height** and centres it. On a standing figure that
+lands squarely on the waist. `previewFocus` on the record is an
+`object-position` for that clip and nothing else: Fitmint's `male.webm`
+runs at `50% 5%`, which shows head and chest instead. The value is not a
+guess — the clip was sampled every 0.25s and the highest subject pixel in
+it (the tip of a Santa hat, at t=8) sits 4.69% from the top, so the
+window opens at 3.24% and clears every frame of a clip that cuts between
+half a dozen avatars.
+Omit the field and the crop stays centred. It is applied to the video
+only — the still underneath keeps the centre, because a cover and a clip
+are rarely framed alike, and Fitmint's proves it: the figure sits much
+lower in `coverf.jpg` and the same shift would show mostly sky.
+
 A row with neither gets a **typographic plate**: the name set large on the
 dark card, client and year beneath, and one line saying so — the same
 treatment the tile wall uses. Nothing currently on a page hits that state;
@@ -440,6 +597,14 @@ needed where the work is a list.
 
 ## Resilience and reach
 
+- **The top bar carries its own falloff where the page scrolls.** It is
+  `position:fixed` with no background of its own, which is right over a
+  single-screen wheel and wrong everywhere else: on the mosaic a tile
+  caption arrives at the same baseline as the wordmark and the two words
+  interleave. `body[data-layout="gallery"]`, `[data-layout="project"]`
+  and `body.has-reel` give it a gradient scrim — the same language as
+  `.scrim`, and a gradient rather than a `backdrop-filter` because this
+  sits over an animating canvas where a blur is recomputed every frame.
 - **Boot guard.** If the app has not signalled `data-ready` within seven
   seconds — blocked CDN, no WebGL, a very slow first load — `js/boot.js`
   copies the page's own `<noscript>` markup into `#boot` and reveals it. The
@@ -468,6 +633,17 @@ needed where the work is a list.
   `./css/style.css` asked for `/some/deep/css/style.css` and the page
   rendered unstyled. It is the one file that does not share `js/boot.js`:
   it carries the single stylesheet it needs and no scripts at all.
+- **A type floor, not a type taste.** Every functional label on the site —
+  years, clients, counters, the register numbers, the sector switcher, the
+  CV's dates — ran between 8.5px and 10.5px. That reads as precision at
+  desk distance and as illegible on a phone, and 380 instances of it were
+  the single largest finding across the whole site. The mono scale now
+  starts at **11px** and steps 11 / 11.5 / 12. The look is intact; the
+  labels are readable.
+- **`--ink-faint` is a contrast token, not a mood.** It was `#55535f`,
+  which measures **2.7:1** on the page ground — under the 4.5:1 floor on
+  every year, client, counter and caption it touches. It is `#7d7b88` and
+  4.9:1 now. `--ink-dim` was already fine at 7.3:1.
 - **Keyboard.** Gallery tiles are focusable, carry `role` and `aria-label`,
   activate on Enter or Space, and light up on focus exactly as on hover.
   Focus rings are visible throughout.
@@ -813,8 +989,30 @@ them.
 all of them — the Visualization mosaic, a project page's media, and the
 Instagram strips.
 
-- **Masonry**, five CSS columns down to one, so a portrait clip and a
-  landscape still can sit side by side without letterboxing.
+- **Two arrangements, one tile.** A project's media wall and the Instagram
+  strips are masonry — five CSS columns down to one — so a portrait clip and
+  a landscape still sit side by side without letterboxing.
+
+  The **sector mosaic is a grid instead**, because multi-column fills a
+  column top to bottom before it starts the next: on five columns the sixth
+  entry sat level with the first, and the allocation sheet's running order
+  ran down the left edge where nobody reads it. A grid places in source
+  order, so row one is entries one to five and the wall reads across. Tiles
+  keep their own 3:4 / 4:3 aspect and hang from the top of their row, which
+  trades the interlocking stagger for a ragged foot on a row of mixed
+  shapes.
+
+  **Wide work gets two columns.** A 16:9 cell in a column sized for 9:16
+  is 207px tall beside its neighbour's 586, and that 379px hole is what
+  made the wall read as ragged rather than as a grid. True ratios cannot
+  tile flush — solve the two heights for a shared unit and the answer is
+  negative — so the fix is not to flatten the ratios but to give the
+  landscape pieces the width their shape asks for:
+  `.tile[data-orient="landscape"]` spans two columns, still exactly
+  16:9, and `grid-auto-flow: row dense` backfills what is left. Measured
+  on the live wall, the worst hole went **379px → 201px** and most rows
+  came out flush to within 14px. At one column there is no second column
+  to span and the rule stands down.
 - **Grey at rest.** `filter: saturate(.14)` on every tile; hover restores
   colour and plays the clip. The wall reads as one surface until you look at
   something.
@@ -822,9 +1020,17 @@ Instagram strips.
   before a tile enters the viewport (`preload=metadata` plus a `#t=0.1` media
   fragment paints a still without playing) and releases the video five seconds
   after it leaves. A long wall never holds more than what you have looked at.
-- **Aspect from the file.** Once metadata lands, the tile takes `3/4` or `4/3`
-  from the real dimensions — the wall stays even instead of following a 9:16
-  clip all the way down the page.
+- **Aspect from the file, ratio from the wall.** Once metadata lands
+  `js/tiles.js` records `data-orient="portrait"` or `"landscape"` on the tile
+  and stops there; the stylesheet decides what that is cropped to. Everywhere
+  except the sector mosaic that is `4/3` or `3/4`, close enough to square to
+  keep a mixed wall even. **The mosaic uses `16/9` and `9/16`** — it is the
+  page where the work is the subject rather than an index beside it, and most
+  of it was made for a phone or a screen, so it is shown in the ratio it was
+  made in and `object-fit:cover` crops less to get there. A portrait tile is
+  about 536px tall in a five-column window, which is why `max-height:62vh`
+  and the `contain-intrinsic-size` guess are both overridden there — capping
+  the height is the one thing that would stop a 9:16 tile being 9:16.
 - **No hover on touch.** Whatever is more than 60% on screen plays, two at a
   time.
 - **Where a tile goes.** A project tile navigates here, an Instagram tile
@@ -852,6 +1058,36 @@ node tools/media.mjs posters     # after adding or re-encoding any clip
 
 The frame is taken a fifth of the way in — past a fade-up, before an
 outro — scaled to 900 px on the long edge at `-q:v 4`.
+
+### The one kind of footage that *is* worth re-encoding
+
+The rule below — *do not re-encode the clips* — is about **rendered**
+work, which was already tight. It does not hold for **handheld phone
+video of a screen**, and the Technical Art captures proved it: three
+clips shot on a phone, two of them 4K at 60fps, straight into the usual
+CRF 34 recipe.
+
+The problem is grain. A phone sensor in a fluorescent office puts noise
+on every frame, and noise is the most expensive thing VP9 can be asked
+to carry — it is detail, it is different every frame, and none of it is
+the subject. `hqdn3d` takes it out before the encoder ever sees it:
+
+```bash
+ffmpeg -i in.mp4 -c:v libvpx-vp9 -crf 40 -b:v 0 -an -r 30   -vf "hqdn3d=3:3:6:6,scale=w='min(720,iw)':h='min(720,ih)':force_original_aspect_ratio=decrease"   assets/web/TD/out.webm
+```
+
+| | CRF 34, 1080, 60→30fps | + `hqdn3d`, CRF 40, 720 |
+|---|---|---|
+| `facecap-setup` (55s) | 12.0 MB | **1.8 MB** |
+| `facecap-closeup` (17s) | 3.1 MB | **1.5 MB** |
+| `projection-room` (14s) | 3.5 MB | **1.8 MB** |
+
+An 85% saving on the first one, and the difference is invisible at the
+size a tile actually draws — these are documentary clips of a
+workstation, not the rendered work itself, which is also why 720 on the
+long edge is plenty for them. The same CRF 38 pass on the *rendered*
+`t20001-0600` bought 4.9 → 3.6 MB and no more, exactly as the section
+below predicts.
 
 ### The clips are already well encoded — do not re-encode them
 

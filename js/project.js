@@ -19,7 +19,7 @@
 import { SECTIONS, sectionById } from './sectors.js';
 import { SITE, ACCENT, ACCENT_GLOW, absolute } from './site.js';
 import { coverUrl, behanceUrl, projectUrl, sectorUrl } from './links.js';
-import { bySlug, archiveBySlug, MOVED, neighbours, homeSector, pageEntries, projectStill } from './projects.js';
+import { bySlug, archiveBySlug, MOVED, neighbours, homeSector, pageEntries, projectStill, entryHref } from './projects.js';
 import { createStage } from './stage.js';
 import { mediaTile, startTiles, grid } from './tiles.js';
 import { mountShell } from './shell.js';
@@ -119,10 +119,6 @@ function projectHTML(p, sector) {
   ].filter(([, v]) => v);
 
   const links = [];
-  /* If the work is playable, that is the first thing to offer.  Nothing on
-     the site links here — the sector index goes straight to the game — but
-     an old or shared project URL should still lead to it. */
-  if (p.live) links.push(['Play the game', p.live]);
   if (p.behance) links.push(['Full case study on Behance', behanceUrl(p.behance)]);
   links.push(['More on Instagram', SITE.instagram]);
 
@@ -134,9 +130,9 @@ function projectHTML(p, sector) {
         ${esc(sector.title)}</a>
 
       <header class="proj__head">
-        <span class="proj__k">${esc(sector.index)} · ${esc(sector.title)}</span>
         <h1 class="proj__title">${esc(p.title)}</h1>
         ${p.summary ? `<p class="proj__lede">${esc(p.summary)}</p>` : ''}
+        ${liveCta(p)}
       </header>
 
       ${hero}
@@ -174,12 +170,30 @@ function projectHTML(p, sector) {
         </section>` : ''}
 
       <nav class="panel__nav pnav">
-        ${prev ? `<a href="${prev.live || projectUrl(prev)}" style="--lc:${ACCENT_GLOW}">
+        ${prev ? `<a href="${entryHref(prev)}" style="--lc:${ACCENT_GLOW}">
           <span>Previous</span><strong>${esc(prev.title)}</strong></a>` : '<span></span>'}
-        ${next ? `<a href="${next.live || projectUrl(next)}" style="--lc:${ACCENT_GLOW}" class="is-next">
+        ${next ? `<a href="${entryHref(next)}" style="--lc:${ACCENT_GLOW}" class="is-next">
           <span>Next</span><strong>${esc(next.title)}</strong></a>` : '<span></span>'}
       </nav>
     </article>`;
+}
+
+/* The one thing on this page that is not reading: if the work runs, it
+   runs from here.  It sits in the header rather than down in the links
+   list, because for a record like the avatar studio the page is the
+   doorway and burying the door under the fold would be perverse.  The
+   game reaches the same button from an old URL or a prev/next arrow —
+   its own row skips the page entirely. */
+function liveCta(p) {
+  if (!p.live) return '';
+  return `
+    <a class="proj__cta" href="${p.live}" data-nav>
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor"
+           stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M5 3.5 19 12 5 20.5Z"/>
+      </svg>
+      <span>${esc(p.liveLabel || 'Open it')}</span>
+    </a>`;
 }
 
 /* a still if there is one, a clip if there is not, nothing if neither */

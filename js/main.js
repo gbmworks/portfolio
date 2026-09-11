@@ -14,6 +14,7 @@ import { Wheel } from './wheel.js';
 import { DEFAULT_THEME } from './env/themes.js';
 import { mountShell } from './shell.js';
 import { bindNav } from './nav.js';
+import { mountReel } from './reel.js';
 
 const INTRO_MS = 3000;
 const $ = (s) => document.querySelector(s);
@@ -53,8 +54,10 @@ if (sessionStorage.getItem(SEEN_INTRO)) {
   uiEl.classList.add('is-in');
 } else {
   requestAnimationFrame(() => {
-    introBar.style.transition = 'width ' + INTRO_MS + 'ms linear';
-    introBar.style.width = '100%';
+    /* scaleX, not width: this runs for three seconds, and animating
+       width relayouts the bar on every one of those frames. */
+    introBar.style.transition = 'transform ' + INTRO_MS + 'ms linear';
+    introBar.style.transform = 'scaleX(1)';
   });
   setTimeout(endIntro, reducedMotion ? 900 : INTRO_MS);
   introEl.addEventListener('click', endIntro);
@@ -115,7 +118,7 @@ function setHover(i) {
   hubValue.style.color = s ? ACCENT_GLOW : '';
   hintText.textContent = s
     ? (wheel.enableParallax ? 'Click to enter ' + s.title : 'Tap again to enter')
-    : (wheel.enableParallax ? 'Hover a slice · the world changes with it' : 'Tap a slice to preview');
+    : (wheel.enableParallax ? 'Hover a slice · the world changes' : 'Tap a slice to preview');
 }
 
 function onMove(e) {
@@ -159,5 +162,13 @@ addEventListener('keydown', e => {
 });
 
 compose();
+
+/* The strip of selected work a screen below the wheel.  `has-reel` is
+   what lets the page scroll at all — body is `overflow:hidden` by
+   default, and it stays that way if the reel never mounts, so a failure
+   here leaves the landing page exactly as it was rather than leaving a
+   scrollbar over nothing. */
+mountReel({ onNavigate: nav.leave }) && document.body.classList.add('has-reel');
+
 stage.start();
 document.documentElement.setAttribute('data-ready', '');

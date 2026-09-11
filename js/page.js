@@ -149,6 +149,7 @@ function entryRow(e, i) {
     <a class="plink" href="${e.href}"
        ${out ? 'target="_blank" rel="noopener noreferrer"' : 'data-nav'}
        ${e.clip ? `data-preview="${encodeURI(e.clip)}"` : ''}
+       ${e.focus ? `data-focus="${e.focus}"` : ''}
        ${e.still ? `data-still="${encodeURI(e.still)}"` : ''}>
       <span class="plink__n">${String(i + 1).padStart(2, '0')}</span>
       <span class="plink__t">${e.title}</span>

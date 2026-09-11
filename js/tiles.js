@@ -162,9 +162,12 @@ export function startTiles(root = document, { onNavigate = null } = {}) {
     const ready = () => {
       const w = t.media.videoWidth || t.media.naturalWidth;
       const h = t.media.videoHeight || t.media.naturalHeight;
-      /* the wall stays even: every tile is 3:4 or 4:3, cropped to fit,
-         rather than following a 9:16 clip all the way down the page */
-      if (w && h) t.el.style.setProperty('--ar', w < h ? '3 / 4' : '4 / 3');
+      /* Report the shape of the file and let the stylesheet decide what
+         to draw.  A tile is cropped to a ratio rather than following the
+         source all the way down the page, but which ratio is the wall's
+         business, not this function's: the sector mosaic frames its work
+         at 16:9 / 9:16, everywhere else stays at the squarer 4:3 / 3:4. */
+      if (w && h) t.el.dataset.orient = w < h ? 'portrait' : 'landscape';
       t.el.classList.add('is-ready');
     };
     if (t.isVideo) {

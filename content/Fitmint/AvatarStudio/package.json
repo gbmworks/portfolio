@@ -1,0 +1,15 @@
+{
+  "name": "fitmint-avatar-studio",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Browser-based character customiser for the Fitmint male avatar.",
+  "scripts": {
+    "start": "node serve.mjs",
+    "build": "node tools/build.mjs",
+    "build:fast": "node tools/build.mjs --skip-convert --skip-thumbs --skip-hdri",
+    "catalog": "node tools/build_catalog.mjs",
+    "env": "node tools/build_env.mjs",
+    "deploy": "node deploy.mjs"
+  }
+}

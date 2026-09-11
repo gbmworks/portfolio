@@ -102,9 +102,12 @@ let storyElements = [];
   document.getElementById("splashScreen").addEventListener("click", () => {
     document.getElementById("splashScreen").style.display = "none";
     document.getElementById("story").style.display = "flex";
-    // The way back to the portfolio is offered before play starts and taken
-    // away once it has, so it never floats over the game.
-    document.getElementById("exit")?.remove();
+    // The way back to the portfolio used to be removed here, so that once
+    // you started playing the only way out was the browser's own back
+    // button. It stays now — the game is a page on a portfolio, and
+    // leaving it should not require knowing that. CSS dims it during play
+    // so it sits out of the way rather than floating over the island.
+    document.getElementById("exit")?.classList.add("is-playing");
   });
 }
 

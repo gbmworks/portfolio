@@ -507,3 +507,14 @@ html[data-platform="handheld"][data-orientation="landscape"] #rotateDevice {
   color: #fff;
   background: rgba(0, 0, 0, 0.45);
 }
+
+/* Once play starts the way out stays available but stops competing with
+   the island — it fades back until it is looked for. */
+#exit.is-playing {
+  opacity: 0.35;
+}
+
+#exit.is-playing:hover,
+#exit.is-playing:focus-visible {
+  opacity: 1;
+}

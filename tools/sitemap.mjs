@@ -15,7 +15,7 @@
 
 import { writeFileSync } from 'node:fs';
 import { SECTIONS } from '../js/sectors.js';
-import { PROJECTS, ARCHIVE, pageEntries } from '../js/projects.js';
+import { PROJECTS, ARCHIVE, pageEntries, entryHref } from '../js/projects.js';
 import { projectUrl, sectorUrl } from '../js/links.js';
 import { SITE } from '../js/site.js';
 
@@ -30,11 +30,15 @@ for (const s of SECTIONS) {
   }
 }
 
+/* Where a project's row goes is where the sitemap sends a crawler:
+   entryHref() is the one function that answers that, so the two cannot
+   disagree.  A record that runs but keeps its page — the avatar studio —
+   is worth both URLs, the page for the write-up and the thing itself. */
 const urls = [
   { loc: '', priority: '1.0' },
   ...SECTIONS.map(s => ({ loc: sectorUrl(s), priority: '0.8' })),
-  /* the game is its own URL, not a page about itself */
-  ...listed.map(p => ({ loc: p.live || projectUrl(p), priority: '0.6' }))
+  ...listed.map(p => ({ loc: entryHref(p), priority: '0.6' })),
+  ...listed.filter(p => p.live && !p.liveFromRow).map(p => ({ loc: p.live, priority: '0.6' }))
 ];
 
 const xml =

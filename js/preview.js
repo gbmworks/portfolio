@@ -28,7 +28,10 @@ export function initStage({ mount, rows, sector = '' } = {}) {
 
   mount.innerHTML = `
     <div class="stage__frame">
-      <img class="stage__still" alt="">
+      <!-- transparent until a row supplies one: an <img> with no src at all
+           ships as a broken-image box in some engines -->
+      <img class="stage__still" alt="" aria-hidden="true"
+           src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
       <video class="stage__video" muted loop playsinline preload="none"></video>
       <div class="stage__empty">
         <span class="stage__title"></span>
@@ -75,6 +78,13 @@ export function initStage({ mount, rows, sector = '' } = {}) {
 
     const clip = row.dataset.preview;
     const img = row.dataset.still;
+
+    /* The frame is wide and most of these clips are 9:16, so `cover`
+       keeps about a third of the height and centres it — which on a
+       standing figure is the waist.  A record can say where to look
+       instead (`previewFocus` in projects.js); the still keeps the
+       centre, because a cover and a clip are rarely framed alike. */
+    video.style.objectPosition = row.dataset.focus || '';
 
     title.textContent = (textOf(row, '.plink__t') || row.textContent.trim()).slice(0, 70);
     meta.textContent = textOf(row, '.plink__y');

@@ -19,7 +19,10 @@
   --bg-2:      #0d0d14;
   --ink:       #f2f0ee;
   --ink-dim:   #9c9aa6;
-  --ink-faint: #55535f;
+  /* 4.9:1 on the page ground.  This was #55535f, which measured 2.7:1 —
+     under the 4.5:1 floor everywhere it appears, and it appears on every
+     year, client, counter and caption on the site. */
+  --ink-faint: #7d7b88;
   --line:      rgba(255,255,255,.10);
   /* monochrome system — one fluorescent accent, used only for live state */
   --c1:#5a5a62;  --c2:#8e8e96;  --c3:#c8c8d0;

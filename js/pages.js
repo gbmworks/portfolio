@@ -42,12 +42,16 @@ export const PAGES = {
     'mobius-ring'
   ],
 
-  /* Technical Art — 10 entries */
+  /* Technical Art — 14 entries */
   'technical-art': [
     'lenskart-ar-game',
+    'fitmint-avatars',
     'strandbeest',
+    'facial-capture',
     'ig:DBblehryOvP',
+    'projection-mapping',
     'ig:C5qKbaqoS81',
+    'ig:DY1ZLdrzDMn',
     'ig:DZhUGT6zLUH',
     'ig:C3xN8HcSitr',
     'product-teardown',
@@ -56,12 +60,15 @@ export const PAGES = {
     'ig:C30IwA0S86z'
   ],
 
-  /* Visualization — 26 entries */
+  /* Visualization — 29 entries */
   'visualization': [
     'mushroom-fiend',
     'ig:C5S8PcUyYaS',
+    'cradlewise-crib',
     'product-visualisation',
+    'tigc-apparel',
     'ig:C4zkP75yvL3',
+    'loops-and-studies',
     'ig:DY1ZLdrzDMn',
     'ig:DGdAAn0oQAJ',
     'ig:DYob7EGT4Rb',

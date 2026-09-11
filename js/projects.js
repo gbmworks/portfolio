@@ -30,9 +30,20 @@
      body      further paragraphs, shown only on the project page
      cover     hero still — 'assets/...' local, or a Behance CDN path
      live      a running thing on this site rather than a write-up — the
-               game at game/unicorn.  A record with one is opened by that
-               URL wherever it is listed: clicking the row plays it.
+               game at game/unicorn, the avatar studio at studio/fitmint.
+               The project page offers it as the button above the fold.
+     liveLabel what that button says.  Defaults to 'Open it', because
+               not everything runnable is a game.
+     liveFromRow  skip the page: clicking the row in a sector index runs
+               the thing directly.  True for the game, which is all it
+               is; false for the studio, where the write-up, the reels
+               and the posts are worth reading before you open the tool.
      preview   a local clip; plays in the index preview stage and hero
+     previewFocus  object-position for that clip in the preview stage.
+               The stage is wide and most of these clips are 9:16, so
+               `cover` throws away two thirds of the height and centres
+               what is left — which on a standing figure lands on the
+               waist.  Omit it and the crop stays centred.
      media     [{ src, title }] shown as a grid on the project page
      behance   { id, slug } — the published case study
      posts     [{ code, kind, title, cover }] — Instagram entries
@@ -135,11 +146,27 @@ export const PROJECTS = [
     year: '2023 — 24',
     tools: ['Blender', 'three.js'],
     feature: true,
+    /* The studio is the work, running.  Unlike the game it is not the
+       whole of the project — the reels, the posts and the write-up are
+       worth arriving at first — so the row opens this record's page and
+       the page opens the studio.  Source and build live in
+       content/Fitmint/AvatarStudio. */
+    live: 'studio/fitmint/',
+    liveLabel: 'Edit an avatar',
     cover: 'assets/web/fitmint/coverf.jpg',
-    preview: 'assets/web/fitmint/AvatarF.webm',
+    preview: 'assets/web/fitmint/male.webm',
+    /* The stage shows 35% of a 9:16 clip's height.  Centred, that is
+       this character's waist to his shins; pulled up, it is his face and
+       chest — which is what a row about an avatar editor should show.
+       5% and not higher: the clip cuts between four avatars and the
+       tallest hair in it reaches 4.7% from the top of the frame, so
+       anything past this starts shaving the top of somebody's head. */
+    previewFocus: '50% 5%',
     summary:
       'The 3D avatar system for a crypto-based fitness app — onboarding with ' +
-      'customisable avatars, skin tones, facial features, hairstyles and outfits.',
+      'customisable avatars, skin tones, facial features, hairstyles and outfits. ' +
+      'The customiser itself runs here: 6 skin tones, 8 hairstyles, 23 face-shape ' +
+      'sliders, a full wardrobe and 7 animations.',
     body: [
       'Beyond the avatars I integrated 3D assets across the app’s use cases — ' +
       'power-ups, UI overlays — each one optimised for a three.js framework and ' +
@@ -151,6 +178,7 @@ export const PROJECTS = [
       { src: 'assets/web/fitmint/clubs_F.webm',      title: 'Clubs' },
       { src: 'assets/web/fitmint/AvatarF.webm',      title: 'Avatar' },
       { src: 'assets/web/fitmint/Burj Khalifa.webm', title: 'Burj Khalifa' },
+      { src: 'assets/web/fitmint/Mount Fuji.webm',   title: 'Mount Fuji' },
       { src: 'assets/web/fitmint/male.webm',         title: 'Male Character' },
       { src: 'assets/web/fitmint/GOAt.webm',         title: 'GOAT' },
       { src: 'assets/web/fitmint/coverf.jpg',        title: 'Cover' },
@@ -192,6 +220,50 @@ export const PROJECTS = [
   },
 
   {
+    slug: 'facial-capture',
+    sectors: ['technical-art'],
+    title: 'Facial Capture Pipeline',
+    role: 'Character Technical Artist',
+    year: '2025',
+    tools: ['Live Link Face', 'Unreal Engine', 'Blender'],
+    cover: 'assets/posters/TD/facecap-closeup.jpg',
+    preview: 'assets/web/TD/facecap-closeup.webm',
+    summary:
+      'Driving a stylised character’s face from a phone — ARKit blendshapes ' +
+      'over Live Link, retargeted onto the rig’s own shapekeys and solved live.',
+    body: [
+      'The phone is the capture device and the monitor is the result: a performance ' +
+      'read off a face in front of the camera and reproduced on the character in the ' +
+      'same breath, which is the only honest way to check that a viseme set and its ' +
+      'correctives actually hold up under real speech rather than on a slider.'
+    ],
+    media: [
+      { src: 'assets/web/TD/facecap-closeup.webm', title: 'Solved on the character' },
+      { src: 'assets/web/TD/facecap-setup.webm',   title: 'The rig, end to end' }
+    ]
+  },
+
+  {
+    slug: 'projection-mapping',
+    sectors: ['technical-art'],
+    title: 'Projection Mapping',
+    role: 'Personal',
+    year: '2026',
+    tools: ['TouchDesigner'],
+    cover: 'assets/posters/TD/projection-room.jpg',
+    preview: 'assets/web/TD/projection-room.webm',
+    summary:
+      'Room-scale projection — warping and blending generative visuals across ' +
+      'walls, a ceiling and the furniture in between.',
+    posts: [
+      { code: 'DY1ZLdrzDMn', kind: 'reel', title: 'Projection mapping exercise', cover: 'assets/covers/instagram/DY1ZLdrzDMn.jpg' }
+    ],
+    media: [
+      { src: 'assets/web/TD/projection-room.webm', title: 'The room' }
+    ]
+  },
+
+  {
     slug: 'lenskart-ar-game',
     sectors: ['technical-art'],
     title: 'Unicorn and the Crystalverse',
@@ -203,6 +275,8 @@ export const PROJECTS = [
        out: it is the thing itself, deployed at game/unicorn, and clicking
        the row plays it. */
     live: 'game/unicorn/',
+    liveLabel: 'Play the game',
+    liveFromRow: true,
     cover: 'assets/covers/unicorn-crystalverse.jpg',
     summary:
       'A 3D game for children that runs in a phone browser — find seven crystals ' +
@@ -377,6 +451,42 @@ export const PROJECTS = [
      ============================================================ */
 
   {
+    slug: 'cradlewise-crib',
+    sectors: ['visualization'],
+    title: 'Cradlewise — Smart Crib',
+    client: 'Cradlewise',
+    role: '3D Generalist',
+    year: '2025',
+    tools: ['Blender'],
+    cover: 'assets/posters/VIZ/Cradlewise.jpg',
+    preview: 'assets/web/VIZ/Cradlewise.webm',
+    summary:
+      'Product visualisation of the Cradlewise smart crib — the frame, the mesh ' +
+      'sides and the adjustable bassinet, turned on a clean studio ground.',
+    media: [
+      { src: 'assets/web/VIZ/Cradlewise.webm', title: 'Cradlewise' }
+    ]
+  },
+
+  {
+    slug: 'tigc-apparel',
+    sectors: ['visualization'],
+    title: 'TIGC — Apparel Visualisation',
+    client: 'TIGC',
+    role: '3D Generalist',
+    year: '2025',
+    tools: ['Blender', 'Marvelous Designer'],
+    cover: 'assets/posters/VIZ/TIGC.jpg',
+    preview: 'assets/web/VIZ/TIGC.webm',
+    summary:
+      'Garment visualisation for TIGC — simulated cloth and printed artwork, ' +
+      'lit in a concrete set built for the drop.',
+    media: [
+      { src: 'assets/web/VIZ/TIGC.webm', title: 'The Batmobile' }
+    ]
+  },
+
+  {
     slug: 'mushroom-fiend',
     sectors: ['visualization'],
     title: 'Mushroom Fiend vs Humans',
@@ -441,10 +551,16 @@ export const PROJECTS = [
     role: 'Personal',
     year: '',
     tools: [],
-    preview: 'assets/web/Halo_bg.webm',
+    cover: 'assets/posters/VIZ/Arcadia.jpg',
+    preview: 'assets/web/VIZ/Arcadia.webm',
     summary:
       'VJ loops, one-offs and the pieces made to find out whether something would work.',
     media: [
+      { src: 'assets/web/VIZ/Arcadia.webm',     title: 'Arcadia' },
+      { src: 'assets/web/VIZ/char.webm',        title: 'Character Study' },
+      { src: 'assets/web/VIZ/t20001-0600.webm', title: 'Golden Bull' },
+      { src: 'assets/web/VIZ/f1.webm',          title: 'Runner' },
+      { src: 'assets/web/VIZ/11642-1880.webm',  title: 'Neon Figure' },
       { src: 'assets/web/1stroke.webm',    title: 'One Stroke' },
       { src: 'assets/web/astronaut1.webm', title: 'Astronaut' },
       { src: 'assets/web/Halo_bg.webm',    title: 'Halo' },
@@ -668,6 +784,14 @@ export const POSTS = {
 
 /* look-ups by id — the page lists in pages.js reference these */
 
+/* Where clicking this record goes, from anywhere — a sector row, a
+   prev/next arrow, the sitemap.  A record that runs *and* says so with
+   `liveFromRow` skips its own page; everything else lands on the page,
+   which then offers the running thing as a button.  One function so the
+   three callers cannot drift apart. */
+export const entryHref = (p) =>
+  (p.live && p.liveFromRow) ? p.live : projectUrl(p);
+
 export const bySlug = (slug) => PROJECTS.find(p => p.slug === slug) || null;
 
 export const archiveBySlug = (slug) => ARCHIVE.find(p => p.slug === slug) || null;
@@ -701,9 +825,12 @@ export const projectStill = (p) =>
      'aloka'            a published gallery, opens on Behance
      'ig:Cy75XuoSpS8'   an Instagram post, opens there
 
-   One record answers the third question differently: the Lenskart game
-   carries `live`, so its row opens the game at game/unicorn rather than
-   a page describing it.
+   `entryHref()` answers the third one.  The Lenskart game carries
+   `live` *and* `liveFromRow`, so its row opens the game at game/unicorn
+   rather than a page describing it — the game is the whole project.
+   The avatar studio carries only `live`: its row opens its page, which
+   offers the studio as the button above the fold, because there is a
+   write-up and a wall of reels worth arriving at first.
 
    `kind` comes back so a caller can decide whether to use the client
    and year, or whether the link leaves the site — not so it can print
@@ -746,9 +873,8 @@ export function resolveEntry(ref) {
          something paints without touching the video */
       still: still ? coverUrl(still) : posterUrl(clip),
       clip,
-      /* a record with something running on this site opens that, not a
-         page about it — see `live` in the field list */
-      href: project.live || projectUrl(project),
+      focus: project.previewFocus || '',
+      href: entryHref(project),
       external: false,
       project
     };
@@ -774,6 +900,33 @@ export function resolveEntry(ref) {
    rendered as a hole */
 export const pageEntries = (sectorId) =>
   pageRefs(sectorId).map(resolveEntry).filter(Boolean);
+
+/* ------------------------------------------------------------------
+   The reel under the wheel.
+
+   A hand-picked running order for the landing page — the one list on
+   the site that is not generated, because "what should somebody see
+   first" is a judgement and the allocation sheet has no column for it.
+
+   Deliberately mixed across all three sectors: the wheel above it says
+   the work is three worlds, and a strip that was all one of them would
+   contradict that. Same reference syntax as a page list, so an `ig:`
+   post would work here too.
+   ------------------------------------------------------------------ */
+export const FEATURED = [
+  'fitmint-avatars',        // runs, and the studio is the best thing here
+  'lenskart-ar-game',       // runs
+  'john-jacobs-masaba',     // eyewear, and the launch films
+  'facial-capture',
+  'muse-watch',
+  'cradlewise-crib',
+  'mushroom-fiend',
+  'tigc-apparel',
+  'toruk-custom-bike',
+  'loops-and-studies'
+];
+
+export const featuredEntries = () => FEATURED.map(resolveEntry).filter(Boolean);
 
 /* Where a project sits in the running order of its page — for prev /
    next.  It walks the page, not the sector tag, so it matches what the

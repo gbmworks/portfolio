@@ -1,0 +1,1 @@
+{"name":"fitmint-avatar-tools","private":true,"version":"1.0.0","type":"module","dependencies":{"@gltf-transform/cli":"^4.2.1","three":"^0.186.0"},"allowScripts":{"sharp@0.35.4":true,"sharp@0.34.5":true}}

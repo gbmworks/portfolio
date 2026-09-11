@@ -56,3 +56,38 @@ content/Unicorn/blender/
 content/Unicorn/dist/*
 !content/Unicorn/dist/index.html
 !content/Unicorn/dist/style.css
+
+# ---------------------------------------------------------------
+# The avatar studio — content/Fitmint.
+#
+# What is tracked is the source: AvatarStudio's index.html, src/,
+# vendor/, the build in tools/, deploy.mjs and its two README files.
+# What is not is the art it is built from and the art it builds:
+#
+#   Male/        92 MB of source FBX, the artist's GLBs and textures
+#   hdri/        the source .exr the lighting is measured from
+#   assets/      the build's output — 59 MB of stage-1 intermediate
+#                plus the 19 MB payload, which is already in the repo
+#                once, as studio/fitmint/
+#
+# `npm run deploy` writes the shipped copy into studio/fitmint/, and
+# THAT is what ships — the same split as assets/media -> assets/web
+# and content/Unicorn -> game/unicorn. A clone can serve the site but
+# cannot rebuild the studio's assets without the source art.
+# ---------------------------------------------------------------
+content/Fitmint/Male/
+content/Fitmint/hdri/
+content/Fitmint/AvatarStudio/assets/
+content/Fitmint/AvatarStudio/tools/node_modules/
+
+# ---------------------------------------------------------------
+# Agent / tooling state.
+#
+# .impeccable/config.json IS tracked: it is the design detector's
+# project config, and the three ignores in it carry written reasons
+# that should travel with the repo. Its .local sibling and Claude
+# Code's settings do not - the hooks in settings.local.json hold
+# absolute C:\Users\... paths that mean nothing on another machine.
+# ---------------------------------------------------------------
+.claude/
+.impeccable/config.local.json

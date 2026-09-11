@@ -1,0 +1,7 @@
+# Build intermediates and tooling - none of this is needed to serve the app.
+# Deploy: index.html, src/, vendor/, assets/{opt,tex,thumbs,env}
+assets/items/
+assets/.tmp/
+assets/.goat-tex/
+assets/.overall-tex/
+tools/node_modules/
