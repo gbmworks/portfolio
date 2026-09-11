@@ -2,7 +2,7 @@
 
 A record of the restructuring, in the order it happened. Sections 1-8 are
 the first session; section 9 is the second, which deployed the game;
-sections 10 to 17 are the third, which fixed the mosaic's reading order,
+sections 10 to 18 are the third, which fixed the mosaic's reading order,
 deployed the avatar studio, gave both runnable projects a way back,
 added fifteen files of footage and a reel under the wheel, and then
 repaired what the first of those had quietly broken, then took a
@@ -925,6 +925,76 @@ lazy tiles, in a third costume.
 863 findings at the start, **425** now, across six surfaces at 390, 820
 and 1440. `undersized-ui-text` 380 → 0, `overused-font` 3 → 0,
 `low-contrast` 69 → 36, and four more rule classes cleared outright.
+
+---
+
+## 18. The wall, from the content up — and a rule that beat it
+
+Three passes at this wall each fixed the previous one's symptom without
+asking what the content was. So: every piece measured.
+
+| shape | count |
+|---|---|
+| 9:16 | 18 |
+| 3:4 | 7 |
+| 4:3 | 3 |
+| 16:9 | 1 |
+
+**A portrait wall with four exceptions.** Two buckets had been stretching
+4:5 posts to 9:16 and squashing 1.28 covers to 16:9, then handing the odd
+ones double width so they shouted. Everything since follows from the
+table.
+
+1. **Four ratios, nearest wins.** `nearestShape()` picks by log distance,
+   so a square sits exactly equidistant from 3:4 and 4:3 and the tie goes
+   to portrait — the wall's own rhythm rather than a landscape cell.
+2. **Fine row tracks.** 8px tracks, per-tile spans from a
+   `ResizeObserver`. A tile stops where its content stops instead of
+   waiting for the tallest cell in its row, which is what left the
+   200-380px holes. It has to be measured: the ratio comes from CSS, the
+   caption height from how many lines a title wrapped to.
+3. **`dense`** hands what is left to the next tile that fits.
+
+Fill went to **82.4%** against a ~94% ceiling once gaps are counted.
+
+### The mechanism was wired and overridden at the same time
+
+A critique caught what the implementation check could not. An earlier
+`[data-orient="landscape"]` rule forcing 16:9 had survived the rewrite —
+later in the file, identical specificity — so it won every tie. **Six
+tiles rendered 16:9 whatever `nearestShape()` decided**, three of them
+squares losing 44% of their frame.
+
+The verification pass had confirmed `data-shape` was being *written*. It
+never confirmed the rule was *winning*, and the fill percentage and shape
+histogram both looked correct while six tiles were being overridden.
+`NOTES.md` now carries the one-liner that compares rendered ratio against
+declared shape; that is the only check that catches this class.
+
+### Two measures that were the wrong unit
+
+`max-width: 72ch` on the CV did not fix the long lines it was added for.
+`ch` is the width of the "0" glyph, and Space Grotesk's figures run about
+1.6x its average lowercase — so 70ch still permitted **110-character**
+lines. At 46ch the measure is ~72 characters. The last three offenders
+were the skills lists, which had no cap at all. `line-length` 19 -> 0.
+
+And `buried-raster` was registered as deliberate but scoped to
+`**/tiles.js`; URL scans attribute findings to the page, not the file, so
+the ignore never applied in the mode this site is actually scanned in.
+Re-scoped to the rule. 20 -> 0.
+
+Visualization's detector count: **43 -> 4** at 1440, 45 -> 3 at 820,
+29 -> 3 at 390. What is left is the mono label system, the accent, and
+the writing voice.
+
+### Left open, deliberately
+
+The critique's remaining findings are in `NOTES.md` under "Next" — the
+dangling tile at the foot of the wall, tiles that are not real `<a href>`
+elements, no signal for which 24 of 29 destinations leave the site, and
+the alignment-versus-variety fork on the track size. They are recorded
+rather than guessed at.
 
 ---
 

@@ -71,7 +71,13 @@
 
 .win__head h2{ margin:0; font-size:clamp(26px,3.2vw,40px); font-weight:700; }
 .win__lede{
-  margin:16px 0 0; max-width:62ch; font-size:13.5px; line-height:1.8; color:var(--ink-dim);
+  /* 46ch, not 72.  `ch` is the width of the "0" glyph, and Space
+     Grotesk's figures run about 1.6x its average lowercase — so a 70ch
+     cap was still letting lines reach 110 characters, well past the
+     65-75 a reader tracks without losing their place.  Measured, not
+     assumed: the detector reported ~109 and ~114 chars/line at 820 and
+     1440 with the old cap in place. */
+  margin:16px 0 0; max-width:46ch; font-size:13.5px; line-height:1.8; color:var(--ink-dim);
 }
 .win__meta{
   margin:14px 0 0; display:flex; flex-wrap:wrap; gap:8px 20px;
@@ -102,7 +108,7 @@
   font-family:var(--mono); font-size:11px; letter-spacing:.18em;
   text-transform:uppercase; color:var(--ink-dim);
 }
-.skill__v{ margin:0; font-size:12.5px; line-height:1.7; color:var(--ink-dim); }
+.skill__v{ margin:0; max-width:46ch; font-size:12.5px; line-height:1.7; color:var(--ink-dim); }
 
 .win__tags{ margin:0; display:flex; flex-wrap:wrap; gap:6px; }
 .win__tags span{
@@ -126,7 +132,7 @@
 .xp.is-now .xp__when{ color:var(--accent); }
 .xp__points{ margin:14px 0 0; padding:0; list-style:none; display:grid; gap:9px; }
 .xp__points li{
-  position:relative; padding-left:16px; max-width:70ch;
+  position:relative; padding-left:16px; max-width:46ch;   /* ~72 characters — see .win__lede */
   font-size:12.5px; line-height:1.72; color:var(--ink-dim);
 }
 .xp__points li::before{

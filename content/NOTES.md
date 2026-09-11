@@ -205,15 +205,39 @@ Four findings are left standing on purpose and should not be "fixed":
 - The Visualization mosaic reads **across**, not down — it is a CSS grid
   rather than multi-column, so row one is the sheet's first five entries —
   and it crops to **16:9 / 9:16** where every other wall stays at 4:3 / 3:4.
-  Landscape cells **span two columns** with `grid-auto-flow: row dense`,
-  which is what stops a 16:9 tile leaving a 379px hole beside a 9:16 one.
-  All of it is scoped to `body[data-layout="gallery"]` in `css/tiles.css`;
-  `js/tiles.js` only reports `data-orient`, it no longer picks a ratio.
+  Each piece is cropped to the **nearest of four** ratios — 9:16 / 3:4 /
+  4:3 / 16:9, `nearestShape()` in `js/tiles.js` — and the grid packs on
+  8px row tracks with per-tile spans set by a `ResizeObserver`, plus
+  `dense` flow. Landscape cells span two columns. All of it is scoped to
+  `body[data-layout="gallery"]` in `css/tiles.css`.
+
+  **Check this wall by rendered ratio, not by attribute.** A stale
+  `[data-orient="landscape"]` rule once sat later in the file at equal
+  specificity and silently beat every `data-shape` rule; the attribute
+  was written correctly the whole time. One-liner:
+
+  ```js
+  [...document.querySelectorAll('.tile')].filter(t=>{
+    const r=t.querySelector('.tile__media').getBoundingClientRect();
+    const want={'9x16':9/16,'3x4':3/4,'4x3':4/3,'16x9':16/9}[t.dataset.shape];
+    return want && Math.abs(r.width/r.height-want)/want > 0.04;
+  }).map(t=>t.dataset.title)   // must be []
+  ```
 - Four records still have no artwork (Primetrace, Metabrix, Hecoll,
   Freelance 2024) and are unlisted, so nothing renders as a bare plate.
 
 ## Next, in the order I would do it
 
+0. **The Visualization wall, from an Impeccable critique** — open, in
+   the order I would take them: the wall ends on one dangling tile with
+   four empty columns beside it; the 29 tiles are `<figure role="link">`
+   rather than `<a href>`, so no ⌘-click and nothing crawlable; 24 of 29
+   leave the site and nothing on the wall says which (`tile()` already
+   takes a `mark` badge, `entryTile` never passes one); the 8px tracks
+   mean no two neighbours share a top edge while 18 tiles are identical,
+   so it is neither aligned nor varied — coarsen to ~48px tracks or
+   commit to masonry, not both; two "All work" affordances; the top band
+   is a 118px sliver that slices the backdrop solids in half.
 1. **`SITE.links` vs `SITE.beacons`** — linktr.ee is live, the CV says
    beacons.ai. Pick one, delete the other.
 2. **The Instagram post "Crystalverse — web-based 3D game"** still sits three

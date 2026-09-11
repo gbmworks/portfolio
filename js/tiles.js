@@ -18,6 +18,25 @@ const RELEASE_MS = 5000;    // ...and release it this long after leaving
 const MAX_AUTO = 2;         // tiles that play unattended on touch screens
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* The four ratios a mosaic tile may be cropped to, and the rule for
+   picking one.  Measured across the 29 pieces on Visualization: 17 are
+   9:16 reels, 8 sit between 0.64 and 1.0, 3 are Behance covers near
+   4:3, one is 16:9.  Nearest-in-log-space, so 1.0 is judged equally far
+   from 3:4 and 4:3 rather than being pulled to the wider one. */
+const SHAPES = { '9x16': 9 / 16, '3x4': 3 / 4, '4x3': 4 / 3, '16x9': 16 / 9 };
+
+function nearestShape(ar) {
+  let best = '3x4', d = Infinity;
+  for (const [name, r] of Object.entries(SHAPES)) {
+    const dist = Math.abs(Math.log(ar / r));
+    /* strict, and the list runs tallest first, so a square — exactly
+       equidistant from 3:4 and 4:3 — keeps the wall's portrait rhythm
+       instead of being cropped into a landscape cell */
+    if (dist < d) { d = dist; best = name; }
+  }
+  return best;
+}
 const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
 const isVideo = (src) => /\.(webm|mp4|mov)$/i.test(src);
 const esc = (s) => String(s == null ? '' : s)
@@ -153,6 +172,31 @@ export function startTiles(root = document, { onNavigate = null } = {}) {
   if (!tiles.length) return { destroy() {} };
   const byEl = new Map(tiles.map(t => [t.el, t]));
 
+  /* ---- the mosaic's row spans ----
+
+     The gallery grid lays 8px row tracks so a tile can stop where its
+     content stops instead of waiting for the tallest cell in its row.
+     That means something has to say how many tracks each tile occupies,
+     and only the browser knows: the media's ratio comes from CSS, the
+     caption's height from how many lines the title wrapped to.
+
+     So it is measured, once per tile, whenever its size changes — a
+     poster landing, a title rewrapping at a new width, a breakpoint
+     moving the column count.  A ResizeObserver catches all three
+     without polling and without a resize listener. */
+  const ROW = 8;
+  const GAP = 14;
+  const wall = root.querySelector && root.querySelector('.gal-grid');
+  const packs = !!wall && getComputedStyle(wall).gridAutoRows === ROW + 'px';
+
+  const span = (el) => {
+    const h = el.getBoundingClientRect().height;
+    if (h) el.style.gridRowEnd = 'span ' + Math.max(1, Math.round((h + GAP) / ROW));
+  };
+
+  const sizer = packs ? new ResizeObserver(rows => rows.forEach(r => span(r.target))) : null;
+  if (sizer) tiles.forEach(t => sizer.observe(t.el));
+
   /* ---- lazy poster frames ---- */
   const attach = (t) => {
     clearTimeout(t.releaseTimer);
@@ -163,11 +207,14 @@ export function startTiles(root = document, { onNavigate = null } = {}) {
       const w = t.media.videoWidth || t.media.naturalWidth;
       const h = t.media.videoHeight || t.media.naturalHeight;
       /* Report the shape of the file and let the stylesheet decide what
-         to draw.  A tile is cropped to a ratio rather than following the
-         source all the way down the page, but which ratio is the wall's
-         business, not this function's: the sector mosaic frames its work
-         at 16:9 / 9:16, everywhere else stays at the squarer 4:3 / 3:4. */
-      if (w && h) t.el.dataset.orient = w < h ? 'portrait' : 'landscape';
+         to draw.  `orient` is the coarse answer the masonry walls use;
+         `shape` is the nearest of the four ratios the sector mosaic
+         crops to, so a 4:5 post is not stretched to 9:16 and a Behance
+         cover at 1.28 is not squashed to 16:9. */
+      if (w && h) {
+        t.el.dataset.orient = w < h ? 'portrait' : 'landscape';
+        t.el.dataset.shape = nearestShape(w / h);
+      }
       t.el.classList.add('is-ready');
     };
     if (t.isVideo) {
@@ -306,5 +353,5 @@ export function startTiles(root = document, { onNavigate = null } = {}) {
     activate(byEl.get(tileEl));
   });
 
-  return { destroy() { near.disconnect(); box.remove(); } };
+  return { destroy() { sizer && sizer.disconnect(); near.disconnect(); box.remove(); } };
 }

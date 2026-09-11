@@ -1,7 +1,8 @@
 {
   "detector": {
     "ignoreRules": [
-      "codex-grid-background"
+      "codex-grid-background",
+      "buried-raster"
     ],
     "ignoreFiles": [],
     "ignoreValues": [

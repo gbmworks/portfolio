@@ -1011,17 +1011,36 @@ Instagram strips.
   trades the interlocking stagger for a ragged foot on a row of mixed
   shapes.
 
-  **Wide work gets two columns.** A 16:9 cell in a column sized for 9:16
-  is 207px tall beside its neighbour's 586, and that 379px hole is what
-  made the wall read as ragged rather than as a grid. True ratios cannot
-  tile flush — solve the two heights for a shared unit and the answer is
-  negative — so the fix is not to flatten the ratios but to give the
-  landscape pieces the width their shape asks for:
-  `.tile[data-orient="landscape"]` spans two columns, still exactly
-  16:9, and `grid-auto-flow: row dense` backfills what is left. Measured
-  on the live wall, the worst hole went **379px → 201px** and most rows
-  came out flush to within 14px. At one column there is no second column
-  to span and the rule stands down.
+  **The mosaic packs, and its ratios come from the work.** Measured
+  across all twenty-nine pieces: eighteen are 9:16 reels, seven sit
+  between 0.64 and 1.0, three are Behance covers near 4:3, one is 16:9.
+  It is a portrait wall with four exceptions, and three things follow:
+
+  1. **Four ratios, nearest wins.** `nearestShape()` in `js/tiles.js`
+     picks 9:16 / 3:4 / 4:3 / 16:9 by log distance and writes
+     `data-shape`, so a 4:5 post is not stretched to 9:16 and a 1.28
+     cover is not squashed to 16:9. A square ties between 3:4 and 4:3
+     and the tie goes to portrait, keeping the wall's rhythm.
+  2. **Fine row tracks.** The grid lays 8px tracks and each tile spans
+     as many as it needs — a `ResizeObserver` in `startTiles()` measures
+     and sets it, because the ratio comes from CSS but the caption
+     height comes from how many lines the title wrapped to. A tile no
+     longer waits for the tallest cell in its row, which is what left
+     200–380px holes under every short one.
+  3. **`dense` flow** hands what is left to the next tile that fits.
+
+  Landscape pieces take two columns so a 169px-tall cell is not a
+  postage stamp among 533px posters; the packing is what stops that
+  costing a hole underneath. Measured fill: **82.4%**, against a ~94%
+  ceiling once the gaps are counted.
+
+  **`data-shape` is the sole authority on this wall.** An earlier
+  `[data-orient="landscape"]` rule forcing 16:9 survived a rewrite,
+  later in the file at identical specificity, and quietly won every
+  tie — six tiles rendered 16:9 whatever `nearestShape()` decided, three
+  of them squares losing 44% of their frame. Verify this wall by
+  comparing the *rendered* ratio against `data-shape`, never by checking
+  that the attribute was written.
 - **Grey at rest.** `filter: saturate(.14)` on every tile; hover restores
   colour and plays the clip. The wall reads as one surface until you look at
   something.

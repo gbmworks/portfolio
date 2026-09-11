@@ -48,58 +48,79 @@ body.is-gallery.is-locked{ overflow:hidden; }
    Scoped to the gallery layout on purpose: a project page's media wall
    and the Instagram strips have no running order to honour, so they
    keep the masonry. */
+/* --- the mosaic packs, it does not just line up ---
+
+   Three attempts to make this wall read got progressively closer and
+   the third was still wrong, so here is what the content actually is,
+   measured across all twenty-nine pieces: **eighteen are 9:16 reels**,
+   seven sit between 0.64 and 1.0, three are Behance covers near 4:3 and
+   one is 16:9.  It is a portrait wall with four exceptions.
+
+   Everything below follows from that.
+
+   1. **Four ratios, nearest wins.**  `nearestShape()` in tiles.js picks
+      9:16 / 3:4 / 4:3 / 16:9 by log distance, so a 4:5 post is no longer
+      stretched to 9:16 and a 1.28 cover is no longer squashed to 16:9.
+      `object-fit:cover` is left with almost nothing to throw away.
+
+   2. **Fine row tracks, not row cells.**  The grid lays 8px tracks and
+      each tile spans as many as it needs — js/tiles.js measures and sets
+      it.  A tile no longer waits for the tallest cell in its row, which
+      is what left 200-380px holes under every short one.
+
+   3. **`dense` so what is left fills.**  With fine tracks a short tile
+      leaves a short gap, and dense hands it to the next tile that fits.
+
+   Reading order survives all three: items are placed in source order and
+   only a genuine hole is ever backfilled out of turn. */
 body[data-layout="gallery"] .gal-grid{
   columns:auto;
   display:grid;
   grid-template-columns:repeat(5, minmax(0, 1fr));
-  gap:14px;
-  align-items:start;
-  /* `dense` backfills a hole with the next cell that fits it rather
-     than leaving it open.  It costs strict source order only where a
-     hole exists, which is exactly where strict order was already
-     producing the worse result. */
+  column-gap:14px;
+  row-gap:0;                      /* the gap is the tile's own margin */
+  grid-auto-rows:8px;
   grid-auto-flow:row dense;
+  align-items:start;
 }
+body[data-layout="gallery"] .gal-grid > .tile{ margin:0 0 14px; }
 
-/* --- wide work reads wide ---
+/* The four ratios.  Written by nearestShape() in js/tiles.js once the
+   file's real dimensions are known; until then a tile is 3:4 — the
+   middle of this wall rather than an extreme of it.
 
-   A 16:9 cell in a column sized for 9:16 is 207px tall against its
-   neighbour's 586, and the 379px under it is the hole that made this
-   wall read as ragged rather than as a grid.  True ratios cannot tile
-   flush — solve the two heights for a shared unit and the answer is
-   negative — so the fix is not to flatten the ratios but to give the
-   landscape pieces the width their shape asks for: two columns, still
-   exactly 16:9, and a little over half the hole disappears into the
-   extra width.  What is left reads as a mosaic that was composed.
+   `data-shape` is the SOLE authority here.  There used to be a
+   `[data-orient="landscape"]` rule below these forcing 16:9, left over
+   from the two-ratio version — same specificity, later in the file, so
+   it quietly won every tie and six tiles rendered 16:9 no matter what
+   nearestShape() had decided.  Three of those were square images losing
+   44% of their frame.  The mechanism was wired and overridden at the
+   same time, which is the kind of bug that survives a check that only
+   asks whether the attribute was written. */
+body[data-layout="gallery"] .tile .tile__media{
+  aspect-ratio:3 / 4;
+  /* the 62vh ceiling comes off: capping the height is the one thing
+     that would stop a 9:16 tile from being 9:16 */
+  max-height:none;
+}
+body[data-layout="gallery"] .tile[data-shape="9x16"] .tile__media{ aspect-ratio:9 / 16; }
+body[data-layout="gallery"] .tile[data-shape="3x4"]  .tile__media{ aspect-ratio:3 / 4; }
+body[data-layout="gallery"] .tile[data-shape="4x3"]  .tile__media{ aspect-ratio:4 / 3; }
+body[data-layout="gallery"] .tile[data-shape="16x9"] .tile__media{ aspect-ratio:16 / 9; }
 
-   At one column there is no second column to span, so it stands down. */
-body[data-layout="gallery"] .tile[data-orient="landscape"]{ grid-column:span 2; }
+/* A 16:9 cell in a column sized for a 9:16 wall is 169px tall against
+   its neighbour's 533 — a postage stamp among posters.  The four
+   landscape pieces take two columns so they read at all; the packing
+   above is what stops that costing a hole underneath. */
+body[data-layout="gallery"] .tile[data-shape="4x3"],
+body[data-layout="gallery"] .tile[data-shape="16x9"]{ grid-column:span 2; }
 @media (max-width:520px){
-  body[data-layout="gallery"] .tile[data-orient="landscape"]{ grid-column:span 1; }
+  body[data-layout="gallery"] .tile[data-shape="4x3"],
+  body[data-layout="gallery"] .tile[data-shape="16x9"]{ grid-column:span 1; }
 }
 /* the column flow spaced tiles with a bottom margin; the grid has gap */
 body[data-layout="gallery"] .gal-grid > .tile{ margin:0; }
 
-/* --- the mosaic frames its work cinematically ---
-
-   Everywhere else a tile is 4:3 or 3:4, which is close enough to square
-   to keep a mixed wall even.  The sector mosaic is the page where the
-   work is the subject rather than an index next to it, and most of it
-   was shot for a phone or a screen — so it gets the ratios the pieces
-   were actually made in, 16:9 and 9:16, and `object-fit:cover` crops
-   less to reach them.
-
-   The 62vh ceiling comes off here on purpose: capping the height is the
-   one thing that would stop a 9:16 tile from being 9:16.  A portrait
-   tile is tall now — about 536px in a five-column window, a full phone
-   screen at one column — which is the trade for the ratio. */
-body[data-layout="gallery"] .tile .tile__media{
-  aspect-ratio:9 / 16;
-  max-height:none;
-}
-body[data-layout="gallery"] .tile[data-orient="landscape"] .tile__media{
-  aspect-ratio:16 / 9;
-}
 /* `content-visibility:auto` skips a tile that is off screen and guesses
    its height from contain-intrinsic-size until it has rendered once.
    The shared 340px guess was fine for a 4:3 wall; against a 9:16 tile
