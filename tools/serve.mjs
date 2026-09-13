@@ -42,6 +42,11 @@ const TYPES = {
   '.glb': 'model/gltf-binary',
   '.hdr': 'image/vnd.radiance',
   '.woff2': 'font/woff2',
+  /* Without this the CV falls through to application/octet-stream and
+     the browser saves it instead of opening it — which makes the two
+     resume actions look identical locally and different in production,
+     where Pages sends application/pdf. */
+  '.pdf': 'application/pdf',
   '.txt': 'text/plain; charset=utf-8',
   '.xml': 'application/xml; charset=utf-8'
 };

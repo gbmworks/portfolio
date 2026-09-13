@@ -151,7 +151,20 @@ export function sectorFoot(index) {
    what the preview stage reads on hover.  `still` is a cover if there is
    one and the clip's poster otherwise, so the stage always has something
    to paint on the first frame of a hover.  An entry that leaves the site
-   opens in a new tab; one that has a page here transitions to it. */
+   opens in a new tab; one that has a page here transitions to it.
+
+   It also carries a thumbnail, and the thumbnail is only ever shown
+   where the preview stage is not — below 900px, the same line `.stage`
+   and `.sreel` are drawn at.  That is the honest boundary: above it a
+   row is deliberately typographic, because pointing at it fills a
+   966px stage with the work; below it there is no cursor to point
+   with, and a numbered list of titles asks a visitor to recognise
+   thirty names with nothing to recognise them by.
+
+   `loading="lazy"` and not the tiles.js observer.  These are the same
+   files the strip above already asked for, so by the time a row scrolls
+   up they are in cache, and a row is not a tile — it has no poster
+   swap, no clip and no hover state to drive. */
 function entryRow(e, i) {
   const out = e.external;
   return `
@@ -167,6 +180,9 @@ function entryRow(e, i) {
            stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 5l7 7-7 7"/>
       </svg>
+      ${e.still ? `<span class="plink__thumb" aria-hidden="true"><img
+           src="${encodeURI(e.still)}" alt="" loading="lazy" decoding="async"
+           ${e.stillFocus ? `style="object-position:${e.stillFocus}"` : ''}></span>` : ''}
     </a>`;
 }
 

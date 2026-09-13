@@ -1365,6 +1365,380 @@ output** — `node deploy.mjs` overwrites it.
    Frame`, so anything damped never arrives and the DOM reports a position
    the eye never sees. Traps 7 and 8 in `NOTES.md`.
 
+## 22. Two doors that opened onto the street
+
+Both runnable things had a way out and both used it wrong.
+
+The game's `#exit` pill and the studio's wordmark arrow were `../../` —
+one folder up from `/game/unicorn/` or `/studio/fitmint/`, which is the
+site root. That was chosen in section 12 for a good reason: it is the
+one path that resolves to something sensible wherever the folder is
+served. But "sensible" was doing a lot of work. Leaving a full-screen
+game put you on the landing page, in front of the 3 s intro and a wheel
+with three sectors on it, with no trace of where you had just been.
+
+**For the game it is worse than a nuisance.** Its Technical Art row
+carries `liveFromRow`, so a click plays it — the record's own page is
+the single thing on the site a player has never seen, and it is where
+the write-up, the prev/next arrows and the route to another sector are.
+The back link is the only route to it that exists.
+
+**For the studio the page is most of the project.** The tool is one
+piece of Fitmint; the reels, the posts and the write-up are the rest,
+and the page is exactly what `liveFromRow: false` was set to make people
+arrive at in the first place. Sending them past it on the way out undid
+that.
+
+Both now point at `project.html?p=…`, which closes the loop: each page
+carries the button back into the thing you just left — *Play the game*,
+*Edit an avatar*.
+
+**What it costs.** The links are deep now, so they only resolve on the
+portfolio; a standalone dev server has no `project.html`. That is the
+whole of the trade and it is worth naming, because the old comment in
+both files advertised the opposite property.
+
+Both edits are in a **build source**, not the output:
+`content/Unicorn/dist/index.html` (tracked — one of the two exceptions
+to the `content/Unicorn/dist/*` ignore) and
+`content/Fitmint/AvatarStudio/index.html`. Each needs its own
+`node deploy.mjs`, and both appear twice in the diff.
+
+### The cover that lost its head
+
+Fitmint's `coverf.jpg` is a 788x1400 figure standing full height. Every
+tile frame on the site is wider than 9:16, so a centred `object-fit:
+cover` keeps the middle band — which on a standing figure is waist to
+knee. The 4:3 card in the phone strip is the worst of them: 42% of the
+height, centred, is **403 to 996 of 1400**, and the top of his head is
+at 370.
+
+Section 12 already solved this once for the clip and recorded why one
+value could not solve it for both: `previewFocus` is `50% 5%`, tuned for
+`male.webm` in a 16:10 stage, and the README notes that the same shift
+on the cover "would show mostly sky". So the cover needed its own field,
+not a shared one.
+
+`coverFocus`, `object-position` for the still in `entryTile()`, Fitmint
+at `50% 25%`. It was picked against the frames that actually crop:
+
+| frame | band of the 1400px cover | head 370-450 | boots end ~1040 |
+|---|---|---|---|
+| phone strip, 4:3 | 202 - 793 | upper third | out, deliberately |
+| landing reel, 4:5 | 104 - 1089 | in | in |
+| Visualization mosaic, 9:16 | whole image | n/a | n/a |
+
+The strip was the point of the change and the reel was the constraint on
+it — anything past 25% starts cutting the boots there for no gain in the
+strip. The desktop sheet page never enters into it: at that width the
+strip is hidden and the cover is shown by the preview stage, centred,
+which is unchanged.
+
+`resolveEntry` already carried `focus` for the clip, so this is
+`stillFocus` beside it and one more field on `tile()`. Like its
+neighbour it touches one layer: the clip laid over the still on hover is
+a different file and takes neither value.
+
+### Checked
+
+Both destinations `200` and render their record, with the button back
+into the thing just left. The entry-integrity and `live:`-target checks
+from `NOTES.md` both pass. `allocate` is idempotent; `sitemap` rewrites
+only `lastmod`, which is what it is for.
+
+---
+
+## 23. The card, the wheel, and four things that were saying nothing
+
+### The resume is a file now, and Contact is not on the bar
+
+The bar was About and Contact, where Contact was the link hub. It is
+About and Resume: About is the CV as HTML and Resume opens the PDF, so
+the pair reads "read it here / take it with you". Everything Contact was
+for — the profiles, the address, the hub — is in the footer, which is
+where a visitor looks for it.
+
+`assets/cv/govind-b-mohan-cv-2026.pdf`, renamed on the way in because the
+source has spaces and every tool that touches such a URL escapes them.
+`SITE.cv` is the path; `SITE.cvName` is what a download is saved as,
+which is why it is a person's name and not the slug.
+
+**Two actions in the About window, because one link cannot do both
+jobs.** Opening a PDF and saving one are different intents. *Resume
+(PDF)* opens in a new tab; *Download* beside it carries the `download`
+attribute. A phone will happily open a PDF in a viewer and give no
+obvious way to keep it, which is the case the attribute exists for. The
+pair is in the window and not the bar because a bar has room for a
+destination, not for a choice — and the window is on every page at both
+sizes, which is what "for both phone and pc" needed.
+
+`tools/serve.mjs` had no `.pdf` in its type table, so locally the file
+came back `application/octet-stream` and the browser *saved* it. Both
+buttons did the same thing on the dev server and different things in
+production. One line.
+
+### The footer was three things in three corners
+
+`space-between` across a name card, a pill row and an address. At the one
+width the row was full it read as three unrelated items pushed into the
+corners; below that it wrapped, and the three social pills went to two
+lines because each carried its name beside its mark.
+
+It is a centred stack at every width, and the pills are marks alone. The
+names came off on the observation that LinkedIn, Behance and Instagram
+are three of the most recognisable glyphs a portfolio can put in a
+footer — and the name is still on each of them in `aria-label` and
+`title`. Three 42px circles at `nowrap` come to 146px, which fits the
+narrowest phone the site is built for with room to spare, so there is no
+width at which wrapping is the right answer any more.
+
+On a phone the two mono lines under the name went to **9.5px**. They are
+supporting text under a closing card; at 11px the role line wrapped to
+two and competed with the name above it. **The email did not go with
+them** — it is the one thing down there somebody reads character by
+character and may have to copy, so it holds the floor.
+
+### "Bangalore, India · from Kerala" was a bio line
+
+It is `Kerala ⇄ Bangalore, India` now — two places with a back-to-back
+arrow, which is the actual arrangement rather than a place with a
+footnote. `site.js` holds it as `from` / `to`, so the fact stays a fact,
+and `BASED_LINE` in `icons.js` draws it.
+
+**The arrow is drawn and not typed, and that was measured rather than
+assumed.** None of the candidates is in JetBrains Mono: U+21C4, U+21C6,
+U+2194, U+27F7 and U+21CC all fall through to a system face. The mono
+cell is 6.6px at 11px; every one of them came back at 9.2 or more — 40%
+over the cell, which inside a line of tracked monospace reads as a
+mistake. So it is an authored SVG at the site's own stroke weight, like
+every other mark here. `inlineSvg()` in `icons.js` is the 12px frame for
+marks that sit in a line of type rather than in a button.
+
+### The wheel: the band is not the screen
+
+Section 19 fixed the names running off the *side* of a phone, and fixed
+it the right way — hold the type, scale the wheel. What it did not fix,
+because it was not looking there, is that the names also collide
+*inward*.
+
+A label is centred on its anchor and the anchor sat at the middle of the
+donut's band — about 64px of it at 390px. "VISUALIZATION" is one word
+with nothing to wrap at, so at 11px it was wider than the band it was
+centred in: its inner half crossed the hub disc and landed on the words
+"A SECTOR" printed there. Measured on the rendered page, 390x844: the
+name ran 97-172px and the hub disc began at 163.
+
+Two levers, and **the seat did most of the work**:
+
+| | |
+|---|---|
+| `wheel.view.labelSeat` | 0 at the hub, 1 at the rim; `0.5` everywhere, `0.63` on a phone. `projectLabels()` rebuilds the anchor from it each frame, so `labelLocal` is no longer fixed at construction and a tier can set the seat like it sets the scale |
+| the type | names 11 -> 10px, `SELECT` 11 -> 9.5, `A SECTOR` 12 -> 10.5, tracking pulled in |
+
+Seating outward moves the collision to the rim, where there is a tick
+ring and no type. The type step is below the floor and is meant to be:
+three words on one screen, each also a 44px tap target with its own
+icon, against the alternative of a sector name printed through the hub.
+Five `undersized-ui-text` findings, recorded in `NOTES.md`, not
+suppressed.
+
+**This one gets worse on a shorter phone, not a narrower one.** The
+wheel is sized off the viewport and a name is 10px whatever the viewport
+is, so 375x667 is the case to check — and it is clear there too.
+
+### A tile that spans every column is a barrier
+
+Gaps on the Viz wall on a phone, worst towards the end. The cause is
+structural and it is not `dense`'s fault: the grid cannot place a
+full-width tile until *both* columns are free, so the shorter one stops
+where it is and waits. With three columns a span-2 tile still leaves one
+open and dense fills around it. At two it leaves none.
+
+Measured on the 29-piece wall at 390px — two real holes, **191px** and
+**279px**, each sitting directly above a 4:3, and the second near the
+bottom where there is no later tile left to backfill with, so it simply
+stood there.
+
+In the two-column range nothing spans both now. The wall went from
+**5,824px to 4,696px** — 19% less scroll — with **no hole anywhere**.
+The span survives at 3+ columns, which is what it was written for: the
+"postage stamp" argument is about a narrow column in a wide wall, and at
+two columns the column is half the screen. The bottom edge is ragged by
+one tile, which is what masonry does rather than a defect.
+
+### A link that promised more and led nowhere
+
+`links.push(['More on Instagram', SITE.instagram])` was unconditional and
+pointed at the *profile*, not at anything about the project. On the eight
+records with neither a Behance case study nor a post of their own —
+Primetrace, Metabrix, the 2024 freelance run, the facial-capture
+pipeline, the game, Hecoll, Cradlewise, TIGC — the page ended on an
+invitation to see more of something there was none of. One of them is
+the game's page, which is now where its back button lands.
+
+`p.posts` is the test, because it is the same list the Posts grid below
+is built from: if that section is on the page there is something to go
+and see. With both links gone the `<ul>` is not rendered at all rather
+than left empty.
+
+### The rows had names and nothing else
+
+Below 900px the preview stage is `display:none` — there is no cursor to
+hover with — and what was left of a section page's index was thirty
+numbered titles. Section 19 answered that with the `.sreel` strip; this
+adds the other half, a 64px 4:3 thumbnail on each row, in a third column
+spanning both of the row's lines. It honours `coverFocus`, so Fitmint
+shows a face here too. The chevron comes off at this width: it is a
+hover affordance, and all it was doing was holding 16px open next to a
+picture.
+
+`loading="lazy"` rather than the tiles.js observer — these are the files
+the strip above already asked for, so they are in cache by the time a row
+scrolls up, and a row has no poster swap, no clip and no hover state to
+drive.
+
+**This leaves the same entry pictured twice on a phone**, once in the
+strip and once on its row. Both exist for the same reason and one of
+them is enough. It is in `NOTES.md` under "Next" as the question to
+settle, together with the two "All work" affordances, rather than being
+settled quietly here.
+
+### A bug worth naming
+
+The first version of the About window's PDF block put backticks around
+the word *download* inside an HTML comment — inside a JS template
+literal, where a pair of them ends the string. `js/overlays.js` threw
+`SyntaxError: Unexpected identifier 'download'`, `data-ready` never got
+set, and every page fell through to the boot guard's plain-links
+fallback. It looked exactly like the known WebGL-in-an-automated-browser
+trap and cost twenty minutes of chasing that instead. **The console said
+it in one line.** Read it first.
+
+### Checked
+
+Impeccable across 390x844, 820x1180 and 1440x900 on all four page types.
+What it reports is the four findings standing on purpose from before,
+the `low-contrast` `.panel`-gradient artefact from before, plus exactly
+the seven undersized ones listed above — no new class of finding. Entry
+integrity, `live:` targets and the CV path all resolve; `allocate` is
+idempotent; `sitemap` rewrites only `lastmod`.
+
+A note on the detector itself: `--json` emits a **bare array**, not an
+object with a `findings` key. A parser that reaches for `.findings` gets
+`undefined`, prints "none" for every page, and tells you the site is
+clean when it is not. It did, for one run.
+
+---
+
+## 24. One door, and the two ways it did not open
+
+### Resume came off the bar
+
+It had been on it for about an hour. Contact -> Resume was the right
+move; Resume -> nothing is the better one, because the About window it
+sits beside grew the pair of PDF actions in the same pass. The bar was
+offering a second door to the first room inside the first door.
+
+So: identity left, one About pill right, on all four page types.
+Everything the bar used to reach is one level in — in the About window,
+or in the footer under the work.
+
+**About is drawn as a button now.** It shared a treatment with "All
+work" when the bar had three items, and an underline was enough to tell
+those from the wordmark. Alone, a bare mono label reads as a caption
+rather than as the way in to everything about the person. The outline is
+the sector switcher's, which is already this site's word for "tappable".
+
+### The name and the button were 14px apart
+
+`.topbar` was `align-items:flex-start`, which was right when both sides
+were plain lines of type. It stopped being right in section 19, when the
+nav links grew a 44px touch box: a box that tall centres its own label,
+so the wordmark sat at the top of the bar and "About" sat in the middle
+of a box below it. Two things that read as one row, on different lines.
+
+Centred against each other now, and `.topbar__id` carries the same 44px
+so the two sides are the same height rather than merely sharing a centre
+line. Measured after: the wordmark's centre and the pill's centre are
+both at y=30 on every one of the four layouts.
+
+### Then the door turned out not to open
+
+Making About the only way in meant checking that it works, and on two
+counts it did not — both of them old, both of them invisible until now.
+
+**On the sheet pages, below 900px, the bar was behind the panel.**
+`.panel` is z-index 30 to the bar's 20. On a desktop that never
+mattered: the sheet is a column on the left, the nav is flush right, and
+they do not meet — which is exactly what `justify-content:flex-end`
+bought when section 3 first found this. At phone and tablet widths the
+panel is the full width, so there is no right-hand side to move to. The
+links were visible through a translucent panel and dead to the touch;
+`elementFromPoint` on the About pill returned `.panel__scroll`.
+
+**About and All work have been unreachable on Industrial Design and
+Technical Art on every phone since the sheet layout existed.**
+
+`.ui` is what has to move, not `.topbar`. z-index 20 on a positioned
+element makes a stacking context, so raising a child inside it cannot
+escape it — a fact worth writing down, because the instinct is to put
+the z-index on the thing you can see. `.ui` is `pointer-events:none` and
+only the nav re-enables them, so lifting it takes the links out from
+under the panel without taking the panel's scroll with them. In front,
+it needs the falloff the other scrolling layouts already have, or the
+sheet's own headline passes through the bar's type on the way up.
+
+**The wordmark was inert everywhere.** The same cause wearing its other
+half: everything inside `.ui` that can be clicked has to say
+`pointer-events:auto`, `.topbar__nav` did, and `.topbar__id a` never
+did. On the mosaic and on a project page the one-tap way home has done
+nothing at all. The anchor only — the role line under it is not a
+target.
+
+### Two "All work", fifty pixels apart
+
+Bringing the bar forward made visible something that was always there:
+every page that puts "All work" in the bar also carries its own —
+`.panel__back` on the sheet and the project page, the back link in
+`.galbar` on the mosaic — and at this width the bar's copy sits directly
+above the page's.
+
+Below 900px the bar's copy goes. The page's is the larger target, it has
+the chevron, and it sits in the same band as the sector switcher, which
+is the rest of the navigation. Desktop keeps both: there the bar's is the
+only one not inside a scrolling column, and nothing is crowded.
+
+And with the bar in front, the sheet's wordmark comes back at that width
+— it was hidden because the sheet occupies the top-left and the bar was
+behind it, which is the same fact that made the nav unclickable. The bar
+now reads the same on all four page types: identity left, About right.
+
+This is half of open item 0's "two All work affordances, which should be
+settled for both at once". The phone half is settled. Desktop is not,
+and that is deliberate rather than forgotten.
+
+### Checked
+
+All four layouts at 390x844: the About pill and the wordmark both pass
+`elementFromPoint`, exactly one "All work" is visible per page (none on
+the landing page, which has nowhere to go back to, and none on a project
+page, whose back link names its sector instead), and no page overflows
+horizontally.
+
+Detector across the three device classes: the standing findings, the
+`.panel`-gradient `low-contrast` artefact, and the seven undersized ones
+from section 23. Nothing new.
+
+One finding moves around between runs and is worth not chasing:
+`content-hidden-at-rest` on the landing page at 1440. What it is seeing
+is the three `.label__title`s, which are `opacity:0` until a slice is
+hovered, and the reel captions, which are `opacity:0` until `.reel.is-in`
+fires on scroll. Both predate all of this. Whether it reports depends on
+whether the reel had scrolled in when the detector measured, which is
+why it appears in one run and not the next.
+
+---
+
 ## 8. Open items
 
 1. **Five projects still have no artwork** — Primetrace, Metabrix,

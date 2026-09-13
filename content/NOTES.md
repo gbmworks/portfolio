@@ -158,11 +158,26 @@ opacity 0 until `is-ready`).
 
 Four findings are left standing on purpose and should not be "fixed":
 
-**Functional text holds at 11px.** This has now been learned twice — once
-on the portfolio's phone tier and once on the studio's camera labels —
-both times by shrinking labels to make something else fit, and both times
-called back by `undersized-ui-text`. What shrinks instead is the icon, the
-padding, and any label that restates what its buttons already say.
+**Functional text holds at 11px — with seven exceptions, all on a phone
+and all deliberate.** The rule was learned twice by shrinking labels to
+make something else fit, and called back both times by
+`undersized-ui-text`. It still holds everywhere the detector is not
+listed below. What shrinks first is the icon, the padding, and any label
+that restates what its buttons already say.
+
+These seven the detector reports on `index.html` at 390x844, and they
+are meant to be there:
+
+| what | size | why |
+|---|---|---|
+| the three sector names on the wheel | 10px | each is also a 44px tap target with its own icon, and the alternative was a name printed through the hub. Most of the clearance came from `view.labelSeat`, not from here |
+| `SELECT` / `A SECTOR` in the hub | 9.5 / 10.5px | the one place on the wheel with no work behind it was the widest run of type on it |
+| the role line and the place line in the footer | 9.5px | supporting text under a closing card; at 11px the role line wrapped to two and competed with the name above it |
+
+**The footer's email address is not one of them.** It holds 11px, because
+it is the one thing down there somebody reads character by character and
+may have to copy. If a future pass shrinks it to make something fit, that
+is the rule doing its job — put it back.
 
 | finding | why it stays |
 |---|---|
@@ -248,11 +263,26 @@ padding, and any label that restates what its buttons already say.
     orange *Edit an avatar* button there opens the studio. `entryHref()`
     is the one function that decides this; rows, prev/next and the
     sitemap all call it.
-  - Both carry their own **way back to the portfolio** (`../../`) — the
-    game's `#exit` pill, dimmed but never removed once play starts, and
-    the arrow in the studio's wordmark. The studio's needed
-    `pointer-events:auto`, because `.brand` is `none` so a drag on the
-    wordmark still orbits the avatar.
+  - Both carry their own **way back, and it lands on their own record**
+    (`../../project.html?p=…`) — the game's `#exit` pill, dimmed but
+    never removed once play starts, and the arrow in the studio's
+    wordmark. The studio's needed `pointer-events:auto`, because
+    `.brand` is `none` so a drag on the wordmark still orbits the
+    avatar.
+
+    These were `../../` — the site root — until 2026-09-13. The root
+    threw away everything the visitor had just walked to. For the game
+    it is worse than that: `liveFromRow` means its page is the one
+    thing a player never sees, so the back link is the *only* route to
+    it.
+
+    **They are deep links now, so they only work on the portfolio.**
+    The old `../../` resolved to something harmless wherever either was
+    served; `project.html?p=…` has to be there. Both live in a build
+    source — `content/Unicorn/dist/index.html` (tracked, one of two
+    exceptions to the `dist/*` ignore) and
+    `content/Fitmint/AvatarStudio/index.html` — and each needs its
+    `node deploy.mjs` before the change is on the site.
 - The Visualization mosaic reads **across**, not down — it is a CSS grid
   rather than multi-column, so row one is the sheet's first five entries —
   and it crops to **16:9 / 9:16** where every other wall stays at 4:3 / 3:4.
@@ -286,8 +316,25 @@ padding, and any label that restates what its buttons already say.
 - **The mosaic is two columns on a phone, and that is deliberate.** One
   column made each 9:16 tile 671px tall on an 844px screen: 29 pieces,
   18.8 screens, readable only one at a time. Two columns is 5.9 screens.
-  A landscape tile keeps `grid-column:span 2` there, which is the full
-  width.
+- **Nothing spans both of them.** A tile that spans *every* column is a
+  barrier — the grid waits for both to be free, so the shorter one stops
+  and holds a rectangle of nothing above the landscape piece. That was
+  two real holes on the Viz wall at 390px, 191px and 279px, the second
+  near the bottom where `dense` has nothing left to backfill with.
+  Dropping the span in the two-column range took the wall from 5,824px
+  to 4,696px with no hole anywhere. It survives at 3+ columns, where a
+  span-2 tile still leaves a column open. **If you ever put it back,
+  re-measure the tail** — this is the check:
+
+  ```js
+  const g=document.querySelector('.gal-grid'), gr=g.getBoundingClientRect();
+  const it=[...g.children].map(t=>{const r=t.getBoundingClientRect();
+    return {l:Math.round(r.left-gr.left),top:Math.round(r.top-gr.top),bot:Math.round(r.bottom-gr.top)};});
+  [...new Set(it.map(t=>t.l))].flatMap(x=>{const c=it.filter(t=>t.l===x).sort((a,b)=>a.top-b.top);
+    return c.slice(1).map((t,k)=>t.top-c[k].bot-14).filter(v=>v>4);})   // must be []
+  ```
+  Scroll the whole page first — `content-visibility:auto` means a tile
+  that has never been on screen reports its guess, not its height.
 - **Both walls and both layouts now carry the sector switcher.**
   `buildMosaic` takes `nav` alongside `foot`; `sectorNav()` is the one
   function that builds it, for the sheet and the mosaic alike.
@@ -336,9 +383,74 @@ padding, and any label that restates what its buttons already say.
   build output, and editing it directly is undone by the next deploy.
 - Four records still have no artwork (Primetrace, Metabrix, Hecoll,
   Freelance 2024) and are unlisted, so nothing renders as a bare plate.
+- **The top bar is identity and one About pill** — on all four page
+  types. Contact came off it, then Resume: the CV is inside About, and a
+  second door to the first room inside the first door is not a door.
+  The PDF is at `assets/cv/govind-b-mohan-cv-2026.pdf` (`SITE.cv`, saved
+  as `SITE.cvName`), and the About window carries the pair — *Resume
+  (PDF)* and *Download* — because one link cannot both open and save.
+  **Replacing the CV is a file swap, not a code change**: keep the path,
+  and `tools/serve.mjs` now sends `.pdf` as `application/pdf` so the
+  local check matches Pages.
+- **Everything in `.ui` that can be clicked has to say so.** `.ui` is
+  `pointer-events:none`; `.topbar__nav` re-enables them and
+  `.topbar__id a` now does too — it never did, so the wordmark's link
+  home was inert on every page that rendered it. If you add anything to
+  the bar, this is the line it will forget.
+- **Below 900px the bar sits above the sheet, not behind it.**
+  `body[data-layout="sheet"] .ui{ z-index:40 }` plus the falloff
+  gradient. `.panel` is z-index 30 and the panel is full width here, so
+  About and All work were visible-but-dead on both sheet pages on every
+  phone — `elementFromPoint` returned `.panel__scroll`. **Raise `.ui`,
+  not `.topbar`**: z-index 20 on `.ui` makes a stacking context, so a
+  child's z-index cannot escape it. At that width the bar's own "All
+  work" is dropped (the page carries one) and the sheet's wordmark comes
+  back (nothing to hide from any more).
+
+  Check it, on all four layouts, whenever the bar changes:
+
+  ```js
+  const a=document.querySelector('.topbar__about'), r=a.getBoundingClientRect();
+  const h=document.elementFromPoint(r.left+r.width/2, r.top+r.height/2);
+  h===a || a.contains(h)      // must be true
+  ```
+- **The footer is a centred stack at every width, icons only.** The role
+  and place lines are 9.5px on a phone; the email holds 11px. The place
+  is a pair in `site.js` (`from` / `to`) drawn by `BASED_LINE` in
+  `icons.js` with an authored back-to-back arrow. **Do not type the
+  arrow** — U+21C4, U+21C6, U+2194, U+27F7 and U+21CC are all absent
+  from JetBrains Mono and fall through to a system face 40% wider than
+  the mono cell. Measured: the cell is 6.6px at 11px, every candidate
+  came back 9.2+.
+- **Every section-page row carries a 64px thumbnail below 900px** —
+  `.plink__thumb`, the same line the stage is hidden and the strip
+  appears at. It honours `coverFocus`. The strip above it now says the
+  same thing twice; that is the open question in "Next".
+- **"More on Instagram" only shows where there are posts.** `p.posts` is
+  the test, the same list the Posts grid is built from. Eight records had
+  it pointing at the profile with nothing behind it.
+- **A cover can say where to crop it.** `coverFocus` on a record is
+  `object-position` for its still inside a tile, and it is a separate
+  field from `previewFocus` for the reason preview.js already gives: a
+  cover and a clip are rarely framed alike, and Fitmint's are 20 points
+  apart. Only Fitmint sets it (`50% 25%`), because only a full-height
+  9:16 figure loses its head to a centred crop. If a new cover looks
+  wrong in the phone strip, this is the knob — and check it in the strip
+  *and* in the landing reel, which are the two frames that crop at all.
 
 ## Next, in the order I would do it
 
+-1. **The sheet pages now show every entry twice on a phone** — once in
+   the "at a glance" strip under the header, once as a thumbnail on its
+   own row. Both were added for the same reason (no preview stage at
+   this width) and only one of them is needed. The row thumb is the
+   better of the two: it is attached to the thing it illustrates, it
+   costs no extra scroll, and it does not need a horizontal gesture. The
+   strip's case is that it is browsable by eye in one flick. **Pick one.**
+   This is the same "two affordances for one job" question as the two
+   "All work" links in item 0. The phone half of *that* one is settled —
+   below 900px the bar's copy is gone and the page keeps its own — so
+   what is left there is the desktop half.
 0. **The Visualization wall, from an Impeccable critique** — still open,
    in the order I would take them: the 29 tiles are `<figure role="link">`
    rather than `<a href>`, so no ⌘-click and nothing crawlable; 24 of 29

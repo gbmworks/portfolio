@@ -18,7 +18,14 @@ export const SITE = {
   roles: ['3D Generalist', 'Industrial Designer', 'Artist'],
 
   tagline: 'aspiring creative technologist',
-  based:   'Bangalore, India · from Kerala',
+  /* Two places, not a place and a footnote.  "Bangalore, India · from
+     Kerala" read as a bio line; the pair reads as the arrangement —
+     the work moves between the two, and BASED_LINE draws the mark that
+     says so.  Kept as a pair here so the fact stays a fact: the
+     drawing is in icons.js, which is where every other mark on the
+     site is. */
+  from:    'Kerala',
+  to:      'Bangalore, India',
 
   origin: 'https://www.govindbmohan.com',
 
@@ -27,11 +34,23 @@ export const SITE = {
   instagram: 'https://www.instagram.com/vindgo.visual/',
   behance:   'https://www.behance.net/govindbm',
 
-  /* The live "Contact" link.  NOTE: the 2026 CV gives
-     beacons.ai/govindbmohan instead — the two have not been
-     reconciled, so this keeps what is currently deployed. */
+  /* The link hub.  NOTE: the 2026 CV gives beacons.ai/govindbmohan
+     instead — the two have not been reconciled, so this keeps what is
+     currently deployed.  It came off the top bar when Resume took that
+     slot; the footer's icon row and the email under it are the way out
+     now, and both say where they go. */
   links:   'https://linktr.ee/govindbmwork',
   beacons: 'https://beacons.ai/govindbmohan',
+
+  /* The CV as a file.  The About window is the same history in HTML —
+     readable on a phone, linkable, and indexable — so this is the
+     copy you take away rather than the copy you read here.  Renamed
+     on the way in: the source is 'Govind B Mohan - CV 2026-new.pdf'
+     and a URL with spaces in it gets percent-escaped by every tool
+     that touches it.  `cvName` is what a download is saved as, which
+     is why it is a person's name and not the slug. */
+  cv:     'assets/cv/govind-b-mohan-cv-2026.pdf',
+  cvName: 'Govind B Mohan — CV 2026.pdf',
 
   /* The profiles the footer links out to, in the order they are shown.
      SOCIALS drops anything the card has no URL for, so a profile that
@@ -52,6 +71,10 @@ export const SOCIALS = SOCIAL_KEYS
 
 /* '3D Generalist · Industrial Designer · Artist' */
 export const ROLE_LINE = SITE.roles.join(' · ');
+
+/* 'Kerala ⇄ Bangalore, India' — the plain-text form, for anywhere that
+   cannot take markup.  BASED_LINE in icons.js is the drawn one. */
+export const BASED_TEXT = SITE.from + ' ⇄ ' + SITE.to;
 
 /* the monochrome system's single accent — sectors do not vary it */
 export const ACCENT = '#ff5a12';

@@ -125,6 +125,18 @@
   transition:opacity .3s, transform .35s var(--ease); align-self:center; }
 .plink:hover .plink__go{ opacity:1; transform:none; color:var(--accent); }
 
+/* The row's picture.  Off by default and switched on below 900px, in
+   project.css, beside the rules that hide the preview stage — above
+   that line the stage is the picture and a row is meant to be type. */
+.plink__thumb{ display:none; }
+.plink__thumb img{
+  width:100%; height:100%; display:block; object-fit:cover;
+  /* The wall's tiles open from greyscale to colour on hover.  A row
+     has no hover here, so its thumb is simply in colour: a picture
+     that only resolves when touched is a picture nobody sees. */
+  transition:transform .4s var(--ease);
+}
+
 @media (max-width:620px){
   .plink{ grid-template-columns:26px 1fr auto; }
   .plink__go{ display:none; }

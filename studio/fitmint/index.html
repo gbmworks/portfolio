@@ -31,10 +31,17 @@
   <canvas id="stage"></canvas>
 
   <div class="brand">
-    <!-- The way back to the portfolio. Relative, like every other path in
-         here, so it resolves to the site root from /studio/fitmint/ and
-         simply points one folder up when this is served on its own. -->
-    <a class="brand-back" href="../../" title="Back to the portfolio" aria-label="Back to the portfolio">
+    <!-- The way back, and it lands on the Fitmint record rather than the
+         site root. The studio is one part of that project — the reels, the
+         posts and the write-up are the rest — and the page is also where the
+         prev/next arrows and the route to another sector are.
+
+         Relative, like every other path in here, so it resolves from
+         /studio/fitmint/ on the portfolio. Unlike the old `../../` it is a
+         deep link, so it only works there: a standalone dev server has no
+         project.html to reach. -->
+    <a class="brand-back" href="../../project.html?p=fitmint-avatars"
+       title="Back to the Fitmint project" aria-label="Back to the Fitmint project">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
            stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M15 5l-7 7 7 7"/>

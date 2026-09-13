@@ -97,6 +97,19 @@ function compose() {
   wheel.view.rigX = narrow ? 0 : (innerWidth * PHI_X - innerWidth / 2) * perPx;
   wheel.view.scale = phone ? 0.78 : narrow ? 0.86 : 1;
   wheel.view.rigY = phone ? seatY(perPx) : narrow ? -0.10 : 0;
+  /* Push the names outward on a phone.  Centred on the middle of the
+     band, "VISUALIZATION" reached back over the hub disc and collided
+     with "A SECTOR" printed on it — two unrelated lines of type
+     touching, which reads as one.  0.63 puts the inner edge of the
+     longest name clear of the hub; the slack it spends is on the rim
+     side, where the only thing to cross is the tick ring.
+
+     The margin matters more than it looks, because this is the one
+     collision that gets worse on a *shorter* phone rather than a
+     narrower one: the wheel is sized off the viewport and a name is
+     10px whatever the viewport is, so a 667px screen gives the same
+     words a smaller band to sit in than an 844px one does. */
+  wheel.view.labelSeat = phone ? 0.63 : 0.5;
   /* the accent uplight belongs under the wheel, not under the page */
   stage.lights.bounce.position.x = wheel.view.rigX;
 }

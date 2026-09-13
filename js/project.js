@@ -118,9 +118,19 @@ function projectHTML(p, sector) {
     }).filter(Boolean).join(', ')]
   ].filter(([, v]) => v);
 
+  /* Both of these are conditional, and the Instagram one did not use to
+     be.  It pointed at the profile, not at anything about this project,
+     so on the eight records with neither a Behance case study nor a post
+     of their own — Primetrace, Metabrix, the 2024 freelance run, the
+     facial-capture pipeline, the game, Hecoll, Cradlewise, TIGC — the
+     page ended on a link that promised more and led somewhere with none.
+     `p.posts` is the test because it is the same list the Posts grid
+     below is built from: if that section is on the page there is
+     something on the profile to go and see, and if it is not there
+     isn't. */
   const links = [];
   if (p.behance) links.push(['Full case study on Behance', behanceUrl(p.behance)]);
-  links.push(['More on Instagram', SITE.instagram]);
+  if (p.posts && p.posts.length) links.push(['More on Instagram', SITE.instagram]);
 
   return `
     <article class="proj">
@@ -148,12 +158,12 @@ function projectHTML(p, sector) {
           ${!p.body && !p.summary
             ? `<p class="proj__thin">Not written up — what there is to see is the
                  gallery and the posts below.</p>` : ''}
-          <ul class="proj__links">
+          ${links.length ? `<ul class="proj__links">
             ${links.map(([label, href]) => {
               const out = /^https?:/i.test(href);
               return `<li><a href="${href}"${out ? ' target="_blank" rel="noopener noreferrer"' : ''}>${label}${out ? ' ↗' : ''}</a></li>`;
             }).join('')}
-          </ul>
+          </ul>` : ''}
         </div>
       </div>
 

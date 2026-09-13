@@ -114,9 +114,6 @@ body[data-layout="gallery"] .tile[data-shape="16x9"] .tile__media{ aspect-ratio:
    above is what stops that costing a hole underneath. */
 body[data-layout="gallery"] .tile[data-shape="4x3"],
 body[data-layout="gallery"] .tile[data-shape="16x9"]{ grid-column:span 2; }
-/* On a two-column phone wall a landscape piece keeps its two columns —
-   which is the full width there — so it still reads as landscape
-   instead of being squeezed into a portrait column. */
 /* the column flow spaced tiles with a bottom margin; the grid has gap */
 body[data-layout="gallery"] .gal-grid > .tile{ margin:0; }
 
@@ -133,8 +130,29 @@ body[data-layout="gallery"] .gal-grid > .tile{ contain-intrinsic-size:auto 580px
   body[data-layout="gallery"] .gal-grid{ grid-template-columns:repeat(4, minmax(0,1fr)); } }
 @media (max-width:1200px){
   body[data-layout="gallery"] .gal-grid{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
+/* --- two columns, and nothing spans both -------------------------
+   A tile that spans *every* column is a barrier: the grid cannot place
+   it until both columns are free, so whichever one is shorter stops
+   where it is and waits for the taller.  With three columns or more a
+   span-2 tile still leaves a column open and `dense` fills around it;
+   at two it leaves none, and what you get is a rectangle of nothing
+   above every landscape piece.
+
+   On the 29-piece Visualization wall at 390px that was two real holes,
+   191px and 279px, each sitting directly above a 4:3 — and the second
+   of them near the bottom, where there is no later tile left for
+   `dense` to backfill with, so it just stands there.
+
+   So in the two-column range a landscape piece takes one column like
+   everything else.  It is 174px wide against a portrait's 339px tall,
+   which is a contact sheet rather than a postage stamp — the reason
+   for the span in the first place was a *narrow* column in a wide
+   wall, and at two columns the column is half the screen. */
 @media (max-width:820px){
-  body[data-layout="gallery"] .gal-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+  body[data-layout="gallery"] .gal-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+  body[data-layout="gallery"] .tile[data-shape="4x3"],
+  body[data-layout="gallery"] .tile[data-shape="16x9"]{ grid-column:span 1; }
+}
 /* The wall stays two columns to the bottom of the range.  One column on
    a phone gave every piece the full 358px, which a 9:16 crop turned into
    671px of tile — 80% of the viewport each, 29 of them, and a wall that

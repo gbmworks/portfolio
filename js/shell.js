@@ -10,10 +10,20 @@
    ------------------------------------------------------------------ */
 
 import { SITE, ROLE_LINE, SOCIALS } from './site.js';
-import { ICONS } from './icons.js';
+import { ICONS, BASED_LINE } from './icons.js';
 import { initOverlays } from './overlays.js';
 
-/* the landing page is already home, so it links out rather than back */
+/* the landing page is already home, so it links out rather than back.
+
+   The bar carries one control.  It held Contact, then Resume, and the
+   Resume link was redundant the moment the About window grew the pair
+   of PDF actions: the bar was offering a second door to a room that is
+   already the first thing inside the first door.  One door, and it can
+   be bigger for being alone.
+
+   Everything the bar used to reach — the profiles, the address, the
+   link hub, the CV as a file — is now one level in: in the About
+   window, or in the footer under the work. */
 export function mountShell({ home = true, mount = '#ui' } = {}) {
   const host = document.querySelector(mount);
   if (!host) return null;
@@ -31,8 +41,7 @@ export function mountShell({ home = true, mount = '#ui' } = {}) {
     </div>
     <nav class="topbar__nav">
       ${home ? '<a href="index.html" data-home>All work</a>' : ''}
-      <a href="#" data-open="about">About</a>
-      <a href="${SITE.links}" target="_blank" rel="noopener noreferrer">Contact</a>
+      <a href="#" data-open="about" class="topbar__about">About</a>
     </nav>`;
 
   host.prepend(bar);
@@ -49,7 +58,14 @@ export function mountShell({ home = true, mount = '#ui' } = {}) {
 
    Built from SOCIALS, which drops any profile site.js has no URL for,
    so the row is never a dead link.
-   ------------------------------------------------------------------ */
+
+   The row is icons alone.  It used to carry each name beside its mark
+   on the argument that a bare icon makes a visitor guess — true of an
+   unfamiliar mark, and these three are not: LinkedIn, Behance and
+   Instagram are the most recognised glyphs a portfolio can put in a
+   footer.  What the names cost was a row that wrapped to two lines on
+   anything narrow.  The name is still on every one of them, in
+   `aria-label` for a screen reader and `title` for a cursor. */
 export function mountGround({ mount = '#ground' } = {}) {
   const host = document.querySelector(mount);
   if (!host) return false;
@@ -59,14 +75,14 @@ export function mountGround({ mount = '#ground' } = {}) {
       <div class="ground__id">
         <strong>${SITE.name}</strong>
         <span>${ROLE_LINE}</span>
-        <span>${SITE.based}</span>
+        <span>${BASED_LINE(SITE)}</span>
       </div>
 
       <nav class="ground__social" aria-label="Elsewhere">
         ${SOCIALS.map(s => `
           <a href="${s.url}" target="_blank" rel="noopener noreferrer"
              aria-label="${s.label}" title="${s.label}">
-            ${ICONS[s.key] || ''}<span>${s.label}</span>
+            ${ICONS[s.key] || ''}
           </a>`).join('')}
       </nav>
 

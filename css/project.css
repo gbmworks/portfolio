@@ -258,6 +258,65 @@ body:not(.is-section) #stage{ pointer-events:auto; }   /* except the wheel */
 @media (max-width: 900px) {
   /* the preview stage needs a cursor; on touch it is dead space */
   .stage{ display:none !important; }
+
+  /* --- and with it gone the bar has to come forward ---------------
+     `.panel` is z-index 30 to the bar's 20.  On a desktop that never
+     mattered: the sheet is a column on the left, the nav is flush
+     right, and the two do not meet — which is what
+     `justify-content:flex-end` bought in the first place.  Here the
+     panel is the full width, so there is no right-hand side to move
+     to, and the nav sat *under* it: visible through a translucent
+     panel and not clickable, `elementFromPoint` on the About pill
+     returning `.panel__scroll`.  About and All work have been
+     unreachable on both sheet pages at this width.
+
+     `.ui` is what has to move, not `.topbar` — z-index 20 on a
+     positioned element makes a stacking context, so raising a child
+     inside it does nothing.  `.ui` is `pointer-events:none` and only
+     the nav re-enables them, so lifting it takes the two links out
+     from under the panel without taking the panel's scroll with them.
+
+     And once it is in front it needs the falloff the other scrolling
+     layouts already have, or the sheet's own "ALL WORK" and its
+     headline pass through the bar's type on the way up. */
+  body[data-layout="sheet"] .ui{ z-index:40; }
+  body[data-layout="sheet"] .topbar{
+    padding-bottom:24px;
+    background:linear-gradient(180deg,
+      rgba(6,6,10,.94) 0%, rgba(6,6,10,.80) 46%, rgba(6,6,10,0) 100%);
+  }
+
+  /* One "All work", not two.  Every page that puts it in the bar also
+     carries its own — `.panel__back` on the sheet and the project page,
+     the back link in `.galbar` on the mosaic — and at this width they
+     end up about 50px apart, the bar's copy directly above the page's.
+     Bringing the bar forward is what made that visible; it was always
+     there, hidden behind the panel.
+
+     The page's copy is the one that stays: it is the larger target, it
+     has the chevron, and it sits in the same band as the sector
+     switcher, which is the rest of the navigation. What is left up here
+     is identity and About — the same pair the landing page shows, so
+     the bar reads the same on every page of the site.
+
+     Desktop keeps both. There the bar's copy is the only one that is
+     not in a scrolling column, and nothing is crowded. */
+  .topbar__nav a[data-home]{ display:none; }
+
+  /* And the wordmark comes back on the sheet.  It was hidden there
+     because the sheet occupies the top-left and the bar was behind it —
+     the name was drawn under a panel, which is the same fact that made
+     the nav unclickable.  With the bar in front there is nothing to
+     hide from, and the bar reads the same on all four page types:
+     identity left, About right.  It is also the one-tap way home, which
+     the sheet's own back link duplicates but the project page's does
+     not — that one goes to the sector.
+
+     Desktop keeps it hidden: there the sheet really is under the bar's
+     left-hand side, and `justify-content:flex-end` is what that width
+     needs. */
+  body[data-layout="sheet"] .topbar__id{ display:flex; }
+  body[data-layout="sheet"] .topbar{ justify-content:space-between; }
   /* so the work arrives as a strip instead */
   .sreel{ display:block; margin:26px 0 4px; }
   body[data-layout="sheet"] .panel{ top:0; }
@@ -273,6 +332,33 @@ body:not(.is-section) #stage{ pointer-events:auto; }   /* except the wheel */
   /* comfortable touch targets */
   .sectors a{ padding:10px 15px; }
   .plink{ padding:17px 6px; }
+
+  /* --- and every row gets its picture ---------------------------
+     The stage above is gone at this width, which used to leave the
+     index as thirty numbered names and nothing to recognise them by.
+     The thumb is the stage's job done in the row itself.
+
+     It sits in a third column and spans both rows, so the title and
+     the meta line keep their own stack to its left and the row height
+     is whichever of the two is taller.  The chevron goes: it is a
+     hover affordance and there is no hover here, so all it was doing
+     was holding 16px open next to a picture. */
+  .plink__go{ display:none; }
+  body[data-layout="sheet"] .plink{
+    grid-template-columns:24px 1fr 64px;
+    align-items:center; column-gap:13px;
+  }
+  body[data-layout="sheet"] .plink__n{ align-self:start; padding-top:3px; }
+  body[data-layout="sheet"] .plink__t,
+  body[data-layout="sheet"] .plink__y{ grid-column:2; }
+  .plink__thumb{
+    display:block; grid-column:3; grid-row:1 / span 2; align-self:center;
+    width:64px; aspect-ratio:4 / 3; overflow:hidden;
+    border:1px solid var(--line); border-radius:7px; background:#0e0e14;
+  }
+  /* A row that leaves the site is still a row: no badge, no second
+     treatment.  The one thing the thumb reacts to is the tap. */
+  .plink:active .plink__thumb img{ transform:scale(1.04); }
   .topbar__nav{ gap:16px; }
   .topbar__nav a{ padding:6px 0; }
 
@@ -302,10 +388,19 @@ body:not(.is-section) #stage{ pointer-events:auto; }   /* except the wheel */
 @media (max-width:620px){
 
   /* --- the bar --- */
-  .topbar{ padding:8px clamp(14px,4vw,20px); }
+  /* The wordmark and the nav sat on `align-items:flex-start`, which was
+     right when both were plain lines of type.  It stopped being right
+     when the nav links grew a 44px touch box: the box centres its own
+     label, so the name sat at the top of the bar and "About" sat in the
+     middle of a box below it — about 14px of misalignment between two
+     things that read as one row.  They are centred against each other
+     now, and the wordmark carries the same 44px so the two sides of the
+     bar are the same height rather than merely sharing a centre line. */
+  .topbar{ padding:8px clamp(14px,4vw,20px); align-items:center; }
   body[data-layout="gallery"] .topbar,
   body[data-layout="project"] .topbar,
   body.has-reel .topbar{ padding-bottom:24px; }
+  .topbar__id{ display:flex; align-items:center; min-height:44px; }
   .topbar__id strong{ font-size:12.5px; letter-spacing:.22em; }
   .topbar__nav{ gap:2px; }
   /* 44px of touch under an 11px label.  The padding does the reaching
@@ -314,6 +409,10 @@ body:not(.is-section) #stage{ pointer-events:auto; }   /* except the wheel */
   .topbar__nav a{
     display:flex; align-items:center; min-height:44px; padding:0 8px;
     font-size:11px; letter-spacing:.10em;
+  }
+  /* the pill already has its own height; it only needs the touch floor */
+  .topbar__nav a.topbar__about{
+    min-height:44px; padding:0 16px; font-size:11.5px; letter-spacing:.12em;
   }
 
   /* --- the landing composition --- */
@@ -329,14 +428,29 @@ body:not(.is-section) #stage{ pointer-events:auto; }   /* except the wheel */
   /* The sector labels are projected onto a radius, so at full size on a
      390px screen they left the pie, crossed the tick ring and ran off
      the edge — "VISUALIZATION" showed it first, having no space to wrap
-     at.  This width holds it on one line and "INDUSTRIAL DESIGN" on two
-     at the 11px the labels must keep to stay legible; the wheel is
-     scaled to fit around this type, not the other way round. */
-  .label{ width:128px; }
-  .label__icon{ width:26px; height:26px; }
-  .label__title{ margin-top:7px; font-size:11px; letter-spacing:.04em; }
-  .hub__k{ font-size:11px; letter-spacing:.22em; }
-  .hub__v{ font-size:12px; }
+     at.  This width holds it on one line and "INDUSTRIAL DESIGN" on two;
+     the wheel is scaled to fit around this type, not the other way
+     round.
+
+     The names came down to 10px after a second look at what the band
+     actually is here.  That is below the 11px floor the detector holds
+     functional text to, and it is deliberate and narrow: it applies to
+     three words on one screen, each of which is also a 44px tap target
+     carrying its own icon, and the alternative was a name printed
+     through the hub.  Everywhere else on the site 11px still holds.
+     Most of the clearance came from `view.labelSeat` in main.js, not
+     from here — see projectLabels() in wheel.js. */
+  .label{ width:124px; }
+  .label__icon{ width:24px; height:24px; }
+  .label__title{ margin-top:6px; font-size:10px; letter-spacing:.02em; }
+
+  /* The hub says what to do and then gets out of the way.  At 12px with
+     .20em of tracking "A SECTOR" ran the full width of the disc, so the
+     one place on the wheel with no work in it was also the widest run
+     of type on it — and the sector name arriving from the left had
+     nowhere to stop.  Two steps down and half the tracking. */
+  .hub__k{ font-size:9.5px; letter-spacing:.18em; }
+  .hub__v{ margin-top:5px; font-size:10.5px; letter-spacing:.12em; }
 
   /* --- the mosaic header --- */
   .galbar{ padding:78px 16px 14px; gap:12px; row-gap:4px; }

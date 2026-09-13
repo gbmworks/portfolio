@@ -29,6 +29,11 @@
      summary   one paragraph, shown on the index row and the page lede
      body      further paragraphs, shown only on the project page
      cover     hero still — 'assets/...' local, or a Behance CDN path
+     coverFocus  object-position for that still inside a tile.  Same
+               problem as `previewFocus` below and a separate knob for
+               the same reason preview.js gives one: a cover and a clip
+               are rarely framed alike, so one value cannot serve both.
+               Omit it and the crop stays centred.
      live      a running thing on this site rather than a write-up — the
                game at game/unicorn, the avatar studio at studio/fitmint.
                The project page offers it as the button above the fold.
@@ -154,6 +159,17 @@ export const PROJECTS = [
     live: 'studio/fitmint/',
     liveLabel: 'Edit an avatar',
     cover: 'assets/web/fitmint/coverf.jpg',
+    /* The cover is a 9:16 figure, full height, and every tile frame on
+       the site is wider than that — so a centred crop keeps the middle
+       band, which on this pose is waist to knee.  The 4:3 strip on a
+       phone is the worst of them: it shows 42% of the height and centred
+       that is 403-996 of 1400, the top of his head shaved off.  Pulling
+       the crop to 25% puts his head in the upper third there, and the
+       reel card under the wheel — 4:5, the only other frame that crops
+       this cover today — still holds him boots and all at 104-1089.
+       That card is what stops the value going any higher.  A row about
+       an avatar editor should show a face. */
+    coverFocus: '50% 25%',
     preview: 'assets/web/fitmint/male.webm',
     /* The stage shows 35% of a 9:16 clip's height.  Centred, that is
        this character's waist to his shins; pulled up, it is his face and
@@ -874,6 +890,7 @@ export function resolveEntry(ref) {
       still: still ? coverUrl(still) : posterUrl(clip),
       clip,
       focus: project.previewFocus || '',
+      stillFocus: project.coverFocus || '',
       href: entryHref(project),
       external: false,
       project

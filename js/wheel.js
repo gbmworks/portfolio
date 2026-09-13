@@ -44,7 +44,10 @@ export class Wheel {
     this.spin = 0;
     this.entrance = 0;
     this.globalFade = 1;   // gallery pages fade the whole wheel out on scroll
-    this.view = { rigX: 0, rigY: 0, scale: 1 };
+    /* labelSeat: where on the band a label is anchored, 0 at the hub
+       and 1 at the rim.  The middle is right wherever the label is
+       narrower than the band; on a phone it is not — see projectLabels. */
+    this.view = { rigX: 0, rigY: 0, scale: 1, labelSeat: 0.5 };
     this.parallax = new THREE.Vector2();
     this.enableParallax = matchMedia('(hover: hover) and (pointer: fine)').matches;
     this._tmp = new THREE.Vector3();
@@ -124,11 +127,9 @@ export class Wheel {
       def, i, group, mesh, mat, outline, mid,
       dir: new THREE.Vector3(Math.cos(mid), Math.sin(mid), 0),
       axis: new THREE.Vector3(-Math.sin(mid), Math.cos(mid), 0),
-      labelLocal: new THREE.Vector3(
-        Math.cos(mid) * (CFG.innerR + CFG.outerR) * 0.5,
-        Math.sin(mid) * (CFG.innerR + CFG.outerR) * 0.5,
-        CFG.depth / 2
-      ),
+      /* the anchor is rebuilt every frame from view.labelSeat rather
+         than fixed here, so the seat is a thing a tier can set */
+      labelLocal: new THREE.Vector3(),
       out: 0, lift: 0, tilt: 0, glow: 0.06, fade: 1, line: 0.28
     };
   }
@@ -243,9 +244,23 @@ export class Wheel {
     }
   }
 
+  /* A label is centred on its anchor, so half of it reaches back toward
+     the hub.  At the middle of the band that is harmless on a desktop,
+     where the band is wide in pixels and the longest name is short in
+     them.  On a phone it is the whole problem: at 0.78 the band is
+     about 64px and "VISUALIZATION" — one word, nothing to wrap at — is
+     wider than that, so its inner half crossed the hub disc and landed
+     on "A SECTOR".  Seating it further out moves the collision to the
+     rim instead, where there is a tick ring and no type.
+
+     This is the lever that is not type size.  Shrinking the name was
+     tried first in section 19 and the detector was right to call it
+     back; the name is at the floor already. */
   projectLabels(hidden = false) {
+    const bandR = CFG.innerR + (CFG.outerR - CFG.innerR) * this.view.labelSeat;
     for (let i = 0; i < this.sectors.length; i++) {
       const s = this.sectors[i];
+      s.labelLocal.set(Math.cos(s.mid) * bandR, Math.sin(s.mid) * bandR, CFG.depth / 2);
       this._tmp.copy(s.labelLocal).applyMatrix4(s.group.matrixWorld).project(this.camera);
       const x = (this._tmp.x * 0.5 + 0.5) * innerWidth;
       const y = (-this._tmp.y * 0.5 + 0.5) * innerHeight;

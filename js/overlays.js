@@ -2,8 +2,13 @@
    The About window — one floating panel, shared by every page.
 
    The work history, education, awards, skills, languages and interests
-   come from js/cv.js; the contact line comes from js/site.js.  Nothing
-   about the person is written here.
+   come from js/cv.js; the contact line and the PDF come from
+   js/site.js.  Nothing about the person is written here.
+
+   This window is also where the resume is taken away from.  The top
+   bar's Resume link opens the PDF, and that is the whole of it there —
+   a bar has room for a destination, not for a choice — so the pair of
+   actions lives here, on every page, at both device sizes.
    ------------------------------------------------------------------ */
 
 import {
@@ -11,6 +16,7 @@ import {
   LANGUAGES, INTERESTS, SUMMARY
 } from './cv.js';
 import { SITE } from './site.js';
+import { BASED_LINE } from './icons.js';
 
 function panelHTML() {
   const jobs = EXPERIENCE.map(j => `
@@ -56,7 +62,31 @@ function panelHTML() {
           <p class="win__lede">${SUMMARY}</p>
           <p class="win__meta">
             <a href="mailto:${SITE.email}">${SITE.email}</a>
-            <span>${SITE.based}</span>
+            <span>${BASED_LINE(SITE)}</span>
+          </p>
+
+          <!-- The same history as this window, as a file.  Two actions
+               and not one, because a single link cannot do both jobs:
+               the first opens the PDF in the browser's own viewer, the
+               second saves it.  Phones in particular will happily open
+               a PDF and give no obvious way to keep it, which is the
+               case the download attribute exists for.
+
+               No backticks in here: this comment is inside a template
+               literal, and a pair of them ends the string. -->
+          <p class="win__cv">
+            <a class="win__cta" href="${SITE.cv}" target="_blank" rel="noopener noreferrer">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                   stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>
+              </svg>
+              Resume (PDF)</a>
+            <a class="win__cta win__cta--ghost" href="${SITE.cv}" download="${SITE.cvName}">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                   stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 4v11"/><path d="M7.5 10.5 12 15l4.5-4.5"/><path d="M5 19h14"/>
+              </svg>
+              Download</a>
           </p>
         </div>
       </header>

@@ -64,10 +64,12 @@ const GLYPH = {
 
 /*  still  'path'             an image to show
     clip   'path'             a local file, lazy-loaded
+    focus  '50% 25%'          object-position for the still, for a cover
+                              whose subject is not in the middle of it
     href   ''                 where a click goes; empty opens the lightbox
     group  'Fitmint'          the small line above the title
     mark   'Behance'          badge naming where a click lands  */
-function tile({ title, group = '', href = '', still = '', clip = '', mark = '', label = '' }) {
+function tile({ title, group = '', href = '', still = '', clip = '', focus = '', mark = '', label = '' }) {
   const src = still || clip;
   const kind = still ? 'image' : clip ? 'video' : 'none';
 
@@ -75,9 +77,14 @@ function tile({ title, group = '', href = '', still = '', clip = '', mark = '', 
      (tools/media.mjs), so the tile paints the poster and layers the
      video over it — and the video's src stays unset until somebody
      hovers.  A wall of twenty-six tiles used to pull `preload=metadata`
-     from twenty-six multi-megabyte clips just to show a frame. */
+     from twenty-six multi-megabyte clips just to show a frame.
+
+     Only the still takes `focus`.  The clip layered over it is a
+     different file framed differently — the same reason preview.js
+     points `previewFocus` at the video and leaves its still centred. */
   const el = still
-    ? `<img class="tile__el" data-src="${encodeURI(still)}" alt="${esc(title)}" decoding="async">
+    ? `<img class="tile__el" data-src="${encodeURI(still)}" alt="${esc(title)}" decoding="async"
+              ${focus ? `style="object-position:${esc(focus)}"` : ''}>
        ${clip ? `<video class="tile__clip" data-src="${encodeURI(clip)}" muted loop playsinline
               preload="none" tabindex="-1"></video>` : ''}
        <span class="tile__spin"></span>`
@@ -118,6 +125,7 @@ export const entryTile = (entry) => tile({
   href: entry.href,
   still: entry.still,
   clip: entry.clip,
+  focus: entry.stillFocus,
   label: entry.title + (entry.external ? ' — opens where it is published' : '')
 });
 

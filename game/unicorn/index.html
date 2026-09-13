@@ -40,8 +40,17 @@
 	</head>
 
 	<body>
-		<!-- Stays for the whole session; index.ts only dims it once play starts. -->
-		<a id="exit" href="../../">← Portfolio</a>
+		<!-- Stays for the whole session; index.ts only dims it once play starts.
+
+		     It lands on this game's own record rather than the site root.
+		     The Technical Art row carries `liveFromRow`, so play starts
+		     without ever passing through the page — which makes the page the
+		     one thing a player has not seen, and the write-up, the prev/next
+		     arrows and the way back to the sector all live on it.
+
+		     Deep, so it only resolves when this is served from /game/unicorn
+		     on the portfolio; a standalone dev server has no project.html. -->
+		<a id="exit" href="../../project.html?p=lenskart-ar-game">← Portfolio</a>
 
 		<div id="endScreen">
 			<img src="gemUI/end.png" width="70%" style="display: block; margin: 0 20%; transform: translate(0px, -150px)" />

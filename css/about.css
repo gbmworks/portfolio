@@ -85,6 +85,37 @@
   text-transform:uppercase; color:var(--ink-faint);
 }
 .win__meta a{ color:var(--accent); }
+
+/* --- the resume, as a file -------------------------------------
+   Two actions, one solid and one outlined, because they are not
+   equals: opening it is what almost everyone wants and saving it is
+   what a few do.  Both hold 12px and a 40px tall target, which is the
+   floor for something a thumb has to hit. */
+.win__cv{ margin:18px 0 0; display:flex; flex-wrap:wrap; gap:10px; }
+.win__cta{
+  display:inline-flex; align-items:center; gap:9px;
+  min-height:40px; padding:0 16px;
+  border:1px solid var(--accent); border-radius:999px;
+  background:var(--accent); color:#0a0a10;
+  font-family:var(--mono); font-size:12px; letter-spacing:.13em;
+  text-transform:uppercase; font-weight:600;
+  transition:background .3s, border-color .3s, color .3s, transform .3s var(--ease);
+}
+.win__cta:hover,
+.win__cta:focus-visible{ transform:translateY(-2px); }
+.win__cta--ghost{
+  background:transparent; color:var(--ink-dim);
+  border-color:var(--line);
+}
+.win__cta--ghost:hover,
+.win__cta--ghost:focus-visible{
+  color:var(--accent); border-color:color-mix(in srgb, var(--accent) 55%, transparent);
+  background:color-mix(in srgb, var(--accent) 8%, transparent);
+}
+@media (prefers-reduced-motion:reduce){
+  .win__cta:hover, .win__cta:focus-visible{ transform:none; }
+}
+
 .win__body{
   display:grid; grid-template-columns:1fr 300px; gap:clamp(24px,3vw,52px);
   margin-top:34px; padding-top:26px; border-top:1px solid var(--line);
@@ -209,8 +240,17 @@ body.is-narrow .lede__p{ display:none; }
    the work is actually published.
 
    The icons are authored SVG from js/icons.js at one stroke weight,
-   not a glyph font and not emoji.  Each carries its name beside it —
-   a bare icon row makes a visitor guess, and there is room here.
+   not a glyph font and not emoji.  They are marks alone now: the name
+   used to sit beside each one, which made three pills wide enough to
+   wrap onto a second line on a phone, for three of the most
+   recognisable glyphs there are.  The name lives in `aria-label` and
+   `title`, so nothing is lost to a screen reader or a cursor.
+
+   The block is centred at every width.  It was a `space-between` row
+   of three unequal things — a name card, a pill row, an address — and
+   at the one width where that row was full it read as three unrelated
+   items pushed to the corners.  Centred and stacked it reads as one
+   closing card, and it stops needing a separate phone arrangement.
    ================================================================== */
 .ground{
   position:relative; z-index:24;
@@ -219,8 +259,8 @@ body.is-narrow .lede__p{ display:none; }
   border-top:1px solid var(--line);
 }
 .ground__in{
-  display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between;
-  gap:clamp(20px,3vw,44px);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:clamp(18px,2.6vw,26px); text-align:center;
 }
 .ground__id strong{ display:block; font-size:15px; font-weight:600; letter-spacing:.01em; }
 .ground__id span{
@@ -228,13 +268,23 @@ body.is-narrow .lede__p{ display:none; }
   font-family:var(--mono); font-size:11px; letter-spacing:.14em;
   text-transform:uppercase; color:var(--ink-faint);
 }
-.ground__social{ display:flex; flex-wrap:wrap; gap:10px; }
+/* The two place names and the mark between them.  `inline-flex` so the
+   mark sits on the line's optical centre rather than its baseline —
+   a 12px box on a 9.5px baseline hangs low — and the margins are the
+   tracking's own width either side, so it reads as one word group
+   rather than three things. */
+.between{ display:inline-flex; align-items:center; }
+.between .mark{ flex:none; margin:0 .5em; opacity:.8; }
+/* One line, always — `nowrap` and not a wider `gap` budget.  Three
+   circles at 42px come to 146px, which fits the narrowest phone the
+   site is built for with room to spare, so there is no width at which
+   wrapping would be the right answer. */
+.ground__social{ display:flex; flex-wrap:nowrap; justify-content:center; gap:11px; }
 .ground__social a{
-  display:inline-flex; align-items:center; gap:9px;
-  padding:9px 15px 9px 12px;
+  display:inline-flex; align-items:center; justify-content:center;
+  width:42px; height:42px;
   border:1px solid var(--line); border-radius:999px;
-  font-family:var(--mono); font-size:11px; letter-spacing:.14em;
-  text-transform:uppercase; color:var(--ink-dim);
+  color:var(--ink-dim);
   transition:color .3s, border-color .3s, background .3s, transform .3s var(--ease);
 }
 .ground__social a:hover,
@@ -254,6 +304,18 @@ body.is-narrow .lede__p{ display:none; }
   .ground__social a{ transition:color .3s, border-color .3s, background .3s; }
   .ground__social a:hover{ transform:none; }
 }
-@media (max-width:640px){
-  .ground__in{ flex-direction:column; align-items:flex-start; gap:22px; }
+/* The column is the arrangement at every width now, so there is no
+   phone *layout* left to write.  What is left is scale: on a phone the
+   two mono lines under the name are supporting text under a closing
+   card, not something anyone reads on the way anywhere, and at 11px
+   the role line wrapped to two and competed with the name above it.
+   9.5px with the tracking pulled in holds both on one line on a 375px
+   screen and lets the name be the thing you see. */
+@media (max-width:620px){
+  .ground{ padding:30px 16px 34px; }
+  .ground__id strong{ font-size:14px; }
+  .ground__id span{ margin-top:4px; font-size:9.5px; letter-spacing:.1em; }
+  /* The address is not in that group.  It is the one thing down here
+     somebody reads character by character and may have to copy, so it
+     holds the 11px floor while the lines above it go under. */
 }
