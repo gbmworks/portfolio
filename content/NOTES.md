@@ -67,6 +67,43 @@ A `200` proves a file is there; grepping the served module proves it is
 *the one you just wrote*. Both are worth it before telling anyone it is
 live.
 
+### When the build never starts
+
+Seen on 2026-09-13, and worth recognising rather than re-diagnosing. The
+shape of it:
+
+- the commit **is** on the remote — `git ls-remote upstream refs/heads/main`
+  matches `git rev-parse main`
+- `gh run list --repo gbmworks/portfolio` shows **no
+  `pages-build-deployment` run for that SHA** — the newest run is for an
+  older commit
+- the build record exists but never moves: `status=building`,
+  `duration=0`, `updated_at == created_at`, for tens of minutes against a
+  normal 24-36s
+- `gh api -X POST .../pages/builds` answers **500 or 502** — it cannot
+  queue another while one is stuck in flight
+- githubstatus.com says Pages is operational with no incidents
+
+So a build record is created on push but nothing picks it up. Pushing
+again does create a *new* record, and marks the previous one `errored`
+at the same second — that `errored` is **supersession, not a content
+failure**, and "Page build failed." with `duration: 0` carries no
+detail. Don't go hunting your own markdown for it. It is worth ruling
+out Liquid anyway, once, because it is the one thing that genuinely
+breaks a Pages build from content: `grep -c '{{\|{%'` the changed
+files, and confirm `.nojekyll` is still tracked.
+
+**What not to do:** keep pushing. Each push supersedes the queued build
+and adds noise for no gain. **What is left** is the repo owner toggling
+the Pages source off and back on in Settings, or GitHub Support — both
+of which touch a live site, so they are the owner's call and not
+something to do unasked.
+
+**The site keeps serving the last good build throughout.** That is the
+thing to check and to say first: `6817efa` stayed up and correct for the
+whole incident. A wedged build is the *next* deploy not arriving, not
+the current one breaking.
+
 HTTPS is enforced (since 2026-09-09), so `http://` and the bare apex both
 `301` to `https://www.govindbmohan.com/…` with the path kept. That is a
 repo setting, not a file:
