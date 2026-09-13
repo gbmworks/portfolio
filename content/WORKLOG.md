@@ -1,21 +1,29 @@
 # Work log
 
-A record of the restructuring, in the order it happened. Sections 1-8 are
-the first session; section 9 is the second, which deployed the game;
-sections 10 to 18 are the third, which fixed the mosaic's reading order,
-deployed the avatar studio, gave both runnable projects a way back,
-added fifteen files of footage and a reel under the wheel, and then
-repaired what the first of those had quietly broken, then took a
-detector across three device classes. Kept beside `allocation_new.csv` because
-that spreadsheet is the thing most of it now hangs off.
+A record of the restructuring, in the order it happened.
+
+| sections | what |
+|---|---|
+| 1-8 | the first session: content, structure, bugs, performance, deployment |
+| 9 | the game, deployed |
+| 10-18 | the mosaic's reading order, the avatar studio deployed, a way back out of both, fifteen files of footage and the reel under the wheel — then repairing what the first of those quietly broke, then a detector across three device classes |
+| 19-21 | the phone stopped being a smaller desktop; the studio's chrome |
+| 22-25 | the two runnable things land on their own record; row thumbnails, the resume, the footer, the wheel's inward collision, the mosaic's barrier tiles; the bar down to one door |
+
+Sections 21 and 25 are reproduction records — the *what*, for rebuilding
+from — and the numbered sections around them are the *why*.
+
+Kept beside `allocation_new.csv` because that spreadsheet is the thing
+most of it now hangs off.
 
 The README is the reference for *how the site works today*. This file is
-the reference for *why it is like that*, and for the four things that
-were tried and did not work — so nobody spends an afternoon rediscovering
-them.
+the reference for *why it is like that*, and for the things that were
+tried and did not work — so nobody spends an afternoon rediscovering
+them. `NOTES.md` is how to work on it.
 
-**Shipped as** `9839bbb` and `555763e` on `gbmworks/portfolio`, live at
-www.govindbmohan.com.
+**Live at www.govindbmohan.com**, built from `gbmworks/portfolio`. The
+most recent commit here is `6817efa` (2026-09-13); each reproduction
+record names the commits for its own range.
 
 ---
 
@@ -1739,15 +1747,97 @@ why it appears in one run and not the next.
 
 ---
 
+## 25. Reproduction record — sections 22 to 24
+
+Sections 22 to 24 say *why*. This is the *what*, tight enough to rebuild
+from, and honest about where the work lives.
+
+**Shipped as one commit**, `6817efa` "Land on the work, not the front door
+— and fix the phone", 25 files, +1253 -118. On `gbmworks/portfolio` only;
+`gbmPrimetrace/portfolio` has none of it and cannot be pushed from this
+machine — see "Where to push" in `NOTES.md`. Built and verified live on
+2026-09-13.
+
+One commit and not three, which is worth saying plainly: the three
+sessions touched `README.md`, `content/NOTES.md`, `content/WORKLOG.md`,
+`js/shell.js` and `css/project.css` in common, and splitting those by
+theme would have meant staging hunks and inventing a history the working
+tree never had. The sections below are the split.
+
+### The portfolio site
+
+| file | change |
+|---|---|
+| `js/shell.js` | Contact → Resume → nothing; the bar is identity plus one `.topbar__about` pill. `mountGround` drops the label span beside each social mark and renders `BASED_LINE(SITE)` |
+| `js/site.js` | `cv` / `cvName`; `based` split into `from` / `to`, with `BASED_TEXT` as the plain-text form |
+| `js/icons.js` | `inlineSvg()` — a 12px frame for marks inside a line of type; `ICONS.shuttle`, the back-to-back arrow; `BASED_LINE()` |
+| `js/overlays.js` | the About window's `.win__cv` pair — *Resume (PDF)* and *Download* |
+| `js/page.js` | `entryRow` renders `.plink__thumb` from `e.still`, honouring `e.stillFocus` |
+| `js/projects.js` | `coverFocus` field; Fitmint at `50% 25%`; `resolveEntry` emits `stillFocus` |
+| `js/tiles.js` | `tile()` takes `focus` and puts it on the still only; `entryTile` passes `entry.stillFocus` |
+| `js/project.js` | the Instagram link is gated on `p.posts`; the `<ul>` is not rendered when both links are gone |
+| `js/wheel.js` | `view.labelSeat`; `projectLabels()` rebuilds the anchor from it each frame instead of `labelLocal` being fixed at construction |
+| `js/main.js` | `wheel.view.labelSeat = phone ? 0.63 : 0.5` |
+| `css/landing.css` | `.topbar__id a{pointer-events:auto}` — the wordmark's link was inert everywhere; `.topbar__nav` centred; the `.topbar__about` pill |
+| `css/project.css` | the row thumb at ≤900px and the grid that holds it; `body[data-layout="sheet"] .ui{z-index:40}` plus the bar's falloff; the bar's "All work" dropped and the sheet's wordmark restored at that width; `.topbar` centred and `.topbar__id` given the 44px; the wheel's 10px names and 9.5/10.5 hub |
+| `css/sections.css` | `.plink__thumb` base rules |
+| `css/tiles.css` | `grid-column:span 1` for 4:3 and 16:9 inside the two-column range |
+| `css/about.css` | the ground as a centred column; 42px icon circles at `nowrap`; `.win__cv` / `.win__cta`; `.between` and its mark; the 9.5px phone lines, email excluded |
+| `tools/serve.mjs` | `.pdf` → `application/pdf` |
+| `assets/cv/…pdf` | new, 727 KB, the file `SITE.cv` points at |
+
+### The two runnable things
+
+Both are build sources whose output is also in the diff. **Never edit the
+output** — `node deploy.mjs` in each folder overwrites it.
+
+| file | change |
+|---|---|
+| `content/Unicorn/dist/index.html` | `#exit` → `../../project.html?p=lenskart-ar-game` |
+| `content/Fitmint/AvatarStudio/index.html` | `.brand-back` → `../../project.html?p=fitmint-avatars`, and its `title` / `aria-label` renamed to match |
+
+### The numbers that matter
+
+| | before | after |
+|---|---|---|
+| Viz wall, 390px | 5,824px, two holes of 191 and 279px | 4,696px, none |
+| Fitmint's cover in the phone strip | 403–996 of 1400 — head cut | 202–793 — head in the upper third |
+| "VISUALIZATION" vs the hub disc | ran 97–172px, disc began at 163 | clear at 375x667 and 390x844 |
+| Records offering "More on Instagram" with no posts | 8 | 0 |
+| Social row on a phone | two lines of pills | one line of three 42px circles |
+| Wordmark ↔ About centres | 14px apart | both at y=30, all four layouts |
+| About reachable on a sheet page, ≤900px | no — `elementFromPoint` gave `.panel__scroll` | yes |
+
+### Three rules this cost something to learn
+
+1. **No backticks inside a template literal**, comments included. A pair
+   of them ends the string; `js/overlays.js` threw and every page fell
+   through to the boot guard. It looked exactly like the
+   WebGL-in-an-automated-browser trap and was chased as one. The console
+   had it in a single line.
+2. **Read the tool's actual output shape.** The Impeccable detector's
+   `--json` is a bare array. A parser reaching for `.findings` gets
+   `undefined` and prints "clean" for every page — which it did, for nine
+   pages, right after a pass that had introduced seven findings.
+3. **z-index on a child cannot escape its parent's stacking context.**
+   `.ui` is z-index 20; raising `.topbar` inside it does nothing. Raise
+   `.ui`.
+
+---
+
 ## 8. Open items
 
-1. **Five projects still have no artwork** — Primetrace, Metabrix,
-   Lenskart AR, Hecoll, Freelance 2024. All are unlisted, so nothing
+1. **Five records still have no artwork** — Primetrace, Metabrix,
+   Freelance 2024, Hecoll and Diaz Goa. All are unlisted, so nothing
    renders as a bare plate. Drop a file into `assets/web/<slug>/`, set
    `cover:`, add a line to the sheet, and it returns everywhere at once.
-2. **Technical Art has 0 project pages** — 10 entries now: nine link out
-   and one, the game, plays. Adding Fitmint back is one line in the
-   sheet.
+   (This list said "Lenskart AR" and not "Diaz Goa" until 2026-09-13;
+   the game has had artwork for a while. Re-derive it rather than
+   trusting it — one line:
+   `node --input-type=module -e "import('./js/projects.js').then(m=>console.log(m.PROJECTS.filter(p=>!p.cover&&!p.preview).map(p=>p.slug)))"`)
+2. **Technical Art has 3 project pages of 14 entries** — the rest link
+   out or are posts, and two of the three run rather than read. It was
+   10 entries and 0 pages when this item was written.
 3. **`SITE.links` vs `SITE.beacons`** — pick one.
 4. ~~**HTTPS is not enforced.**~~ **Done, 2026-09-09** —
    `https_enforced: true` on the Pages site, verified: `http://`, the

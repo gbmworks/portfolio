@@ -46,11 +46,26 @@ git log --oneline main..upstream/main     # what you are missing
 git merge --ff-only upstream/main         # or: git reset --hard upstream/main
 ```
 
-Pages takes 30-90 seconds. Check with:
+Pages takes 30-90 seconds. **Ask Pages whether it built, rather than
+polling the site** — a 404 on a new asset ten seconds after a push tells
+you nothing, and a loop with no sleep in it tells you nothing twelve
+times:
 
 ```bash
-curl -sI https://www.govindbmohan.com/game/unicorn/ | head -1
+gh api repos/gbmworks/portfolio/pages/builds/latest --jq '.status + " " + .commit'
 ```
+
+`building` → `built`, with your own SHA, is the signal. Then check the
+bytes and not the status code:
+
+```bash
+curl -sI https://www.govindbmohan.com/assets/cv/govind-b-mohan-cv-2026.pdf | grep -i content-type
+curl -s https://www.govindbmohan.com/js/shell.js | grep -c topbar__about   # a string only the new build has
+```
+
+A `200` proves a file is there; grepping the served module proves it is
+*the one you just wrote*. Both are worth it before telling anyone it is
+live.
 
 HTTPS is enforced (since 2026-09-09), so `http://` and the bare apex both
 `301` to `https://www.govindbmohan.com/…` with the path kept. That is a
@@ -381,8 +396,14 @@ is the rule doing its job — put it back.
 
   **Edit the source and run `node deploy.mjs`** — `studio/fitmint/` is a
   build output, and editing it directly is undone by the next deploy.
-- Four records still have no artwork (Primetrace, Metabrix, Hecoll,
-  Freelance 2024) and are unlisted, so nothing renders as a bare plate.
+- **Five** records still have no artwork — Primetrace, Metabrix,
+  Freelance 2024, Hecoll and Diaz Goa — and are unlisted, so nothing
+  renders as a bare plate. This line said four, and named the wrong
+  four, for two sessions. Don't trust it; derive it:
+
+  ```bash
+  node --input-type=module -e "import('./js/projects.js').then(m=>console.log(m.PROJECTS.filter(p=>!p.cover&&!p.preview).map(p=>p.slug)))"
+  ```
 - **The top bar is identity and one About pill** — on all four page
   types. Contact came off it, then Resume: the CV is inside About, and a
   second door to the first room inside the first door is not a door.
@@ -468,8 +489,9 @@ is the rule doing its job — put it back.
 2. **The Instagram post "Crystalverse — web-based 3D game"** still sits three
    rows below the game itself on Technical Art. Both are real, but it
    reads as a duplicate — one cell to delete if it does.
-3. **Artwork for the four bare records**, which is the only thing keeping
-   them off the site.
+3. **Artwork for the five bare records**, which is the only thing keeping
+   them off the site — see "Current state" for the list and the one-liner
+   that re-derives it.
 4. **Self-host the fonts and three.js** — two extra origins and 209 KB from
    a CDN on every page, and the CDN is a single point of failure the boot
    guard exists to defend against.

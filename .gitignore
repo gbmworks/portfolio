@@ -44,6 +44,14 @@ assets/3d/butterfly.fbx
 # turns into js/pages.js — the running order of every page — so a clone
 # without it cannot rebuild the site's content. It also holds WORKLOG.md.
 
+# The CV as it arrives from wherever it was written. The copy that ships
+# is assets/cv/govind-b-mohan-cv-2026.pdf — same bytes, a filename with
+# no spaces in it, and the one SITE.cv points at. Keeping the original
+# here is harmless; tracking a second 727 KB copy of it is not.
+# Replacing the CV means overwriting the file in assets/cv/ and keeping
+# its name, not adding a new one.
+content/*.pdf
+
 # ---------------------------------------------------------------
 # The game — content/Unicorn.
 #
