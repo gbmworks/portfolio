@@ -256,6 +256,44 @@ is the rule doing its job — put it back.
 
 ## Traps, in the order they will bite
 
+**A programmatic scroll smaller than a snap threshold does not move.**
+`scroll-snap-type: x proximity` on `.reel__track` with
+`scroll-snap-align: start` on the cells is what makes a swipe land on a
+card. It also silently killed the reel's idle drift for its whole life:
+14 px/s is about 0.23 px per frame, every write lands inside the
+proximity threshold, and the browser pulls it back before the next
+frame. `scrollLeft` sits at 2 forever — verified on the live site, not
+just locally, by driving Chrome over CDP. **This is still true of the
+shipped build.** If you animate `scrollLeft` on a snapping container,
+suspend `scroll-snap-type` for the duration and restore it after.
+
+**A rAF loop that returns early still costs a frame.** The same file
+re-requests a frame unconditionally and bails at the top when there is
+nothing to do. That is not idling — it is sixty wake-ups a second for
+the life of the tab, and Lighthouse charges ~2,300 ms of blocking time
+to it for 63 ms of script. **Also still true of the shipped build.**
+Cancel the loop; do not skip the work.
+
+**Lighthouse TBT and TTI get *worse* when this site gets faster, and
+that is not a bug in the change.** TTI wants five seconds of
+main-thread quiet, and a page with a WebGL render loop never gives it
+one — so TTI runs to the end of the trace and TBT accumulates across
+the whole window from first paint to that. Self-hosting moved first
+paint 1.6s earlier, which *widened* the TBT window from 4.8s to 11.9s
+and made the number look four times worse while every metric a visitor
+can feel improved. Read FCP, LCP and Speed Index on this site. Treat
+TBT as a signal about the render loop specifically, and compare it only
+between runs with a similar FCP.
+
+**A hidden tab never runs rAF, so you cannot test animation in one.**
+The browser this session drives reports `visibilityState: hidden`
+permanently: screenshots still render, but `requestAnimationFrame`
+never fires, so any frame-counting or drift measurement silently
+returns nothing. Drive a real Chrome over CDP instead — Node 24 has a
+native WebSocket, so it needs no packages. That is how both reel bugs
+were confirmed.
+
+
 1. **The heavy source is not in git.** `assets/media/` (328 MB),
    `content/Unicorn/dist/` (59 MB of models), `content/Fitmint/Male/`
    (92 MB of FBX and textures), `content/Fitmint/hdri/` and
@@ -565,6 +603,14 @@ is the rule doing its job — put it back.
 3. **Artwork for the five bare records**, which is the only thing keeping
    them off the site — see "Current state" for the list and the one-liner
    that re-derives it.
-4. **Self-host the fonts and three.js** — two extra origins and 209 KB from
-   a CDN on every page, and the CDN is a single point of failure the boot
-   guard exists to defend against.
+4. ~~**Self-host the fonts and three.js**~~ **Done, 2026-09-14** —
+   `node tools/vendor.mjs` and `node tools/fonts.mjs`, both idempotent,
+   both with `--check`. The landing opens exactly one origin now. Mobile
+   first paint 3,963ms to 2,408ms, median of three Lighthouse runs on
+   either side of a revert. Do not hand-edit `vendor/`, `assets/fonts/`
+   or `css/fonts.css` — re-run the generator.
+5. **The reel drifts nowhere, on a loop that never stops** — two bugs in
+   `js/reel.js`, both measured, both still live. See the two traps below.
+   A fix exists at `ab6325b` and was reverted with a batch it was bundled
+   into; reapplying it is a decision about how the strip should behave,
+   because it makes a strip move that has never moved.

@@ -944,18 +944,37 @@ import map, and the seven-second fallback.
 
 ### Where the bytes go
 
-351 KB over 39 requests on the landing page.
+Everything the landing page loads comes from **one origin**. It used to
+come from three:
 
-| origin | requests | KB | note |
-|---|---|---|---|
-| `cdn.jsdelivr.net` | 14 | 209 | three.js core, minified; the postprocessing addons are **not** — `examples/jsm` ships raw ES modules |
-| local | 24 | 142 | the six sheets, the module graph, the favicon |
-| `fonts.googleapis.com` | 1 | 1 | one kilobyte, on its own origin, on the critical path |
+| origin | requests | note |
+|---|---|---|
+| this one | all of them | since `tools/vendor.mjs` and `tools/fonts.mjs` |
+| ~~`cdn.jsdelivr.net`~~ | ~~14~~ | three.js, now in `vendor/three/` at a pinned 0.169.0 |
+| ~~`fonts.googleapis.com` + `fonts.gstatic.com`~~ | ~~2 + 4~~ | now in `assets/fonts/`, declared by `css/fonts.css` |
 
-Two-thirds of the bytes are three.js. Section and project pages no longer
-fetch the postprocessing half of it at all — see "Bloom is opt-in" under
+Two-thirds of the bytes are still three.js. Section and project pages
+never fetch the postprocessing half of it — see "Bloom is opt-in" under
 Performance — which takes seven requests off every page that is not the
 landing page.
+
+**The bytes were never what was slow.** 305 KB over 44 requests is a
+lean page. What cost was that two of those three origins needed a DNS
+lookup and a TLS handshake apiece, and neither could start until the
+import map or the font stylesheet had already come back — a chain no
+preload scanner can shortcut. Measured on the live site, Lighthouse
+mobile (412x823, 4x CPU, slow 4G), median of three runs:
+
+| | on a CDN | self-hosted |
+|---|---|---|
+| First contentful paint | 3,963 ms | **2,408 ms** |
+| Largest contentful paint | 4,998 ms | **3,529 ms** |
+| Speed Index | 7,026 ms | **4,765 ms** |
+| Performance score | 37 | 56 |
+
+Desktop first paint went 941 ms to 542 ms in the same change. Both
+numbers were taken twice, on either side of a revert, which is as close
+to a controlled comparison as a live site allows.
 
 ### The three seconds that are not loading
 
@@ -971,15 +990,26 @@ to you, this is the first thing to try: set `INTRO_MS` to 1200.
 
 ### What is left, in order of what it would buy
 
-1. **Self-host the two fonts.** One kilobyte of CSS on `fonts.googleapis.com`
-   plus the `.woff2` files on `fonts.gstatic.com` is two extra origins, two
-   DNS lookups and two TLS handshakes for four font files. Dropping them in
-   `assets/fonts/` and declaring `@font-face` locally removes both hops.
-2. **Self-host three.js.** 209 KB from a third-party CDN. `npm i three`,
-   repoint the import map, and it comes from the same origin and connection
-   as everything else — no extra handshake, and it stops being a
-   single-point-of-failure the boot guard has to defend against.
-3. **Poster stills for the clips.** A tile near the viewport currently
+1. ~~**Self-host the two fonts.**~~ **Done** — `tools/fonts.mjs`.
+2. ~~**Self-host three.js.**~~ **Done** — `tools/vendor.mjs`.
+3. **The reel's drift does not work, and its loop runs anyway.** Two
+   separate bugs in `js/reel.js`, both measured and both still here. The
+   drift cannot move — `scroll-snap-type: x proximity` re-snaps every
+   0.23 px write before the next frame, so `scrollLeft` has sat at 2 on
+   every build ever shipped. And the loop re-requests a frame
+   unconditionally and returns early, so it costs sixty wake-ups a second
+   for the life of the tab regardless. Lighthouse charges it ~2,300 ms of
+   the landing page's blocking time for 63 ms of script — the largest
+   single entry on the page. A fix was written and then reverted with the
+   rest of a batch; it is at `ab6325b` if it is wanted, and it changes
+   how the strip behaves on screen, which is why it is a decision and not
+   a cleanup.
+4. **Cap the landing's render loop.** `page.js` and `project.js` both pass
+   `fps: 24`; the landing passes nothing and renders flat out. It is the
+   second largest contributor to blocking time on a throttled phone. The
+   landing is the showpiece, so this is a judgement call about how it
+   should feel, not a free win.
+5. **Poster stills for the clips.** A tile near the viewport currently
    fetches `preload=metadata` from a multi-megabyte `.webm` just to paint a
    thumbnail. A ~40 KB JPEG per clip would replace that entirely, and
    `assets/web/` is 53 MB of clips fronting a wall that mostly wants

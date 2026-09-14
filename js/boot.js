@@ -20,14 +20,17 @@
    latency — saw nothing but this file, and no CSS was even requested
    until this file had been fetched, parsed and run.  Measured cold on
    localhost: HTML done at 5ms, first stylesheet requested at 32ms.
-   Over a real connection that gap is a full round trip, with the
-   Google Fonts hop stacked in series behind it.
+   Over a real connection that gap is a full round trip.  It used to
+   have the Google Fonts hop stacked in series behind it as well; the
+   faces are in the repo now, so the round trip is all that is left.
 
    So what is left here is only what markup cannot express: things that
    depend on a condition, and the fallback.
    ------------------------------------------------------------------ */
 (function () {
-  var THREE_CDN = 'https://cdn.jsdelivr.net/npm/three@0.169.0/';
+  /* vendored into the repo by tools/vendor.mjs — same layout three ships,
+     so an addon's relative imports of its siblings still resolve */
+  var THREE_BASE = '/vendor/three/';
   var head = document.head;
 
   function el(tag, attrs) {
@@ -67,7 +70,7 @@
      are never evaluated.  <html data-stage="hero"> opts in. */
   if (document.documentElement.getAttribute('data-stage') === 'hero') {
     ['EffectComposer.js', 'RenderPass.js', 'UnrealBloomPass.js', 'OutputPass.js']
-      .forEach(function (f) { pre(THREE_CDN + 'examples/jsm/postprocessing/' + f, true); });
+      .forEach(function (f) { pre(THREE_BASE + 'examples/jsm/postprocessing/' + f, false); });
   }
 
   /* the core every page mounts */
