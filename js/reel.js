@@ -83,11 +83,6 @@ export function mountReel({ mount = '#reel', onNavigate = null } = {}) {
      script.  An early `return` gives up the work; it does not give up
      the frame.
 
-     Note what this does *not* fix: the drift still does not move an
-     inch, because `scroll-snap-type` on the track re-snaps every write.
-     That is a separate bug and a separate commit — this one is only
-     about not paying for a loop nobody is watching.
-
      **The track is measured once, not sixty times a second.**
      `scrollWidth` and `clientWidth` force layout, and neither changes
      between resizes.  The offset is now carried in `pos` and only
@@ -102,14 +97,34 @@ export function mountReel({ mount = '#reel', onNavigate = null } = {}) {
 
   const measure = () => { maxScroll = Math.max(0, track.scrollWidth - track.clientWidth); };
 
+  /* `scroll-snap-type: x proximity` on the track and `scroll-snap-align:
+     start` on each cell are what make a swipe land on a card instead of
+     between two.  They are also why this drift never once moved.
+
+     The strip begins *at* a snap point, and 14 px/s is about 0.23 px per
+     frame.  Every one of those writes lands well inside the proximity
+     threshold, so the browser pulls it straight back before the next
+     frame — scrollLeft sat at 2 forever, on every build since the drift
+     was written.  Verified against the live site and not only locally,
+     by driving Chrome over CDP: 0.0 px in three seconds, identical on
+     both.
+
+     So snap is suspended for the duration of the drift and restored the
+     moment it ends, for any of the reasons it ends.  The cells keep
+     their alignment; only the container's rule is lifted, and only while
+     nobody is touching it. */
+  const snap = (on) => { track.style.scrollSnapType = on ? '' : 'none'; };
+
   const stop = () => {
     if (raf) { cancelAnimationFrame(raf); raf = 0; }
     last = 0;
+    snap(true);
   };
   const start = () => {
     if (raf || !drifting || !inView || document.hidden) return;
     measure();
     pos = track.scrollLeft;
+    snap(false);
     raf = requestAnimationFrame(tick);
   };
 
@@ -167,9 +182,8 @@ export function mountReel({ mount = '#reel', onNavigate = null } = {}) {
   };
 
   /* Only a scroll the drift did not cause is worth re-syncing from — a
-     swipe, an arrow, a keyboard.  Re-syncing from our own writes would
-     put `pos` back to whatever the element decided to land on, which is
-     not the same number while anything is fighting us for it. */
+     swipe, an arrow, a keyboard.  Re-syncing from our own writes is what
+     would hand authority back to the snap we just suspended. */
   track.addEventListener('scroll', () => {
     if (!raf) pos = track.scrollLeft;
     ends();
