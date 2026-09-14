@@ -137,6 +137,9 @@ node tools/serve.mjs                 # http://127.0.0.1:8123 — use THIS, not p
 # edit content/allocation_new.csv to change what is on a page
 node tools/allocate.mjs              # -> js/pages.js   (refuses to write on a typo)
 node tools/sitemap.mjs               # -> sitemap.xml
+node tools/vendor.mjs                # -> vendor/three/        (--check to verify only)
+node tools/fonts.mjs                 # -> assets/fonts/ + css/fonts.css
+node tools/reel-test.mjs [url]       # drives a real Chrome; the reel's drift
 ```
 
 `python -m http.server` sends no `Cache-Control` and answers `200` to a
@@ -291,9 +294,11 @@ between runs with a similar FCP.
 The browser this session drives reports `visibilityState: hidden`
 permanently: screenshots still render, but `requestAnimationFrame`
 never fires, so any frame-counting or drift measurement silently
-returns nothing. Drive a real Chrome over CDP instead — Node 24 has a
-native WebSocket, so it needs no packages. That is how both reel bugs
-were confirmed.
+returns nothing. Drive a real Chrome over CDP instead — `node tools/reel-test.mjs`,
+optionally with a URL, which is how both reel bugs were confirmed. Node
+24 has a native WebSocket, so it needs no packages and no install. Run
+it against the live site as a control whenever you touch `reel.js`: a
+number on its own proves very little.
 
 
 1. **The heavy source is not in git.** `assets/media/` (328 MB),

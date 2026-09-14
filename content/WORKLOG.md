@@ -9,6 +9,7 @@ A record of the restructuring, in the order it happened.
 | 10-18 | the mosaic's reading order, the avatar studio deployed, a way back out of both, fifteen files of footage and the reel under the wheel — then repairing what the first of those quietly broke, then a detector across three device classes |
 | 19-21 | the phone stopped being a smaller desktop; the studio's chrome |
 | 22-25 | the two runnable things land on their own record; row thumbnails, the resume, the footer, the wheel's inward collision, the mosaic's barrier tiles; the bar down to one door |
+| 26-27 | a display face for the headings; three.js and the fonts off the CDN, reverted, then put back; two bugs in a strip that had never moved |
 
 Sections 21 and 25 are reproduction records — the *what*, for rebuilding
 from — and the numbered sections around them are the *why*.
@@ -22,7 +23,7 @@ tried and did not work — so nobody spends an afternoon rediscovering
 them. `NOTES.md` is how to work on it.
 
 **Live at www.govindbmohan.com**, built from `gbmworks/portfolio`. The
-most recent commit here is `6817efa` (2026-09-13); each reproduction
+most recent commit here is `29dec04` (2026-09-14); each reproduction
 record names the commits for its own range.
 
 ---
@@ -1822,6 +1823,164 @@ output** — `node deploy.mjs` in each folder overwrites it.
 3. **z-index on a child cannot escape its parent's stacking context.**
    `.ui` is z-index 20; raising `.topbar` inside it does nothing. Raise
    `.ui`.
+
+---
+
+## 26. A face, an origin, and a strip that never moved
+
+Three pieces of work on 2026-09-14, and one mistake in how they were
+shipped that is worth more than any of them.
+
+### The headings got their own face
+
+`Stack Sans Notch` (Koto, variable 400-700, one 32 KB latin file) now
+sets the headings and only the headings: the splash wordmark and the
+bar's 14px copy of it, the landing hero, page and section titles, the
+panel subtitle. Space Grotesk keeps every paragraph, lede and small
+label; JetBrains Mono keeps the uppercase eyebrows and counters.
+
+The list of what counts as a heading is **one rule in `base.css`**
+rather than a `font-family` scattered across five sheets, so "what is a
+heading on this site?" has one place to read the answer and one place to
+change it. Three things are deliberately outside it: the mono voice,
+because that is what a title is set *against* and a third face there
+leaves nothing to contrast with; body copy; and the 10-12.8px labels —
+`.tile__title`, `.label__title`, `.stage__title` — which read as
+captions on a picture, and where a face cut for 40px has nothing to
+show. The bar's 14px GOVIND is *in* despite its size for the one reason
+that overrides it: it is the same word as the splash.
+
+Checked before shipping: the detector reported identical findings before
+and after on three pages at 390x844 and 1440x900, and every character in
+all 23 project titles and 3 section titles is inside the two subsets
+Google serves for that face — the same class of check the back-to-back
+arrow needed, and for the same reason.
+
+### One origin instead of three
+
+The landing page opened this origin, `cdn.jsdelivr.net` for three.js,
+and the Google Fonts pair. **The bytes were never the problem** — 305 KB
+over 44 requests is a lean page. The problem was that two of those
+origins cost a DNS lookup and a TLS handshake each, and neither could
+begin until the import map or the font stylesheet had already come back.
+No preload scanner can shortcut that.
+
+Both are now in the repo, by generator and not by hand:
+
+| | |
+|---|---|
+| `node tools/vendor.mjs` | `vendor/three/`, 14 files, pinned 0.169.0 |
+| `node tools/fonts.mjs` | `assets/fonts/` + `css/fonts.css`, 17 files |
+
+`vendor.mjs` follows imports from the six modules the site actually
+opens rather than carrying a list of three's internals, because a
+hand-kept list of a library's guts goes stale on the next bump. It
+mirrors three's own directory layout, so an addon's relative imports of
+its siblings resolve without rewriting upstream source. `fonts.mjs` asks
+Google for the CSS with a Chrome user agent — it serves ttf to anything
+it does not recognise — and keeps the unicode-range splits, so a page
+with no latin-ext character still never fetches the latin-ext file. Both
+take `--check`: they write nothing and exit 1 on drift.
+
+Measured on the live site, mobile, median of three Lighthouse runs, on
+either side of a revert and then again after reapplying:
+
+| | on a CDN | self-hosted |
+|---|---|---|
+| First contentful paint | 3,963 ms | **2,410 ms** |
+| Largest contentful paint | 4,998 ms | **3,500 ms** |
+| Performance score | 37 | 52-56 |
+
+First paint reproduced within 4 ms across two separate rounds. Desktop
+went 941 ms to 542 ms. **Speed Index is deliberately absent** — it read
+4,765 ms in one round and 7,037 ms in the next on identical bytes, and
+has no business being quoted as a result on a page whose wheel is still
+animating while it is sampled.
+
+### The strip that had never moved
+
+Two bugs in `js/reel.js`, one hiding the other.
+
+**The idle drift could not move.** `scroll-snap-type: x proximity` on
+the track and `scroll-snap-align: start` on the cells are what make a
+swipe land on a card rather than between two. They are also why a
+14 px/s drift could not exist: the strip begins *at* a snap point,
+14 px/s is about 0.23 px per frame, and every one of those writes landed
+inside the proximity threshold, so the browser pulled it back before the
+next frame. `scrollLeft` sat at 2 on every build ever shipped.
+
+**The loop ran anyway, for that nothing.** It re-requested a frame
+unconditionally and returned early when there was nothing to do, so a
+visitor who never scrolled that far still paid sixty wake-ups a second
+for the life of the tab. Lighthouse charged ~2,300 ms of the landing
+page's blocking time to the file for 63 ms of actual script — the
+largest single entry on the page.
+
+Both fixed. Snap is suspended for the duration of the drift and restored
+the moment it ends; the loop starts on intersection and is cancelled
+when the strip leaves the screen, when the drift finishes, when somebody
+takes hold of it, and on `visibilitychange`. `reel.js` fell from
+~2,300 ms of long-task time to ~140 ms.
+
+### The mistake: those two were shipped as one commit
+
+The self-hosting is invisible and the drift fix is not — it makes a
+strip move that nobody has ever seen move. They went in as one batch,
+the batch was reverted, and the speed went with it. It then had to be
+reapplied separately. One extra round trip and two extra live deploys,
+for a bundling decision.
+
+The reel work was redone as **two commits on purpose**: `59522bf` stops
+the loop (invisible, land it and move on) and `791fba7` suspends snap so
+the drift moves (visible, a decision). Reverting the second leaves the
+first standing. That is the rule now: **invisible wins and visible
+changes never share a commit.**
+
+### Three things that cost something to learn
+
+1. **Lighthouse TBT and TTI get *worse* as this site gets faster.** TTI
+   wants five seconds of main-thread quiet, and a page with a WebGL
+   render loop never gives it one — so TTI runs to the end of the trace
+   and TBT accumulates across the whole window from first paint to that.
+   Self-hosting moved first paint 1.6 s earlier, which *widened* the TBT
+   window from 4.8 s to 11.9 s and made the number look four times worse
+   while every metric a visitor can feel improved. Read FCP and LCP here.
+2. **A hidden tab never runs rAF**, so animation cannot be tested in
+   one. The browser this session drives reports `visibilityState:
+   hidden` permanently: screenshots still render, but frame counting and
+   drift measurement silently return zero. `tools/reel-test.mjs` drives
+   a real Chrome over CDP instead — Node 24 has a native WebSocket, so
+   it needs no packages. Both reel bugs were confirmed that way, against
+   the unfixed live site as a control.
+3. **The Pages build record's `.commit` lags.** After pushing `406be02`
+   the latest build still read `a56b120` while the new bytes were
+   already being served; a wait loop keyed on the SHA hung for five
+   minutes on a finished deploy. Grep the served file. `NOTES.md` said
+   to check the bytes and not the status — it was right, and this is the
+   sharper version of why.
+
+---
+
+## 27. Reproduction record — section 26
+
+The *what*, tight enough to rebuild from.
+
+| commit | what |
+|---|---|
+| `970f171` | the display face: `--display` token and one heading rule in `css/base.css`, the family added to the font link in six shells |
+| `173723d` | `tools/vendor.mjs`, `tools/fonts.mjs`, `vendor/`, `assets/fonts/`, `css/fonts.css`; import map, modulepreload and font link repointed in six shells; `THREE_CDN` to `THREE_BASE` in `js/boot.js` |
+| `be4e11b` | revert of the above plus the reel work — undone by reapplying `173723d` alone |
+| `59522bf` | `js/reel.js` — the loop starts and cancels instead of idling |
+| `791fba7` | `js/reel.js` — snap suspended while drifting |
+| `29dec04` | README and NOTES say both are fixed |
+
+**Do not hand-edit** `vendor/`, `assets/fonts/` or `css/fonts.css` —
+`node tools/vendor.mjs` and `node tools/fonts.mjs` overwrite them, and
+both refuse to differ silently under `--check`.
+
+All on `gbmworks/portfolio`. `gbmPrimetrace/portfolio` has none of it and
+still cannot be pushed from this machine — `push: false`, checked again
+on 2026-09-14. Built and verified live the same day.
 
 ---
 
