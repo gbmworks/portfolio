@@ -31,6 +31,10 @@
   --accent-glow: #ff9048;
   --font: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  /* The display face, headings only — Space Grotesk still sets every
+     paragraph, lede and label, and it is the fallback here so a failed
+     font hop changes nothing but the shape of the titles. */
+  --display: 'Stack Sans Notch', 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --ease: cubic-bezier(.16,1,.3,1);
 }
 
@@ -46,6 +50,47 @@ body{
 }
 a{ color:inherit; text-decoration:none; }
 button{ font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+
+/* ------------------------------------------------------------------
+   THE HEADINGS
+
+   One list, here rather than scattered across five sheets, because the
+   question "what is a heading on this site?" now has an answer and it
+   is worth being able to read it in one place.  Each sheet still owns
+   its own size, weight and tracking; this sets nothing but the face.
+
+   A heading is the largest piece of type on its own plate: the splash
+   wordmark, the landing hero, a page title, a section head.  The bar's
+   14px GOVIND is in the list despite its size for the one reason that
+   overrides it — it is the same word as the splash, and a wordmark
+   that changes face between two moments is not a wordmark.  Three
+   things are deliberately *not* in this list:
+
+   - the mono eyebrows, counters and back-links (`--mono`).  Uppercase,
+     wide-tracked JetBrains Mono is the site's second voice and the
+     thing a title is set against; putting a third face there would
+     leave nothing for the titles to contrast with.
+   - body copy, ledes and blurbs, which stay Space Grotesk.
+   - the small labels — `.tile__title` and `.label__title` at 10-12.8px,
+     `.stage__title` at 16px.  They read as captions attached to a
+     picture, not as headings, and a display face cut for 40px is the
+     wrong tool at 10.
+   ------------------------------------------------------------------ */
+.intro__name,
+.topbar__id strong,
+.lede__h,
+.panel__title,
+.panel__sub,
+.proj__title,
+.win__head h2,
+.plinks__head h2,
+.strip__head h2,
+.reel__title,
+.galbar__title,
+.stage__empty .stage__title,
+.fallback__inner h1{
+  font-family:var(--display);
+}
 
 #stage{
   position:fixed; inset:0;

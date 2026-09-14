@@ -10,7 +10,7 @@
         "rule": "overused-font",
         "value": "space grotesk",
         "createdAt": "2026-09-11T10:51:27.968Z",
-        "reason": "Brand face: the whole identity is set in it; changing it is a rebrand, not a fix"
+        "reason": "Text face: it sets every paragraph, lede and label on the site. Headings are Stack Sans Notch (--display in css/base.css); this is the other half of that pair, not a font used by default"
       },
       {
         "rule": "buried-raster",

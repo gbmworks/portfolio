@@ -202,8 +202,8 @@ Sweep all three device classes before shipping a visual change —
 a phone than on a desktop, and that is worth keeping true.
 
 Three rules are deliberately ignored in `.impeccable/config.json`, with
-reasons attached: **Space Grotesk** (the brand face — changing it is a
-rebrand), **codex-grid-background** (the drafting sheet is a real
+reasons attached: **Space Grotesk** (the text face — it sets every
+paragraph on the site, which is the rule's whole complaint), **codex-grid-background** (the drafting sheet is a real
 measurement surface, which the rule's own wording exempts), and
 **buried-raster** in `tiles.js` (the lazy wall holds `.tile__el` at
 opacity 0 until `is-ready`).
@@ -289,6 +289,26 @@ is the rule doing its job — put it back.
 
 ## Current state
 
+- **Three faces, three jobs, and the list of which is which lives in
+  `css/base.css`.** `--display` is **Stack Sans Notch** (Koto, variable
+  400-700, one 32 KB latin file) and sets the headings *only*: the
+  splash wordmark and the bar's 14px copy of it, the landing hero, page
+  and section titles, the panel subtitle. `--font` is **Space Grotesk**
+  and still sets every paragraph, lede, blurb and small label. `--mono`
+  is **JetBrains Mono** for the uppercase eyebrows, counters and
+  back-links. The heading list is one rule in `base.css` rather than a
+  `font-family` scattered across five sheets, so the question "what
+  counts as a heading here?" has one place to read the answer — and one
+  place to change it. `--display` falls back to Space Grotesk, so a
+  failed font hop costs the shape of the titles and nothing else.
+  Deliberately *not* in the list: the mono voice (a title needs
+  something to be set against), body copy, and the 10-12.8px labels —
+  `.tile__title`, `.label__title`, `.stage__title` — which read as
+  captions on a picture, and where a face cut for 40px has nothing to
+  show. Verified: the detector reports the identical findings before and
+  after, on three pages at 390x844 and 1440x900, and every character in
+  all 23 project titles and 3 section titles is inside the two subsets
+  Google serves for it.
 - Technical Art leads with the game (`live: 'game/unicorn/'` on the record
   in `projects.js`); clicking the row plays it. Nothing of the game loads
   until then — measured, zero requests under `game/` on a section load.
