@@ -262,17 +262,19 @@ is the rule doing its job — put it back.
 card. It also silently killed the reel's idle drift for its whole life:
 14 px/s is about 0.23 px per frame, every write lands inside the
 proximity threshold, and the browser pulls it back before the next
-frame. `scrollLeft` sits at 2 forever — verified on the live site, not
-just locally, by driving Chrome over CDP. **This is still true of the
-shipped build.** If you animate `scrollLeft` on a snapping container,
-suspend `scroll-snap-type` for the duration and restore it after.
+frame. `scrollLeft` sat at 2 forever — verified on the live site, not
+just locally, by driving Chrome over CDP. **Fixed in `791fba7`**, which
+suspends `scroll-snap-type` for the duration of the drift and restores
+it after. If you animate `scrollLeft` on any snapping container, do the
+same; the symptom is silence, not an error.
 
 **A rAF loop that returns early still costs a frame.** The same file
 re-requests a frame unconditionally and bails at the top when there is
 nothing to do. That is not idling — it is sixty wake-ups a second for
-the life of the tab, and Lighthouse charges ~2,300 ms of blocking time
-to it for 63 ms of script. **Also still true of the shipped build.**
-Cancel the loop; do not skip the work.
+the life of the tab, and Lighthouse charged ~2,300 ms of blocking time
+to it for 63 ms of script. **Fixed in `59522bf`.** Cancel the loop; do
+not skip the work. The tell in a trace is a file with a large total and
+a tiny scripting number.
 
 **Lighthouse TBT and TTI get *worse* when this site gets faster, and
 that is not a bug in the change.** TTI wants five seconds of
@@ -609,8 +611,8 @@ were confirmed.
    first paint 3,963ms to 2,408ms, median of three Lighthouse runs on
    either side of a revert. Do not hand-edit `vendor/`, `assets/fonts/`
    or `css/fonts.css` — re-run the generator.
-5. **The reel drifts nowhere, on a loop that never stops** — two bugs in
-   `js/reel.js`, both measured, both still live. See the two traps below.
-   A fix exists at `ab6325b` and was reverted with a batch it was bundled
-   into; reapplying it is a decision about how the strip should behave,
-   because it makes a strip move that has never moved.
+5. ~~**The reel drifts nowhere, on a loop that never stops**~~ **Both
+   fixed, 2026-09-14** — `59522bf` (the loop, invisible) and `791fba7`
+   (the drift, visible), deliberately split so the second can be reverted
+   alone. The strip now creeps where it never has; if that reads wrong on
+   a phone, revert `791fba7` and the loop fix survives.

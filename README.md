@@ -999,18 +999,13 @@ to you, this is the first thing to try: set `INTRO_MS` to 1200.
 
 1. ~~**Self-host the two fonts.**~~ **Done** — `tools/fonts.mjs`.
 2. ~~**Self-host three.js.**~~ **Done** — `tools/vendor.mjs`.
-3. **The reel's drift does not work, and its loop runs anyway.** Two
-   separate bugs in `js/reel.js`, both measured and both still here. The
-   drift cannot move — `scroll-snap-type: x proximity` re-snaps every
-   0.23 px write before the next frame, so `scrollLeft` has sat at 2 on
-   every build ever shipped. And the loop re-requests a frame
-   unconditionally and returns early, so it costs sixty wake-ups a second
-   for the life of the tab regardless. Lighthouse charges it ~2,300 ms of
-   the landing page's blocking time for 63 ms of script — the largest
-   single entry on the page. A fix was written and then reverted with the
-   rest of a batch; it is at `ab6325b` if it is wanted, and it changes
-   how the strip behaves on screen, which is why it is a decision and not
-   a cleanup.
+3. ~~**The reel's drift does not work, and its loop runs anyway.**~~
+   **Both fixed, 2026-09-14**, in two commits so the visible half can be
+   reverted on its own: `59522bf` stops the loop when the strip is off
+   screen or the tab is hidden, and `791fba7` suspends `scroll-snap-type`
+   for the duration of the drift so it can actually move. Measured over
+   CDP against the unfixed live site as a control: 26 rAF/s off screen
+   became 14, and 0.0 px of drift in three seconds became 24.
 4. **Cap the landing's render loop.** `page.js` and `project.js` both pass
    `fps: 24`; the landing passes nothing and renders flat out. It is the
    second largest contributor to blocking time on a throttled phone. The
