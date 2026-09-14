@@ -104,6 +104,22 @@ thing to check and to say first: `6817efa` stayed up and correct for the
 whole incident. A wedged build is the *next* deploy not arriving, not
 the current one breaking.
 
+**How this one actually ended, 2026-09-14.** Nobody touched Settings and
+nobody opened a ticket. `e73ab7c` sat at `building`, `duration=0`, for
+**29 hours**. The next ordinary push — `970f171`, a day later — was
+picked up in the normal way: a `pages-build-deployment` run appeared for
+that SHA within a second, and it was `built` in 31s. The stuck record
+flipped to `errored` at the same second, supersession as always.
+
+So the honest version is: **it cleared itself, and the wait was the
+cure.** "Keep pushing" is still the wrong move — what made this one work
+was one push after a long gap, not six in ten minutes. If it happens
+again, the order is: confirm the site is still serving, confirm the
+commit is on the remote, then leave it alone and push the next real
+change when you have one. Toggling the Pages source and Support are
+still what is left after *that*, but they are further down the list than
+this file used to imply.
+
 HTTPS is enforced (since 2026-09-09), so `http://` and the bare apex both
 `301` to `https://www.govindbmohan.com/…` with the path kept. That is a
 repo setting, not a file:
