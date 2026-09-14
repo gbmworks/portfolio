@@ -256,35 +256,6 @@ is the rule doing its job — put it back.
 
 ## Traps, in the order they will bite
 
-**A programmatic scroll of less than a snap threshold does not move.**
-`scroll-snap-type: x proximity` on `.reel__track` and
-`scroll-snap-align: start` on the cells are what make a swipe land on a
-card. They also silently killed the reel's idle drift for its entire
-life: 14 px/s is about 0.23 px per frame, every write landed inside the
-proximity threshold, and the browser pulled it back before the next
-frame. `scrollLeft` sat at 2 forever, on the live site as well as
-locally. If you animate `scrollLeft` on a snapping container, suspend
-`scroll-snap-type` for the duration and restore it after — which is what
-`reel.js` does now.
-
-**A rAF loop that returns early still costs a frame.** The same file
-re-requested a frame unconditionally and bailed at the top when there
-was nothing to do. That is not idling, it is a sixty-times-a-second
-wake-up for the life of the tab, and Lighthouse charged 2.3s of blocking
-time to it for 63 ms of script. Cancel the loop; do not skip the work.
-
-**Lighthouse TBT and TTI get *worse* when this site gets faster, and
-that is not a bug in the change.** TTI wants five seconds of main-thread
-quiet, and a page with a WebGL render loop never gives it one — so TTI
-runs to the end of the trace and TBT accumulates over the whole window
-between first paint and that. Self-hosting moved first paint 1.6s
-earlier, which *widened* the TBT window from 4.8s to 11.9s and made the
-number look four times worse while every metric a visitor can feel
-improved. Read FCP, LCP and Speed Index on this site. Treat TBT as a
-signal about the render loop specifically, and compare it only against
-runs with a similar FCP.
-
-
 1. **The heavy source is not in git.** `assets/media/` (328 MB),
    `content/Unicorn/dist/` (59 MB of models), `content/Fitmint/Male/`
    (92 MB of FBX and textures), `content/Fitmint/hdri/` and
@@ -594,9 +565,6 @@ runs with a similar FCP.
 3. **Artwork for the five bare records**, which is the only thing keeping
    them off the site — see "Current state" for the list and the one-liner
    that re-derives it.
-4. ~~**Self-host the fonts and three.js**~~ **Done, 2026-09-14** —
-   `node tools/vendor.mjs` and `node tools/fonts.mjs`, both idempotent,
-   both with `--check`. The landing now opens exactly one origin. Mobile
-   first paint went 4.0s to 2.4s, median of three Lighthouse runs against
-   the live site. Do not hand-edit `vendor/`, `assets/fonts/` or
-   `css/fonts.css` — re-run the generator.
+4. **Self-host the fonts and three.js** — two extra origins and 209 KB from
+   a CDN on every page, and the CDN is a single point of failure the boot
+   guard exists to defend against.

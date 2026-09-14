@@ -61,6 +61,20 @@ export function mountReel({ mount = '#reel', onNavigate = null } = {}) {
 
   const track = host.querySelector('.reel__track');
 
+  /* ---- the reveal ----
+     The cards are staggered by --i, but only once the strip is
+     actually looked at: animating them on load would spend the
+     animation while the visitor is still three seconds into the intro
+     and a screen above it. */
+  const seen = new IntersectionObserver((rows) => {
+    rows.forEach(r => {
+      if (!r.isIntersecting) return;
+      host.classList.add('is-in');
+      seen.disconnect();
+    });
+  }, { rootMargin: '-12% 0px' });
+  seen.observe(host);
+
   /* ---- hover, playback and where a click goes ----
      the whole of it, from the same engine that draws every other wall */
   const tiles = startTiles(host, { onNavigate });
@@ -68,103 +82,27 @@ export function mountReel({ mount = '#reel', onNavigate = null } = {}) {
   /* ---- the drift ----
      It exists so the strip is never a dead row of stills, and it stops
      for good the moment somebody takes hold of it — a carousel that
-     keeps moving under a pointer is a carousel that loses a click.
-
-     Two things here are about cost rather than behaviour, and both were
-     measured rather than guessed.
-
-     **The loop is started and cancelled, not left running and skipped.**
-     It used to re-request a frame unconditionally and then `return`
-     early when there was nothing to do — so a visitor who never scrolled
-     this far, or who had reduced motion on, or who had already taken
-     hold of the strip once, still paid sixty wake-ups a second for as
-     long as the tab was open.  Lighthouse attributed 2.3 s of the
-     landing page's blocking time to this file for 63 ms of actual
-     script.  An early `return` gives up the work; it does not give up
-     the frame.
-
-     **The track is measured once, not sixty times a second.**
-     `scrollWidth` and `clientWidth` force layout, and neither changes
-     between resizes.  The offset is now carried in `pos` and only
-     written to the element, so a drifting frame costs one style write
-     and no read at all. */
+     keeps moving under a pointer is a carousel that loses a click. */
   let drifting = !matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let inView = false;
-  let maxScroll = 0;
-  let pos = 0;
   let last = 0;
   let raf = 0;
 
-  const measure = () => { maxScroll = Math.max(0, track.scrollWidth - track.clientWidth); };
-
-  /* `scroll-snap-type: x proximity` on the track and `scroll-snap-align:
-     start` on each cell are what make a swipe land on a card instead of
-     between two.  They are also why this drift never once moved.
-
-     The strip begins *at* a snap point, and a 14 px/s drift is about
-     0.23 px per frame.  Every one of those writes lands well inside the
-     proximity threshold, so the browser pulls it straight back before
-     the next frame — scrollLeft sat at 2 forever, on every build since
-     the drift was written.  Verified against the live site, not only
-     locally: identical, 0.0 px in three seconds.
-
-     So snap is suspended for the duration of the drift and restored the
-     moment it ends, for any of the reasons it ends.  The cells keep
-     their alignment; only the container's rule is lifted, and only
-     while nobody is touching it. */
-  const snap = (on) => { track.style.scrollSnapType = on ? '' : 'none'; };
-
-  const stop = () => {
-    if (raf) { cancelAnimationFrame(raf); raf = 0; }
-    last = 0;
-    snap(true);
-  };
-  const start = () => {
-    if (raf || !drifting || !inView || document.hidden) return;
-    measure();
-    pos = track.scrollLeft;
-    snap(false);
-    raf = requestAnimationFrame(tick);
-  };
-
-  const stopDrift = () => { drifting = false; stop(); };
+  const stopDrift = () => { drifting = false; };
   ['pointerdown', 'wheel', 'touchstart', 'keydown'].forEach(t =>
     track.addEventListener(t, stopDrift, { passive: true, once: true }));
-  host.addEventListener('pointerenter', stopDrift);
+  host.addEventListener('pointerenter', () => { drifting = false; });
 
-  function tick(t) {
-    if (!drifting || !inView || document.hidden) { stop(); return; }
+  const tick = (t) => {
+    raf = requestAnimationFrame(tick);
     const dt = last ? Math.min((t - last) / 1000, 0.05) : 0;
     last = t;
-    if (maxScroll <= 0) { stop(); return; }
-    pos = Math.min(pos + DRIFT_PX_S * dt, maxScroll);
-    track.scrollLeft = pos;
-    if (pos >= maxScroll) { drifting = false; stop(); return; }
-    raf = requestAnimationFrame(tick);
-  }
-
-  /* A hidden tab throttles rAF rather than stopping it, and a phone
-     with the screen off is the case that matters — nothing on this
-     strip is worth a wake-up nobody can see. */
-  document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
-
-  /* ---- the reveal, and the gate on the drift ----
-     The cards are staggered by --i, but only once the strip is
-     actually looked at: animating them on load would spend the
-     animation while the visitor is still three seconds into the intro
-     and a screen above it.
-
-     The observer used to disconnect itself after that first reveal.  It
-     stays connected now because the drift needs the other edge too:
-     being revealed is a one-shot, being *on screen* is not, and a strip
-     scrolled back out of view has no reason to keep moving. */
-  const seen = new IntersectionObserver((rows) => {
-    rows.forEach(r => {
-      inView = r.isIntersecting;
-      if (inView) { host.classList.add('is-in'); start(); } else stop();
-    });
-  }, { rootMargin: '-12% 0px' });
-  seen.observe(host);
+    if (!drifting || !host.classList.contains('is-in')) return;
+    const max = track.scrollWidth - track.clientWidth;
+    if (max <= 0) return;
+    if (track.scrollLeft >= max - 1) { drifting = false; return; }
+    track.scrollLeft += DRIFT_PX_S * dt;
+  };
+  raf = requestAnimationFrame(tick);
 
   /* ---- arrows ---- */
   host.querySelectorAll('.reel__arrow').forEach(btn =>
@@ -176,24 +114,17 @@ export function mountReel({ mount = '#reel', onNavigate = null } = {}) {
   /* an arrow that cannot go anywhere says so rather than sitting there
      looking live */
   const ends = () => {
+    const max = track.scrollWidth - track.clientWidth - 1;
     host.querySelector('[data-dir="-1"]').disabled = track.scrollLeft <= 0;
-    host.querySelector('[data-dir="1"]').disabled = track.scrollLeft >= maxScroll - 1;
+    host.querySelector('[data-dir="1"]').disabled = track.scrollLeft >= max;
   };
-
-  /* Only a scroll the drift did not cause is worth re-syncing from — a
-     swipe, an arrow, a keyboard.  Re-syncing from our own writes is what
-     would hand authority back to the snap we just suspended. */
-  track.addEventListener('scroll', () => {
-    if (!raf) pos = track.scrollLeft;
-    ends();
-  }, { passive: true });
-  addEventListener('resize', () => { measure(); ends(); });
-  measure();
+  track.addEventListener('scroll', ends, { passive: true });
+  addEventListener('resize', ends);
   ends();
 
   return {
     destroy() {
-      stop();
+      cancelAnimationFrame(raf);
       seen.disconnect();
       tiles.destroy();
     }
