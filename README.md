@@ -967,14 +967,21 @@ mobile (412x823, 4x CPU, slow 4G), median of three runs:
 
 | | on a CDN | self-hosted |
 |---|---|---|
-| First contentful paint | 3,963 ms | **2,408 ms** |
-| Largest contentful paint | 4,998 ms | **3,529 ms** |
-| Speed Index | 7,026 ms | **4,765 ms** |
-| Performance score | 37 | 56 |
+| First contentful paint | 3,963 ms | **2,410 ms** |
+| Largest contentful paint | 4,998 ms | **3,500 ms** |
+| Performance score | 37 | 52-56 |
 
-Desktop first paint went 941 ms to 542 ms in the same change. Both
-numbers were taken twice, on either side of a revert, which is as close
-to a controlled comparison as a live site allows.
+Desktop first paint went 941 ms to 542 ms. Measured on either side of a
+revert and then again after reapplying, which is as close to a
+controlled comparison as a live site allows: first paint reproduced
+within 4 ms across two separate rounds of three runs.
+
+**Speed Index is not in that table on purpose.** It came back 4,765 ms
+in one round of three and 7,037 ms in the next, on identical bytes. It
+is too noisy on this page to report — the wheel is still animating
+while it is sampled. Trust FCP and LCP here, and see the note in NOTES
+about TBT and TTI, which move the *wrong way* when this site gets
+faster.
 
 ### The three seconds that are not loading
 
