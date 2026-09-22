@@ -29,6 +29,17 @@ let releaseTimer: number | null = null;
 /** How long the stream survives with no holders, so navigation does not flicker. */
 const GRACE_MS = 4000;
 
+/**
+ * A camera problem that is the situation's fault rather than the customer's.
+ *
+ * Carries a sentence worth showing as-is, which is what separates it from the
+ * `DOMException`s below -- those get their wording chosen for them, because
+ * "NotAllowedError" is not something to put in front of anyone.
+ */
+class CameraUnavailable extends Error {
+  readonly friendly = true;
+}
+
 const CONSTRAINTS: MediaStreamConstraints = {
   audio: false,
   video: {
@@ -56,8 +67,42 @@ async function acquire(): Promise<MediaStream> {
   // still null and open a second camera, and the first stream would be
   // orphaned with its light still on.
   if (!pending) {
-    pending = navigator.mediaDevices
-      .getUserMedia(CONSTRAINTS)
+    pending = Promise.resolve()
+      .then(() => {
+        /*
+         * Why the camera is missing, before asking for it.
+         *
+         * `navigator.mediaDevices` is not merely restricted on an insecure
+         * origin -- it is `undefined`. Calling straight through threw a
+         * TypeError, which is not a `DOMException`, so the handler below fell
+         * to its last branch and showed the customer
+         * "Cannot read properties of undefined (reading 'getUserMedia')".
+         * A developer's error string, and it names neither the cause nor the
+         * cure.
+         *
+         * This is not a corner case. The dev server binds to the LAN so the
+         * phone layout can be checked on a phone, and that address is plain
+         * http -- so the first thing anyone testing on a real device meets is
+         * the one path that explained itself worst.
+         *
+         * `isSecureContext` is the question the browser actually asks;
+         * localhost counts as secure, which is why this never appears on the
+         * machine the server is running on.
+         */
+        if (!window.isSecureContext) {
+          throw new CameraUnavailable(
+            'The camera needs a secure connection. Open this over https, or on the ' +
+              'same machine as the server, and it will work.',
+          );
+        }
+        if (!navigator.mediaDevices?.getUserMedia) {
+          throw new CameraUnavailable(
+            'This browser will not give a page camera access. Safari or Chrome on ' +
+              'this device should; an in-app browser usually will not.',
+          );
+        }
+        return navigator.mediaDevices.getUserMedia(CONSTRAINTS);
+      })
       .then((stream) => {
         shared = stream;
         return stream;
@@ -76,6 +121,43 @@ async function acquire(): Promise<MediaStream> {
     refCount = Math.max(0, refCount - 1);
     throw error;
   }
+}
+
+/**
+ * Turn whatever went wrong into something worth reading.
+ *
+ * Every branch names the cure rather than the fault. The wording avoids "the
+ * address bar" -- on a phone there is no permission chip in one, and being
+ * told to look somewhere that does not exist is worse than being told
+ * nothing.
+ */
+function describe(error: unknown): { status: TrackingState['status']; message: string } {
+  if (error instanceof CameraUnavailable) {
+    return { status: 'error', message: error.message };
+  }
+  if (error instanceof DOMException) {
+    switch (error.name) {
+      case 'NotAllowedError':
+      case 'SecurityError':
+        return {
+          status: 'denied',
+          message:
+            'Camera access was blocked. Allow it for this site in your browser settings, then reload.',
+        };
+      case 'NotFoundError':
+      case 'OverconstrainedError':
+        return { status: 'error', message: 'No camera on this device that this page can use.' };
+      case 'NotReadableError':
+        return {
+          status: 'error',
+          message: 'Something else is using the camera. Close it and reload.',
+        };
+    }
+  }
+  return {
+    status: 'error',
+    message: error instanceof Error ? error.message : 'Could not start the camera',
+  };
 }
 
 function release(): void {
@@ -287,18 +369,7 @@ export function useFaceTracking(
       } catch (error) {
         releaseOnce();
         if (cancelled) return;
-        const denied =
-          error instanceof DOMException &&
-          (error.name === 'NotAllowedError' || error.name === 'SecurityError');
-        setState({
-          status: denied ? 'denied' : 'error',
-          message: denied
-            ? 'Camera access was blocked. Allow it in the address bar and reload.'
-            : error instanceof Error
-              ? error.message
-              : 'Could not start the camera',
-          faceLost: false,
-        });
+        setState({ ...describe(error), faceLost: false });
       }
     };
 

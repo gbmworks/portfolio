@@ -28,6 +28,37 @@ export interface FitSettings {
   scale: number;
 }
 
+/**
+ * Where the sliders read neutral -- what the frame is already doing before
+ * anyone touches a control.
+ *
+ * `scale` and `depth` in `FitSettings` are departures from these, not absolute
+ * values, which is why a default fit is all zeros and a 1.00x frame size. The
+ * alternative was defaults of 1.12 and 15 mm sitting somewhere in the middle
+ * of each slider's travel, and a number in the middle of a slider reads as a
+ * value that was chosen rather than as the place to measure from.
+ *
+ * Both were dialled in on a real face against a live camera -- the first time
+ * this app has been driven by someone who could see themselves wearing it.
+ * The 1.12 draws the 140 mm front at 157 mm, which is where the frame stopped
+ * looking like a toy; 15 mm is an ordinary vertex distance, and it replaces a
+ * default of 0 that sat the lenses on the lashes.
+ */
+export const FIT_REFERENCE = {
+  /** Multiplier on the frame's own measured front width. */
+  scale: 1.12,
+  /** Vertex distance the frame starts at, mm. */
+  depth: 15,
+} as const;
+
+/** The size the frame is actually drawn at, given a fit. */
+export const drawnScale = (fit: Pick<FitSettings, 'scale'>): number =>
+  fit.scale * FIT_REFERENCE.scale;
+
+/** The vertex distance the frame actually sits at, given a fit, mm. */
+export const drawnDepth = (fit: Pick<FitSettings, 'depth'>): number =>
+  fit.depth + FIT_REFERENCE.depth;
+
 export const DEFAULT_FIT: FitSettings = {
   height: 0,
   depth: 0,
@@ -41,14 +72,18 @@ export const DEFAULT_FIT: FitSettings = {
 
 export const FIT_RANGES: Record<keyof FitSettings, { min: number; max: number; step: number }> = {
   height: { min: -30, max: 20, step: 0.5 },
-  depth: { min: -6, max: 10, step: 0.5 },
+  // Symmetric about the reference, so the starting fit sits in the middle of
+  // the travel with the same room to go nearer as further. Effectively 5 mm
+  // to 25 mm of vertex distance, which spans what a dispenser would ever set.
+  depth: { min: -10, max: 10, step: 0.5 },
   pantoscopic: { min: -4, max: 20, step: 0.5 },
   splay: { min: -12, max: 12, step: 0.5 },
-  // Wide on purpose. A plausible dispensing range would be 0.85-1.15, but
-  // the placeholder FBX comes from a set whose absolute scale is known not
-  // to be trustworthy, so the control has to be able to reach past that to
-  // let a real size be found by eye.
-  scale: { min: 0.5, max: 1.8, step: 0.01 },
+  // Also symmetric, and no longer wide. It used to run 0.5-1.8 because the
+  // frame's true size was unknown and the control had to be able to find it
+  // by eye; it has now been found (see `FIT_REFERENCE`), so this is a fitting
+  // adjustment either side of it rather than a search. +/-20% of the
+  // reference is 126 mm to 188 mm of front width.
+  scale: { min: 0.8, max: 1.2, step: 0.01 },
 };
 
 export interface Point3 {
@@ -167,16 +202,21 @@ export function initialFit(
   },
   browHeightMm = 20,
 ): FitSettings {
+  // In slider units, so the control reads as a departure from the reference
+  // like every other one. The clamp is applied here rather than to the ratio,
+  // and `drawn` is read back afterwards, so everything measured below uses the
+  // size the frame will actually be drawn at.
   const scale = clampRange(
-    measurements.suggestedFrameWidth / (frame.frontWidth || 1),
+    measurements.suggestedFrameWidth / (frame.frontWidth * FIT_REFERENCE.scale || 1),
     FIT_RANGES.scale,
   );
+  const drawn = drawnScale({ scale });
 
   // Pupil position relative to the bridge saddle, in head-local mm. Positive
   // `bridgeHeight` means the nasion sits above the pupil line.
   const pupilY = -measurements.bridgeHeight;
   // Where the pupil should end up.
-  const target = (frame.lensCentreY + frame.lensHeight * PUPIL_ABOVE_CENTRE) * scale;
+  const target = (frame.lensCentreY + frame.lensHeight * PUPIL_ABOVE_CENTRE) * drawn;
 
   const base: FitSettings = {
     ...DEFAULT_FIT,
@@ -195,7 +235,7 @@ export function initialFit(
   return {
     ...base,
     splay: solveSplay(
-      scaleTemple({ hinge: frame.hingeLeft, tip: frame.tipLeft }, scale),
+      scaleTemple({ hinge: frame.hingeLeft, tip: frame.tipLeft }, drawn),
       Math.abs(earTargets(measurements, browHeightMm).left.x),
     ),
   };

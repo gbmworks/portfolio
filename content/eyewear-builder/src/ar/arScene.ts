@@ -34,7 +34,7 @@ import type { Colour } from '../editor/options';
 import type { LoadedFrame, PartKey } from '../frame/loadFrame';
 import { HeadOccluder, type OccluderMode } from './occluder';
 import { OneEuroVec } from './smoothing';
-import type { FitSettings } from './fit';
+import { drawnDepth, drawnScale, type FitSettings } from './fit';
 
 /** Vertical field of view of the virtual camera, degrees. */
 const FOV = 45;
@@ -286,9 +286,11 @@ export class ARScene {
     if (!this.fit) return;
     const f = this.fit;
 
-    this.fitGroup.position.set(0, f.height, f.depth);
+    // `depth` and `scale` are departures from `FIT_REFERENCE`, not absolute
+    // values -- so what the scene wants is the drawn figure, never the raw one.
+    this.fitGroup.position.set(0, f.height, drawnDepth(f));
     this.fitGroup.rotation.set(THREE.MathUtils.degToRad(-f.pantoscopic), 0, 0);
-    this.fitGroup.scale.setScalar(f.scale);
+    this.fitGroup.scale.setScalar(drawnScale(f));
 
     // The rotation sign comes from each hinge's own x, not from the part
     // name: the source FBX calls its arms LEFT and RIGHT but puts LEFT at
@@ -406,7 +408,12 @@ export class ARScene {
   dispose(): void {
     this.occluder.dispose();
     for (const material of this.materials.values()) material.dispose();
+    (this.scene.environment as THREE.Texture | null)?.dispose();
+    this.scene.environment = null;
     this.renderer.dispose();
+    // The same reason, and the same guard, as in `EditorScene.dispose` -- this
+    // is the other half of the pair that was leaking a context per navigation.
+    if (!this.renderer.domElement.isConnected) this.renderer.forceContextLoss();
   }
 }
 

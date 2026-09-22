@@ -9,7 +9,7 @@
  * or different ranges to do it with.
  */
 
-import { FIT_RANGES, type FitSettings } from '../ar/fit';
+import { FIT_RANGES, drawnScale, type FitSettings } from '../ar/fit';
 
 export function Slider({
   label,
@@ -72,7 +72,9 @@ export function PlacementControls({
   suggestedWidth?: number;
   onChange: (patch: Partial<FitSettings>) => void;
 }) {
-  const actualWidth = frontWidth !== null ? frontWidth * fit.scale : null;
+  // The drawn size, not the slider's number: the slider reads 1.00x at the
+  // reference, and the customer is being told a width in millimetres.
+  const actualWidth = frontWidth !== null ? frontWidth * drawnScale(fit) : null;
 
   return (
     <>
