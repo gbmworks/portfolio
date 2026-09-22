@@ -2431,8 +2431,14 @@ and the notes that came back were about where it *starts*.
 ### The starting fit
 
 The frame was too small by default and sat on the lashes. Dialled in
-live: the 140 mm front reads right at 157 mm, and 15 mm is an ordinary
-vertex distance.
+live: the 140 mm front reads right at 157 mm, and the frame wants to
+stand 25 mm off the eye — further than an optician's 12–15 mm, because
+this is not a dispensing measurement but the offset that puts a
+placeholder frame in front of a face located on an uncalibrated video
+feed. A second pass moved it out from 15 and widened its travel to
+±20 mm; vertical position took a −2.5 mm default at the same time, and
+kept its own zero, which unlike a multiplier of 1 or a vertex distance
+of 0 means something real — the bridge on the bridge of the nose.
 
 Those went in as a `FIT_REFERENCE` rather than as new default numbers,
 and `scale`/`depth` became departures from it. A default of 1.12 sitting
@@ -2490,6 +2496,82 @@ cleanup runs.
 So the release is in, guarded, along with disposing the pre-filtered
 environment both scenes were leaving on the GPU. Whether it is *his* bug
 is still unproven, and it is written down that way.
+
+---
+
+
+## 32. Three scrollers nobody could see
+
+2026-09-22. Two notes from driving the try-on on a phone, and they turned
+out to be the same note.
+
+### The options that were not reachable
+
+Reported as the try-on's controls being inaccessible after a scan. They
+were: the last slider sat behind the foot and the reset and the
+head-mask toggles were off the bottom entirely. The panel scrolled.
+Nothing said so.
+
+The panel also took half the screen to do it, so: sixty/forty, stated as
+what is left after the 52px bar and the 10px gap — the same remainder
+form as the editor's fifty-five, because `40dvh` outright is 40% of the
+*screen* and leaves the video 52.7%. The bar comes out of the video's
+share, not the card's.
+
+The forty earns its place by shedding words rather than controls. The
+secondary buttons keep their glyph and drop their visible label — still
+read aloud, still the tooltip. The reset joins the head-mask row. The
+size slider takes a full row, because its note carries millimetres and
+was wrapping to two lines in a half-width column and pushing everything
+below it under the foot; the other four pair up. The two explanatory
+paragraphs go. Foot: 110px to 66.
+
+### And then the same problem, everywhere else
+
+Measured on a sector page at 390x844: **three** scrollers, and
+`document.scrollHeight - innerHeight` of **zero**. The body does not
+scroll — the work lives in panels — so every scroller on that page is
+one nobody can see is a scroller. The sheet column was hiding 1523px
+past the fold, the work strip 2489 sideways, the project window 3507. A
+phone draws no scrollbar until you are already moving, and the
+horizontal strips hide theirs on purpose.
+
+Two implementations, deliberately one contract:
+`content/eyewear-builder/src/ui/useScrollNudge.ts` as a React hook and
+`js/scrollnudge.js` as a vanilla module, both setting `data-scroll` /
+`data-scroll-x` to "more" while there is something past the edge and
+"end" once there is not, and nothing at all when the content fits. All
+the drawing is in CSS off those attributes, so a new scroller needs the
+selector and no new styling.
+
+Two marks, two jobs. The fade says the content is *cut*, which a flat
+edge fails to say. The chevron says it can be *moved*, which a fade
+alone leaves ambiguous.
+
+Three passes on the chevron, and the lesson is in NOTES trap 80: a
+sticky scrim overlays scrolling content by design, so a bare glyph on a
+26px fade — the height of one line — landed across the shape's name in
+the editor and read as a rendering fault. The band went to 40px so it
+actually extinguishes a line, and the glyph got a chip so it reads as a
+control with its own ground rather than as ink belonging to whatever is
+underneath.
+
+Trap 79 is the other one: the try-on's panel body is a two-column grid
+now, and a sticky `::after` on a grid is a grid item — auto-placed into
+the next free cell, so the fade covered the left-hand column and stopped
+in the middle of the panel. `.panel__body > *` does not reach it either;
+a universal child selector matches elements, and a pseudo-element is not
+one.
+
+### Verified
+
+Video at 60.0% of 844 with the panel at 276 and all five sliders
+present; the foot at 66 with a labelled primary and 44px glyphs, scanned
+and unscanned; every scroller reporting `more` and the desktop editor
+reporting none at 380/380, which is the check that it is not simply
+always on. Desktop unchanged: rail 18 x 226, panel 1084 x 316, and
+`.tryon__tools` is `display: contents` there so the wrapper added for
+the phone is provably absent.
 
 ---
 

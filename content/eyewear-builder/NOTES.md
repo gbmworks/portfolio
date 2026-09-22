@@ -1067,6 +1067,33 @@ the 3D layer never has to know the view is flipped.
    StrictMode's simulated one it has not. Worth keeping in mind for any
    teardown that frees something the framework still holds a reference to.
 
+79. **A pseudo-element in a grid is a grid item.** The scroll nudge is a
+   sticky `::after` on the scroller, which works everywhere until the scroller
+   is a grid -- and the try-on's panel body is one, two columns of paired
+   sliders. It was auto-placed into the next free cell like any other item, so
+   the fade and the chevron covered the left-hand column and stopped dead in
+   the middle of the panel.
+
+   `.panel__body > *` does not reach it either; the universal child selector
+   matches elements, and a pseudo-element is not one. It needs naming
+   directly: `.panel__body[data-scroll]::after { grid-column: 1 / -1 }`.
+
+80. **A sticky scrim overlays content; a bare glyph on one reads as a mark on
+   the word underneath.** A nudge pinned to the bottom of a scrollport sits
+   over whatever is scrolling past, which is the whole point -- content going
+   under an edge is what says there is more of it. But the first version drew
+   a chevron straight onto a 26px fade, and 26px is the height of one line of
+   text: the fade began and ended inside the word, so the word stayed legible
+   and the chevron looked like it had been stamped on it. In the editor it
+   landed across the shape's name and read as a rendering fault.
+
+   Two fixes, both needed. The band went to 40px so it actually extinguishes a
+   line, and the glyph got a chip -- a filled circle behind it -- so it reads
+   as a control floating above content rather than as ink belonging to it.
+
+   The general form: anything drawn over scrolling content needs its own
+   ground, or it will be read as part of whatever happens to be beneath it.
+
 ---
 
 ## Layout
@@ -1185,6 +1212,38 @@ the screen on every tap. One height, and the product holds still.
 Turned sideways a phone is 390px tall, and a card along the bottom of that
 leaves the product sixty pixels. Under 520px of height the controls go back to
 being a column on the right, which is what a short wide window wants anyway.
+
+## Saying when a panel scrolls
+
+`useScrollNudge` marks any scroller with `data-scroll` -- "more" while there is
+something past the fold, "end" once there is not, nothing at all when the
+content fits. The stylesheet draws from that one attribute, so a new scroller
+needs the hook and no new styling.
+
+Two marks, two jobs. The fade says the content is *cut*, which a flat edge
+fails to say; the chevron says it can be *moved*, which a fade alone leaves
+ambiguous. Both are a sticky `::after` inside the scroller rather than an
+overlay on the parent, because the parents differ -- a flex column here, a
+two-column grid there, a bare page on the result screen -- and an overlay
+would need positioning context from each of them. See traps 79 and 80 for
+what that costs in a grid and over text.
+
+It earned its place rather than being decoration: on a phone the try-on's last
+slider sat under the foot and the reset and head-mask toggles were off the
+bottom entirely, with nothing on screen to say either could be reached.
+
+## The try-on on a phone
+
+Sixty/forty, stated as what is left after the bar and the gap so the share
+that holds is the video's -- 506px of face against a 276px card at 390x844.
+
+The card earns it by shedding words rather than controls. The secondary
+buttons keep their glyph and drop their visible label, keeping it for screen
+readers and as the tooltip; the reset joins the head-mask row; the size slider
+takes a full row (its note carries millimetres and wrapped to two lines in a
+half-width column) and the other four pair up; and the two explanatory
+paragraphs go. The foot went from 110px to 66. Nothing that does something was
+taken away.
 
 ## The camera follows the step
 

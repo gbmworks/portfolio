@@ -34,9 +34,17 @@ against the one dimension on a face that is reliably constant (the iris, 11.7 mm
 across). The frame is then placed on the live video with the far temple hidden
 behind the head by a depth-only occluder, and fit controls for how it sits.
 Those controls read zero at a starting fit dialled in on a real face — 157 mm
-of front width and 15 mm of vertex distance — and run symmetrically either
+of front width and 25 mm of vertex distance — and run symmetrically either
 side of it, so every number on the panel is a departure from something known
-rather than a value floating in the middle of a slider.
+rather than a value floating in the middle of a slider. Vertical position
+keeps its own zero, because it has a meaning the other two do not: the bridge
+sitting exactly on the bridge of the nose.
+
+On a phone the panel takes 40% of the screen and the face keeps 60, which it
+pays for by shedding words rather than controls -- the secondary buttons keep
+their glyph and drop their label, the sliders pair two to a row. Anything that
+scrolls says so: `useScrollNudge` marks a scroller and the stylesheet draws a
+fade and a chevron at its edge, retiring them once the end is reached.
 
 The camera needs a secure context. On the live site that is a given; over the
 dev server's LAN address it is not, and the panel now says so in those words
