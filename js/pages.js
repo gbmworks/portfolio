@@ -42,10 +42,11 @@ export const PAGES = {
     'mobius-ring'
   ],
 
-  /* Technical Art — 14 entries */
+  /* Technical Art — 15 entries */
   'technical-art': [
     'lenskart-ar-game',
     'fitmint-avatars',
+    'eyewear-builder',
     'strandbeest',
     'facial-capture',
     'ig:DBblehryOvP',

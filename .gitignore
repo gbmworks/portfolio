@@ -92,6 +92,28 @@ content/Fitmint/AvatarStudio/assets/
 content/Fitmint/AvatarStudio/tools/node_modules/
 
 # ---------------------------------------------------------------
+# The eyewear builder — content/eyewear-builder.
+#
+# This one carries its own .gitignore, and git honours a nested one, so
+# there are no rules to repeat here. What that file excludes is
+# node_modules/, dist/ (Vite's output) and public/wasm/ (34 MB of
+# MediaPipe runtime, copied out of the installed package by
+# scripts/sync-wasm.mjs and stale the moment the dep is bumped).
+#
+# What IS tracked is the source — src/, public/ minus the wasm, the
+# Vite and TS config, deploy.mjs, README.md and its 67-trap NOTES.md —
+# and, as with the other two, the shipped copy: `npm run deploy` writes
+# studio/eyewear/, and THAT is what Pages serves. 30 MB of it, 22 of
+# which is the wasm the deploy has to commit because there is no build
+# step on the host.
+#
+# The 5.9 MB of models, HDRI and textures therefore sit in the repo
+# twice — once as source, once inside studio/eyewear/. Unlike Fitmint's
+# 59 MB intermediate that is cheap enough to leave alone, and unlike it
+# these are the authored files a clone needs to rebuild from.
+# ---------------------------------------------------------------
+
+# ---------------------------------------------------------------
 # Agent / tooling state.
 #
 # .impeccable/config.json IS tracked: it is the design detector's

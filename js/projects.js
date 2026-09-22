@@ -280,6 +280,53 @@ export const PROJECTS = [
   },
 
   {
+    slug: 'eyewear-builder',
+    sectors: ['technical-art'],
+    title: 'Eyewear Builder',
+    role: 'Personal',
+    year: '2026',
+    tools: ['three.js', 'React', 'TypeScript', 'MediaPipe', 'Blender'],
+    /* The third entry on the site that runs rather than links, and the
+       second that is a tool rather than a game.  Like the studio it is
+       not the whole of the project — the build log behind it is worth
+       arriving at first — so the row opens this record’s page and the
+       page opens the builder.  Source and build live in
+       content/eyewear-builder; `node deploy.mjs` writes the trimmed copy
+       into studio/eyewear. */
+    live: 'studio/eyewear/',
+    liveLabel: 'Open the builder',
+    /* A still of the builder’s own 3D view, captured from the deployed
+       app rather than rendered separately, so the row shows the thing
+       that opens when it is clicked.  A hidden tab never runs rAF, so
+       this cannot be screenshotted from an automated tab — it came out
+       of a real Chrome over CDP, the same reason tools/reel-test.mjs
+       exists. */
+    cover: 'assets/covers/eyewear-builder.jpg',
+    summary:
+      'A browser eyewear configurator that runs here. Eight front silhouettes on a ' +
+      'wheel that blends between neighbours rather than snapping, with arms, bridge, ' +
+      'colour and lens on top — then a webcam scan puts the frame on your own face, ' +
+      'sized against your real measurements rather than a stock head.',
+    body: [
+      'The silhouettes are morph targets, so the frame at 40% between Round and Square ' +
+      'is genuinely 40% of each — the wheel drives the weights rather than picking a ' +
+      'winner. The front is a 326-vertex cage subdivided twice at load (Loop, 8,960 ' +
+      'vertices), and every stage of that pipeline carries the morph targets through the ' +
+      'same arithmetic, so the shapes stay aligned with the surface they deform.',
+      'The try-on measures the face in millimetres from MediaPipe’s 478-point ' +
+      'landmarker, scaled against the iris — 11.7 mm across, the one dimension on a face ' +
+      'that is reliably constant — and places the frame on the live video with the far ' +
+      'temple hidden behind the head by a depth-only occluder.',
+      'Everything runs on the machine it is opened on: no frame, image or measurement ' +
+      'leaves the browser. Material properties — roughness, metalness, clearcoat and ' +
+      'maps, per piece — live in a CSV rather than in code, so the look is editable ' +
+      'without a rebuild. Built on three.js directly rather than react-three-fiber, for ' +
+      'a reason written down in the log: in this dependency set R3F never commits the ' +
+      'canvas children, and it fails silently.'
+    ]
+  },
+
+  {
     slug: 'lenskart-ar-game',
     sectors: ['technical-art'],
     title: 'Unicorn and the Crystalverse',
