@@ -27,7 +27,10 @@ export function App() {
               go('landing');
             }}
           >
-            Eyewear&nbsp;Builder
+            {/* The second word is dropped on a narrow bar. The first is still
+                the app's name, still routes to the landing screen, and costs
+                half the width -- see the note in the stylesheet. */}
+            Eyewear<span className="topbar__word">&nbsp;Builder</span>
           </button>
         </div>
         <nav className="topbar__nav">
@@ -47,7 +50,8 @@ export function App() {
               go('tryon');
             }}
           >
-            3D try-on
+            <span className="topbar__word">3D&nbsp;try-on</span>
+            <span className="topbar__short">Try-on</span>
           </button>
           {/* Only once there is something to show. A tab that is permanently
               greyed out is a promise the app keeps failing to keep. */}
@@ -59,7 +63,11 @@ export function App() {
                 go('result');
               }}
             >
-              Measurements
+              <span className="topbar__word">Measurements</span>
+              {/* The page it opens is headed "A parametric model of your
+                  face", so the short form is the page's own word rather than
+                  an abbreviation of this one. */}
+              <span className="topbar__short">My&nbsp;face</span>
             </button>
           )}
           <SoundToggle />

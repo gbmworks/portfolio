@@ -125,6 +125,20 @@ body,
   margin: 0;
 }
 
+/*
+ * The dynamic viewport, where it is understood.
+ *
+ * `100%` on a phone resolves against the *large* viewport -- the tall one the
+ * browser shows with its own toolbars retracted -- so the foot of the app
+ * spends its life underneath them. That foot is where the controls are: the
+ * primary button of every step, and the camera bar. `dvh` tracks the viewport
+ * that is actually on screen, and body and #root inherit it through their own
+ * `height: 100%`.
+ */
+html {
+  height: 100dvh;
+}
+
 body {
   background: var(--shell);
   color: var(--ink);
@@ -310,8 +324,10 @@ button {
   white-space: nowrap;
 }
 
-.tab:hover:not(:disabled) {
-  background: var(--shell);
+@media (hover: hover) {
+  .tab:hover:not(:disabled) {
+    background: var(--shell);
+  }
 }
 
 .tab--on {
@@ -324,17 +340,60 @@ button {
   cursor: default;
 }
 
-/* The one width rule in this file, and it is not a phone tier.
-   The app is built for a desktop viewport (see README) and the panels
-   still overlap below ~700px. This exists because the back arrow costs
-   34px of a bar that already had about 2px to spare at 390px: with it
-   the tabs wrapped. Tightening the bar's own padding and gap buys 36px
-   back, which is the arrow's bill paid by the arrow rather than by the
-   labels. */
+/* The short label of each pair, off by default. See the tier below. */
+.topbar__short {
+  display: none;
+}
+
+/*
+ * Where the bar runs out of room.
+ *
+ * Measured, at 390px, with all three tabs showing -- which is the worst case,
+ * because "Measurements" only appears once a scan exists: the wordmark wants
+ * 108px, the nav 337, and the bar has 366 to give. It was not wrapping, it was
+ * overlapping; `.topbar__id` shrank to 19px and the brand drew straight
+ * through "Design".
+ *
+ * Paid for by the two labels that were padded rather than by the layout. The
+ * wordmark drops its second word -- "Eyewear" is still the app's name and
+ * still the way back to the landing screen -- and the try-on tab drops the
+ * "3D", which is a rendering detail rather than a destination. Between them
+ * and the tighter padding that buys about 105px, against the 79 the bar was
+ * short.
+ */
 @media (max-width: 560px) {
   .topbar {
     padding: 0 12px;
     gap: 12px;
+  }
+
+  .topbar__brand .topbar__word,
+  .tab .topbar__word {
+    display: none;
+  }
+
+  /*
+   * And a floor under all of it. The three measurements above are this
+   * build's; a longer word in a translation, or a larger default font size,
+   * puts the bar back over its budget. This makes that show up as a clipped
+   * wordmark rather than as two labels drawn through each other.
+   */
+  .topbar__brand {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .topbar__nav {
+    flex: none;
+  }
+
+  .topbar__short {
+    display: inline;
+  }
+
+  .tab {
+    padding-inline: 10px;
   }
 }
 
@@ -470,10 +529,12 @@ button {
 
 /* Lift on hover and press *through* it, rather than fading the whole button.
    Opacity dims the label as much as the fill, which reads as disabled. */
-.button:hover {
-  background: #26242b;
-  border-color: #26242b;
-  box-shadow: var(--lift-2);
+@media (hover: hover) {
+  .button:hover {
+    background: #26242b;
+    border-color: #26242b;
+    box-shadow: var(--lift-2);
+  }
 }
 
 .button:active {
@@ -494,11 +555,13 @@ button {
   box-shadow: none;
 }
 
-.button--ghost:hover {
-  background: var(--paper);
-  border-color: var(--ink-faint);
-  color: var(--ink);
-  box-shadow: var(--lift-1);
+@media (hover: hover) {
+  .button--ghost:hover {
+    background: var(--paper);
+    border-color: var(--ink-faint);
+    color: var(--ink);
+    box-shadow: var(--lift-1);
+  }
 }
 
 /* ------------------------------------------------------------------ scan */
@@ -1000,8 +1063,10 @@ button {
   outline: none;
 }
 
-.wheel__node:hover circle {
-  fill: #3a3a44;
+@media (hover: hover) {
+  .wheel__node:hover circle {
+    fill: #3a3a44;
+  }
 }
 
 .wheel__node--on circle {
@@ -1033,8 +1098,10 @@ button {
   text-align: center;
 }
 
-.bridgegrid__item:hover {
-  background: var(--shell);
+@media (hover: hover) {
+  .bridgegrid__item:hover {
+    background: var(--shell);
+  }
 }
 
 .bridgegrid__item--on {
@@ -1075,8 +1142,10 @@ button {
   margin-bottom: 26px;
 }
 
-.editor__back:hover {
-  color: var(--ink);
+@media (hover: hover) {
+  .editor__back:hover {
+    color: var(--ink);
+  }
 }
 
 /* The design's name is the one piece of identity in the editor, so it gets
@@ -1139,13 +1208,17 @@ button {
     background-color var(--fast) var(--ease);
 }
 
-.stepper__item:hover {
-  background: rgba(23, 22, 26, 0.045);
-  color: var(--ink-soft);
+@media (hover: hover) {
+  .stepper__item:hover {
+    background: rgba(23, 22, 26, 0.045);
+    color: var(--ink-soft);
+  }
 }
 
-.stepper__item:hover .stepper__num {
-  border-color: var(--line-strong);
+@media (hover: hover) {
+  .stepper__item:hover .stepper__num {
+    border-color: var(--line-strong);
+  }
 }
 
 .stepper__num {
@@ -1215,35 +1288,6 @@ button {
   font-size: 15px;
   font-weight: 600;
   line-height: 1.25;
-}
-
-.editor__modes {
-  display: flex;
-  gap: 8px;
-  flex: none;
-}
-
-.modebtn {
-  border: 1px solid var(--line);
-  background: var(--paper);
-  border-radius: 999px;
-  padding: 8px 16px;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 550;
-  color: var(--ink-soft);
-  cursor: pointer;
-}
-
-.modebtn:hover {
-  border-color: var(--ink-faint);
-  color: var(--ink);
-}
-
-.modebtn--on {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--paper);
 }
 
 .editor__stage {
@@ -1422,8 +1466,10 @@ button {
 /* Hover says "this is a control" and stops there. The swatch does not move:
    a grid of chips that lift under the cursor is motion the eye has to track
    while it is trying to compare colours. */
-.namedswatch:hover .namedswatch__dot {
-  box-shadow: var(--lift-2);
+@media (hover: hover) {
+  .namedswatch:hover .namedswatch__dot {
+    box-shadow: var(--lift-2);
+  }
 }
 
 .namedswatch:active .namedswatch__dot {
@@ -1516,8 +1562,10 @@ button {
   cursor: pointer;
 }
 
-.pill:hover {
-  background: var(--shell);
+@media (hover: hover) {
+  .pill:hover {
+    background: var(--shell);
+  }
 }
 
 .pill--on {
@@ -1545,8 +1593,10 @@ button {
   cursor: pointer;
 }
 
-.optionlist__item:hover {
-  background: var(--shell);
+@media (hover: hover) {
+  .optionlist__item:hover {
+    background: var(--shell);
+  }
 }
 
 .optionlist__item.is-on {
@@ -1753,19 +1803,6 @@ button {
   margin-bottom: var(--s4);
 }
 
-.editor__modes {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-  margin-bottom: 18px;
-}
-
-.modebtn {
-  padding: 6px 11px;
-  font-size: 12px;
-  background: rgba(255, 255, 255, 0.6);
-}
-
 .editor__back {
   margin-bottom: 14px;
 }
@@ -1808,9 +1845,11 @@ button {
   cursor: pointer;
 }
 
-.viewbtn:hover {
-  background: rgba(20, 20, 24, 0.06);
-  color: var(--ink);
+@media (hover: hover) {
+  .viewbtn:hover {
+    background: rgba(20, 20, 24, 0.06);
+    color: var(--ink);
+  }
 }
 
 .viewbtn--on {
@@ -1818,9 +1857,11 @@ button {
   color: var(--paper);
 }
 
-.viewbtn--on:hover {
-  background: var(--ink);
-  color: var(--paper);
+@media (hover: hover) {
+  .viewbtn--on:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
 }
 
 .viewbar__hint {
@@ -1965,25 +2006,6 @@ button {
   font-weight: 500;
   color: var(--ink-faint);
   font-variant-numeric: tabular-nums;
-}
-
-/* The mode pills share a 226px panel, so they wrap rather than clip. */
-.editor__modes .modebtn {
-  flex: 0 0 auto;
-  padding: 5px 10px;
-  font-size: 11.5px;
-  white-space: nowrap;
-}
-
-/*
- * Restate the active state at the same specificity as the rule above.
- * `.modebtn--on` alone is one class against two, so the panel override won
- * and the selected pill rendered white text on a white ground.
- */
-.editor__modes .modebtn--on {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--paper);
 }
 
 /* --------------------------------------------- colour studio (temp) --- */
@@ -2191,9 +2213,11 @@ button {
   stroke-linejoin: round;
 }
 
-.soundbtn:hover {
-  color: var(--ink);
-  background: rgba(23, 22, 26, 0.05);
+@media (hover: hover) {
+  .soundbtn:hover {
+    color: var(--ink);
+    background: rgba(23, 22, 26, 0.05);
+  }
 }
 
 .soundbtn--on {
@@ -2232,5 +2256,746 @@ button {
   }
   100% {
     transform: scale(1);
+  }
+}
+
+/* ==================================================== touch and phone ===
+ *
+ * Everything above this line was drawn for a mouse on a desktop viewport.
+ * What follows is the rest of the world, and it is deliberately two separate
+ * questions rather than one:
+ *
+ *   - `pointer: coarse` is about the *finger*. It asks for bigger targets and
+ *     for gestures the browser is not allowed to steal, and it is true on a
+ *     1280px touch laptop as much as on a phone.
+ *   - `max-width: 900px` is about the *room*. It moves the two floating
+ *     panels into one sheet along the bottom, and it is true of a mouse in a
+ *     narrow window as much as of a phone.
+ *
+ * Conflating them is how a touch laptop ends up with phone furniture and a
+ * narrow desktop window ends up with 44px buttons it did not need.
+ *
+ * There is a third question, and it is answered where it arises rather than
+ * here: every `:hover` rule in this file is wrapped in `@media (hover: hover)`
+ * at the point it is written. Chrome and Safari leave `:hover` applied to the
+ * last thing touched until something else is, so on a phone every button
+ * passed through on the way stays lit behind the finger. Wrapping the rules
+ * is the fix; a block of counter-rules down here was the first attempt and it
+ * was wrong -- `.tab:hover:not(:disabled)` outranks `.tab--on`, so tapping the
+ * tab you are already on would have taken its fill away.
+ *
+ * The 900px figure is the sibling studio's -- studio/fitmint uses the same
+ * one for the same move -- and the arrangement below is that app's dock: the
+ * subject keeps the whole screen, and the controls ride over the bottom of it
+ * as one card with a rail of sections across the top.
+ * ======================================================================= */
+
+/* ------------------------------------------------------------ the finger */
+
+@media (pointer: coarse) {
+  /*
+   * Hand the gesture to the app, not to the scroller.
+   *
+   * A drag that starts on the viewport is an orbit and a drag that starts on
+   * the shape wheel is a blend; without this the browser reads both as an
+   * attempt to scroll the sheet and the model never moves. `none` rather than
+   * `pan-y`, because both of these want the vertical axis too.
+   */
+  .editor__canvas,
+  .tryon__canvas,
+  .tryon__video,
+  .wheel__svg {
+    touch-action: none;
+  }
+
+  /*
+   * Targets a thumb can land on.
+   *
+   * The padding grows and the type does not: these are the same controls, not
+   * bigger ones, and inflating the labels as well would cost the panel the
+   * room the controls are being given.
+   */
+  .viewbtn {
+    padding: 10px 14px;
+  }
+
+  .pill {
+    padding: 10px 16px;
+  }
+
+  .tab {
+    padding: 9px 14px;
+  }
+
+  .optionlist__item {
+    padding: 13px 14px;
+  }
+
+  .bridgegrid__item {
+    padding: 13px 6px;
+  }
+
+  .button {
+    min-height: 44px;
+  }
+
+  /* Native range inputs draw a 14px thumb, which is under half a fingertip.
+     Both engines have to be told separately. */
+  .studio__row input[type='range'] {
+    height: 18px;
+  }
+
+  .studio__row input[type='range']::-webkit-slider-thumb {
+    width: 22px;
+    height: 22px;
+  }
+
+  .studio__row input[type='range']::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    background: #fff;
+  }
+
+  .slider input[type='range'] {
+    height: 30px;
+  }
+}
+
+/* -------------------------------------------------------------- the room */
+
+@media (max-width: 900px) {
+  :root {
+    /* The scan and result screens size a column from this. There are no
+       columns down here. */
+    --panel-width: auto;
+  }
+
+  /* --- chrome ---------------------------------------------------------- */
+
+  /*
+   * Safe areas on the outer edges only. A notch or a rounded corner eats the
+   * ends of the top bar and the foot of the sheet; nothing else in the app
+   * reaches the edge of the screen.
+   */
+  .topbar {
+    height: 52px;
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+    gap: 10px;
+  }
+
+  .topbar__brand {
+    font-size: 14px;
+  }
+
+  /* --- landing --------------------------------------------------------- */
+
+  /*
+   * One column, and it scrolls.
+   *
+   * The two-column grid was `minmax(0, 1fr) 400px`, and 400px of a 390px
+   * screen leaves the copy nothing: every word in the headline broke onto a
+   * line of its own and the shape tiles were off the right edge entirely.
+   */
+  .landing {
+    display: block;
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 28px 20px calc(32px + env(safe-area-inset-bottom));
+  }
+
+  .landing__lede {
+    font-size: 15.5px;
+    margin-bottom: var(--s5);
+  }
+
+  /* Full width each, one above the other: two half-width buttons on a phone
+     are two buttons that are both slightly too small. */
+  .landing__actions {
+    display: grid;
+    gap: var(--s2);
+    margin-bottom: var(--s5);
+  }
+
+  .landing__actions .button {
+    width: 100%;
+  }
+
+  /* The eight face shapes are the illustration, not a control -- they are
+     shown again, at size, on the result screen. Four across keeps them
+     legible instead of shrinking them to fit one row. */
+  .landing__shapes {
+    gap: var(--s4) var(--s3);
+    margin-top: var(--s6);
+  }
+
+  .landing__notes {
+    margin-top: var(--s5);
+  }
+
+  /* --- the editor's sheet ---------------------------------------------- */
+
+  /*
+   * The two floating panels become one card along the bottom.
+   *
+   * Above the breakpoint `.editor__dock` has no box at all -- `display:
+   * contents`, set after this block -- and the rail and the panel float at
+   * their own corners. Here it becomes the card, and they become its two
+   * halves: the steps as a rail across the top, the step's controls under it.
+   *
+   * A fixed height, rather than the sibling studio's content-height dock, and
+   * the difference is earned. There, a category that needs less takes less.
+   * Here the camera is framed against the room the sheet leaves -- see
+   * `corridorOffsetY` in EditorScene -- so a sheet that grew and shrank with
+   * each step would walk the product up and down the screen on every tap.
+   * One height, and the product holds still.
+   *
+   * That height is stated as what is left over rather than as a share of its
+   * own, so the number that holds is the one that was asked for: the product
+   * gets 55% of the screen. 45dvh less the top bar (52px) and the gap the
+   * card floats on (10px) is exactly the remainder. The clamp only bites on
+   * a short screen, where the card would otherwise be too small to hold a
+   * control at all.
+   */
+  .editor__dock {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    height: clamp(280px, calc(45dvh - 62px), 460px);
+    border-radius: 16px;
+    background: rgba(252, 251, 249, 0.9);
+    backdrop-filter: blur(18px) saturate(1.1);
+    -webkit-backdrop-filter: blur(18px) saturate(1.1);
+    border: 1px solid rgba(20, 20, 24, 0.08);
+    box-shadow:
+      0 1px 2px rgba(20, 20, 24, 0.04),
+      0 12px 32px rgba(20, 20, 24, 0.14);
+    overflow: hidden;
+  }
+
+  /* The card carries the frosting now; its two halves must not draw a second
+     one over it. */
+  .editor__dock > .panel {
+    position: static;
+    inset: auto;
+    width: auto;
+    max-height: none;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  /*
+   * The steps, as a rail you push along.
+   *
+   * Everything else the left column carried is gone here, each for its own
+   * reason rather than to save room: "Back" repeats the brand button in the
+   * top bar, and the design's name is on the wheel two inches below. What is
+   * left is the one thing the column was for.
+   */
+  /*
+   * The rail carries the running total as well as the steps.
+   *
+   * It was a row of its own in the foot -- an expandable breakdown under the
+   * two buttons -- and at 40px it was the difference between the shape wheel
+   * fitting this card and being clipped through two of its eight buttons.
+   * As a figure at the end of the rail it costs nothing vertically and stays
+   * on screen at every step.
+   *
+   * What does not survive the move is the itemisation: the `details` it used
+   * to open remains desktop-only. A line-by-line price breakdown inside a
+   * 318px card was never going to be readable, and the number it sums to is
+   * the part that has to be visible while you are choosing.
+   */
+  .editor__steps {
+    flex: none;
+    display: flex;
+    /* The base rule stacks this column; here it is a row. Without the
+       override the total sat *above* the steps and the rail cost 76px
+       instead of 48. */
+    flex-direction: row;
+    align-items: center;
+    /* The stepper fades its last step out under the mask; the total needs
+       enough clear air after that fade not to read as part of it. */
+    gap: 12px;
+    padding: 0 12px 0 0;
+    overflow: visible;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .editor__steps .stepper {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .editor__back,
+  .editor__foot {
+    display: none;
+  }
+
+  /* The design's name is already under the wheel, two inches below.
+
+     `order` rather than a DOM change: in the source the identity block comes
+     before the stepper, which is right for a column and puts the total at the
+     *head* of a row -- where it was clipped against the edge and read as a
+     label for step one. */
+  .editor__identity {
+    flex: none;
+    order: 1;
+  }
+
+  .editor__identity h1 {
+    display: none;
+  }
+
+  .editor__identity p {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .editor__panel .panel__foot .breakdown {
+    display: none;
+  }
+
+  .stepper {
+    display: flex;
+    gap: 2px;
+    padding: 5px 8px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    /* The steps at each end fade rather than being cut mid-word, so the rail
+       reads as continuing instead of ending. */
+    mask-image: linear-gradient(
+      90deg,
+      transparent 0,
+      #000 12px,
+      #000 calc(100% - 12px),
+      transparent 100%
+    );
+  }
+
+  .stepper::-webkit-scrollbar {
+    display: none;
+  }
+
+  .stepper > li {
+    flex: 0 0 auto;
+    scroll-snap-align: center;
+  }
+
+  .stepper__item {
+    padding: 6px 13px 6px 6px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  /* The marker was a bar down the left edge of a column. In a row it would
+     sit across the face of the pill; the numbered disc already fills with ink
+     to say the same thing. */
+  .stepper__item.is-on::before {
+    display: none;
+  }
+
+  /* --- the sheet's body ------------------------------------------------ */
+
+  .editor__panel {
+    flex: 1;
+    min-height: 0;
+    border-left: 0;
+  }
+
+  .panel__head {
+    padding: 10px 14px 9px;
+  }
+
+  .panel__head h3 {
+    font-size: 15px;
+  }
+
+  /*
+   * The editor's panel head says "1. Frame shape" directly underneath a rail
+   * pill reading "1 Frame shape". On a desktop those are in two different
+   * columns and the repetition reads as a heading answering a menu; stacked
+   * on a phone they are the same words twice, forty pixels apart, and the
+   * forty pixels are worth more to the controls.
+   *
+   * Only the editor's. The try-on's head carries the scan read-out -- the
+   * measured PD and head width the fit is built from -- which is said nowhere
+   * else on that screen.
+   */
+  .editor__panel .panel__head {
+    display: none;
+  }
+
+  .panel__body {
+    padding: 6px 14px 8px;
+    overscroll-behavior: contain;
+  }
+
+  /*
+   * The foot, on a diet.
+   *
+   * It measured 169px of a 439px sheet -- two full-width buttons stacked over
+   * a total, which is more of a phone screen than secondary actions are worth
+   * and it was taking the room out of the controls above. The primary button
+   * keeps its full 44px target; the other two give up the padding they were
+   * carrying and the separator between them.
+   */
+  .panel__foot {
+    padding: 8px 14px calc(10px + env(safe-area-inset-bottom));
+    gap: 6px;
+  }
+
+  /*
+   * The way on and the way to keep it, side by side.
+   *
+   * Stacked they cost 87px of a card that has 318 -- and the second of them
+   * is a secondary action that was taking a full-width row at the most
+   * valuable end of the screen. `auto` on the second column sizes it to
+   * "Save design" and leaves the rest to the primary, which needs it: the
+   * longest label it carries is "Next: Frame colour".
+   *
+   * Only the editor's foot. The try-on's holds a different pair, and one of
+   * them is the only door to the scanner.
+   */
+  .editor__panel .panel__foot {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .editor__panel .panel__foot .button {
+    font-size: 14px;
+    padding-inline: 12px;
+  }
+
+
+  /*
+   * The wheel, held to a size the sheet can show whole.
+   *
+   * Left to itself it takes the full width of the panel -- 370px on a 390px
+   * screen -- and a control that has to be scrolled to be seen is a control
+   * that cannot be aimed at.
+   */
+  /*
+   * Both design pickers run as one row of four.
+   *
+   * Two by two is the desktop shape, where the panel is 316px and a 2x2 grid
+   * of 150px cells is comfortable. On a phone that second row costs 44px of a
+   * card that is already the tighter half of the screen, and the labels --
+   * "Design 1" through "Design 4" -- are short enough to sit four across at
+   * this width with room to spare.
+   */
+  .bridgegrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .bridgegrid__item {
+    padding-inline: 2px;
+    font-size: 11.5px;
+  }
+
+  /*
+   * The wheel, as large as the card can show.
+   *
+   * It does not fit: the card is 318px on a 390x844 phone -- 45dvh less the
+   * bar and the gap, which is what leaves the product the 55% it was asked
+   * for -- and the rail and the foot take 110 of that, which leaves the ring,
+   * its name and its instruction 203px between them.
+   *
+   * 170 is what fits the first two of those three without scrolling, and it
+   * also holds the eight shape buttons at 27px across, which is the number
+   * that actually constrains it: sizing the ring to the whole block would
+   * need about 130 and take them under a fingertip. So the instruction under
+   * the name is the part below the fold -- about 56px of scroll, on this step
+   * only. That is what the 55% split costs; at 50% the sentence lands too.
+   */
+  .wheel {
+    max-width: 170px;
+    margin-inline: auto;
+  }
+
+  /* The hint under it is one short line at this width, so it stops claiming
+     the two the desktop sentence needed. */
+  .wheel .hint {
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .wheel__label {
+    text-align: center;
+  }
+
+  /* --- the try-on's sheet ---------------------------------------------- */
+
+  /*
+   * The same card, over the camera feed. Shallower than the editor's: the
+   * subject here is the customer's own face, and a sheet that reaches the
+   * middle of the screen crops the thing they came to look at.
+   */
+  .tryon__panel {
+    top: auto;
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    width: auto;
+    max-height: min(50dvh, 420px);
+    border-radius: 16px;
+  }
+
+  /*
+   * The notices move to the top of the feed.
+   *
+   * They sat 24px off the bottom of a stage that is `inset: 0` -- the whole
+   * window -- which the sheet now covers. These are the messages that say the
+   * camera was refused, or that the frame is still loading, or that the face
+   * has been lost: the ones that must be readable precisely when nothing else
+   * on the screen is working, and they were being posted behind the controls.
+   */
+  .tryon__notice,
+  .scan__notice {
+    max-width: calc(100% - 28px);
+    text-align: center;
+    /* A pill is a shape for one line. These wrap to three at this width --
+       "Camera access was blocked. Allow it in the address bar and reload."
+       is the longest -- and a 999px radius on a three-line block draws an
+       ellipse. */
+    border-radius: var(--radius);
+  }
+
+  .tryon__notice {
+    top: 14px;
+    bottom: auto;
+  }
+
+  /* --- the scan -------------------------------------------------------- */
+
+  /*
+   * Preview above, guidance below, in that order -- the preview is what the
+   * instruction is about, and reading "turn left and right" underneath your
+   * own face is the way round that needs no glance back up.
+   */
+  .scan {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .scan__stage {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .scan__panel {
+    flex: none;
+    justify-content: flex-start;
+    padding: 16px 18px calc(18px + env(safe-area-inset-bottom));
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .scan__hint {
+    margin: 6px 0 14px;
+    font-size: 19px;
+  }
+
+  .scan__bins {
+    margin: 14px 0;
+  }
+
+  /* The paragraph on why the turns matter is worth reading once, and there is
+     no room for it beside a live instruction on a 390px screen. It is still
+     on the result page, which is where the measurements it explains are. */
+  .scan__why {
+    display: none;
+  }
+
+  /* The guide oval is sized from the viewport height, which on a phone is the
+     long axis -- it grew wider than the preview it is drawn over. */
+  .guide__svg {
+    width: min(62vh, 74%);
+    height: min(62vh, 74%);
+  }
+
+  /* --- the result page ------------------------------------------------- */
+
+  .result__inner {
+    padding: 28px 20px calc(40px + env(safe-area-inset-bottom));
+  }
+
+  .result__shape {
+    margin-top: 26px;
+    padding: 18px;
+  }
+
+  .result__h2 {
+    margin-top: 28px;
+  }
+
+  /* A 190px minimum leaves a 350px column holding exactly one card with 60px
+     spare. 150px fits two. */
+  .metricgrid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  .metriccard {
+    padding: 12px 13px;
+  }
+
+  .metriccard dd b {
+    font-size: 22px;
+  }
+
+  /* It shares a rule with the try-on's floating panel, which has just been
+     docked to the bottom of the screen. This one is the foot of a scrolling
+     document and belongs in the flow. */
+  .result__actions {
+    position: static;
+    width: auto;
+    max-height: none;
+    display: grid;
+    gap: var(--s2);
+    margin-top: 32px;
+  }
+
+  /* --- the camera bar -------------------------------------------------- */
+
+  /*
+   * Above the sheet rather than under it. `--dock-h` is written by EditorView
+   * from the sheet's measured box, because the stylesheet sets that height in
+   * `dvh` and cannot read back what it came to.
+   */
+  /*
+   * `left`/`right` mark out the band it may use; `fit-content` and the auto
+   * margins keep it a pill inside that band rather than a bar stretched
+   * across it, and centred on the band rather than on the window -- which is
+   * what matters in the short-window tier below, where the band is only the
+   * part the controls have left.
+   */
+  .viewbar {
+    bottom: calc(var(--dock-h, 0px) + 20px);
+    left: 10px;
+    right: 10px;
+    transform: none;
+    width: fit-content;
+    max-width: calc(100% - 20px);
+    margin-inline: auto;
+    /* Four views and a measurement do not fit across 390px. The row gives way
+       rather than the labels wrapping inside their pills. */
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .viewbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .viewbtn {
+    flex: 0 0 auto;
+  }
+
+  /* The front width is a detail for someone judging proportion at a desk. */
+  .viewbar__hint {
+    display: none;
+  }
+
+  /* The hint rides above the camera bar, which has just moved. */
+  .viewhint {
+    bottom: calc(var(--dock-h, 0px) + 74px);
+  }
+}
+
+/* ---------------------------------------------------- the dock's desktop
+   self.
+
+   Outside the media query and after it, so it is unambiguous: above 900px
+   this element generates no box whatsoever, and the rail and the panel are
+   positioned against `.editor` exactly as they were before it existed.
+   ----------------------------------------------------------------------- */
+
+@media (min-width: 901px) {
+  .editor__dock {
+    display: contents;
+  }
+}
+
+/* ------------------------------------------------------- landscape phone
+ *
+ * A sheet along the bottom assumes the screen is tall. Turned sideways a
+ * phone is 390px high, and 300px of sheet -- the floor of the clamp above --
+ * would leave the product sixty pixels to live in.
+ *
+ * So under that height the controls go back to being a column, which is what
+ * a short wide window wants anyway. Not the desktop layout: one column, on
+ * the right, with the steps rail still across its top, because there is no
+ * room for two.
+ * ---------------------------------------------------------------------- */
+
+@media (max-width: 900px) and (max-height: 520px) {
+  .editor__dock {
+    top: 10px;
+    bottom: 10px;
+    left: auto;
+    right: max(10px, env(safe-area-inset-right));
+    width: min(320px, 46vw);
+    height: auto;
+  }
+
+  .tryon__panel {
+    top: 10px;
+    left: auto;
+    right: max(10px, env(safe-area-inset-right));
+    width: min(320px, 46vw);
+    max-height: none;
+  }
+
+  /* Back to side by side: the preview is wide and short, and stacking it
+     leaves each half too shallow to read. */
+  .scan {
+    flex-direction: row;
+  }
+
+  .scan__panel {
+    flex: 0 0 min(340px, 44vw);
+    justify-content: center;
+    border-top: 0;
+    border-left: 1px solid var(--line);
+  }
+
+  /*
+   * The bar drops to the foot of the window, and centres over the part of it
+   * the column leaves rather than over the whole thing -- centred on the
+   * window it slid under the controls and took "Top" with it.
+   */
+  .viewbar {
+    bottom: 14px;
+    left: 10px;
+    right: calc(var(--dock-r, 0px) + 10px);
+    transform: none;
+  }
+
+  /*
+   * No sheet along the bottom here, so the hint has its usual room back --
+   * but it does have a column beside it, and it is a shrink-to-fit pill
+   * centred by `translateX(-50%)` whose entrance animation restates that
+   * transform. So it is moved by its anchor rather than by a transform of its
+   * own, which the animation would overwrite the moment it played.
+   */
+  .viewhint {
+    bottom: 68px;
+    left: calc(50% - var(--dock-r, 0px) / 2);
   }
 }

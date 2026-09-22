@@ -24,6 +24,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+import { COARSE } from '../ui/pointer';
+
 const STORAGE_KEY = 'eyewear.viewporthint';
 
 /** Still-mouse time before the first hint is offered. */
@@ -33,9 +35,15 @@ const DWELL = 2900;
 /** Matches the leaving animation in the stylesheet. */
 const FADE = 400;
 
+/* Telling someone to scroll on a phone is advice they cannot take, and it
+   discredits the sentence before it -- which is the one that matters. */
 const HINTS = [
   { id: 'orient', icon: 'orbit', text: 'Drag to orient' },
-  { id: 'zoom', icon: 'scroll', text: 'Scroll to zoom' },
+  {
+    id: 'zoom',
+    icon: COARSE ? 'pinch' : 'scroll',
+    text: COARSE ? 'Pinch to zoom' : 'Scroll to zoom',
+  },
 ] as const;
 
 export function ViewportHint({ stage }: { stage: React.RefObject<HTMLElement | null> }) {
@@ -134,7 +142,7 @@ export function ViewportHint({ stage }: { stage: React.RefObject<HTMLElement | n
   return (
     <div
       className={leaving ? 'viewhint viewhint--leaving' : 'viewhint'}
-      // Advisory, and it describes a mouse gesture. Announcing it would
+      // Advisory, and it describes a pointing gesture. Announcing it would
       // interrupt a screen reader mid-sentence with something it cannot use;
       // the same guidance is on the view buttons as labels.
       aria-hidden
@@ -143,7 +151,7 @@ export function ViewportHint({ stage }: { stage: React.RefObject<HTMLElement | n
           re-runs the entrance and makes the second hint read as a new remark
           instead of the first one's text changing under you. */}
       <span className="viewhint__row" key={hint.id}>
-        {hint.icon === 'orbit' ? <OrbitIcon /> : <ScrollIcon />}
+        {hint.icon === 'orbit' ? <OrbitIcon /> : hint.icon === 'pinch' ? <PinchIcon /> : <ScrollIcon />}
         {hint.text}
       </span>
     </div>
@@ -168,6 +176,19 @@ function ScrollIcon() {
       <rect x="7.5" y="2.8" width="9" height="14.4" rx="4.5" />
       <path d="M12 6.2v2.6" />
       <path d="M12 20.4 10.2 22.2M12 20.4 13.8 22.2" />
+    </svg>
+  );
+}
+
+/* Two fingers and the arrows they travel along -- the gesture drawn, rather
+   than a hand, which at 24px is a blob. Same family as the other two. */
+function PinchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="viewhint__icon" aria-hidden focusable="false">
+      <circle cx="6.6" cy="6.6" r="2.6" />
+      <circle cx="17.4" cy="17.4" r="2.6" />
+      <path d="M10.6 13.4 5.2 18.8M5.2 18.8h3.4M5.2 18.8v-3.4" />
+      <path d="M13.4 10.6 18.8 5.2M18.8 5.2h-3.4M18.8 5.2v3.4" />
     </svg>
   );
 }

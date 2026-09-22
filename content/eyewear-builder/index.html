@@ -2,7 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- `viewport-fit=cover` lets the app fill a notched screen edge to edge;
+         the stylesheet pays for it by padding the chrome with the safe-area
+         insets, so nothing lands under a camera cutout or a home indicator. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- Matches --shell, so the browser's own chrome does not sit against the
+         app in a different colour. -->
+    <meta name="theme-color" content="#ecebe6" />
     <title>Eyewear Builder</title>
     <meta
       name="description"

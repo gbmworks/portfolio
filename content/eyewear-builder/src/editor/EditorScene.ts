@@ -219,6 +219,31 @@ export class EditorScene {
   private centre = new THREE.Vector3();
   private radius = 90;
   private bounds = new THREE.Box3(new THREE.Vector3(-70, -35, -70), new THREE.Vector3(70, 35, 10));
+
+  /**
+   * The component every view currently frames to, or null for the whole
+   * product. Set from the step the customer is on: choosing a bridge profile
+   * against a 140 mm frame is judging a detail from across the room.
+   */
+  private focus: ComponentId | null = null;
+  /**
+   * What the framing maths actually measures -- the focused component's box,
+   * or the product's. Everything downstream (`screenExtent`,
+   * `turntableExtent`, `aimPoint`, the orthographic pull-back) reads these
+   * rather than `bounds`/`centre`/`radius`, so focusing is one substitution
+   * rather than a second framing path to keep in step with the first.
+   */
+  private framingBox = new THREE.Box3();
+  private framingCentre = new THREE.Vector3();
+  /**
+   * Extra air when framing a part rather than the product.
+   *
+   * A bridge fitted to the same padding as the frame fills the viewport with
+   * 18 mm of metal and no way to tell where on the face it sits. Two and a
+   * bit keeps the inner edges of both rims in shot, which is the context the
+   * decision is actually made against.
+   */
+  private static readonly FOCUS_PADDING = 2.3;
   /**
    * Whether the camera has been placed yet.
    *
@@ -229,16 +254,24 @@ export class EditorScene {
    * it.
    */
   /**
-   * Canvas pixels hidden behind the floating panels, left and right.
+   * Canvas pixels hidden behind the floating panels -- the two sides, and
+   * the bottom.
    *
-   * The panels sit *over* the stage, so the canvas is wider than the part of
-   * it anyone can see, and the visible corridor is not centred -- the right
-   * panel is 90px wider than the left. Framing to the canvas therefore put
-   * the product under a panel and, worse, off-centre in the gap. Every view
-   * fits the corridor instead, and aims at its middle.
+   * The panels sit *over* the stage, so the canvas is larger than the part of
+   * it anyone can see, and the visible corridor is not centred -- on a desktop
+   * the right panel is 90px wider than the left. Framing to the canvas
+   * therefore put the product under a panel and, worse, off-centre in the gap.
+   * Every view fits the corridor instead, and aims at its middle.
+   *
+   * `insetBottom` is the same idea turned ninety degrees, and it is what makes
+   * the phone layout work: there the panels are one sheet along the bottom
+   * rather than columns at the sides, so the corridor is short instead of
+   * narrow. Without it the frame is drawn in the middle of the window with its
+   * lower half behind the controls.
    */
   private insetLeft = 0;
   private insetRight = 0;
+  private insetBottom = 0;
 
   private framed = false;
   /**
@@ -301,7 +334,18 @@ export class EditorScene {
     void loadMaterialTable().then(() => {
       if (this.config) this.applyConfig(this.config);
     });
+    // `framingBox` starts empty, and an empty Box3 is min +Infinity: the first
+    // `frame()` can run before the GLB lands, so seed it from the placeholder
+    // bounds the same way every later measurement is taken.
+    this.updateFraming();
     this.loop();
+
+    /* A handle for the console and for the camera tests, development only --
+       the sibling studio keeps one the same way (`window.fitmint`). It is
+       behind `import.meta.env.DEV`, so it never reaches a built bundle. */
+    if (import.meta.env.DEV) {
+      (window as unknown as Record<string, unknown>).__editor = this;
+    }
   }
 
   private makeControls(): OrbitControls {
@@ -436,17 +480,83 @@ export class EditorScene {
   }
 
   /** Report how much of the canvas the panels cover. See `insetLeft`. */
-  setInsets(left: number, right: number): void {
-    if (left === this.insetLeft && right === this.insetRight) return;
+  setInsets(left: number, right: number, bottom = 0): void {
+    if (left === this.insetLeft && right === this.insetRight && bottom === this.insetBottom) return;
     this.insetLeft = left;
     this.insetRight = right;
+    this.insetBottom = bottom;
     if (this.framed) this.refit();
     this.needsRender = true;
+  }
+
+  /**
+   * Frame to one component rather than to the whole product.
+   *
+   * `null` goes back to the product. Nothing else about the camera changes --
+   * the view, its direction and whatever the customer had orbited to are all
+   * kept; only what the framing is measured against moves, so switching to
+   * the bridge step and back leaves the same view looking at the same thing
+   * from the same angle, nearer and then further away.
+   */
+  setFocus(component: ComponentId | null): void {
+    if (component === this.focus) return;
+    this.focus = component;
+    this.updateFraming();
+    /*
+     * Every remembered pose was recorded against a different framing, so none
+     * of them mean anything any more.
+     *
+     * This is what made "the other cameras are messed up after the bridge
+     * step" true. `remember()` stores a position and a target; both were
+     * measured with the camera 233 units from an 18 mm bridge. Step away, and
+     * `setView` restored those numbers with the focus already gone -- so the
+     * 3D view came back parked at bridge distance, aimed at a point between
+     * the lenses, while the framing said whole product. Clearing them costs an
+     * orbit the customer may have set and buys back a view that is correct.
+     */
+    this.remembered.clear();
+    this.settleControls();
+    this.frame();
+    this.needsRender = true;
+  }
+
+  /**
+   * Measure whatever the camera is currently framing.
+   *
+   * Falls back to the whole product whenever the focused component has no
+   * geometry loaded yet -- the step can be selected before the GLB arrives,
+   * and an empty box would frame the camera onto a point.
+   */
+  private updateFraming(): void {
+    if (this.focus) {
+      const box = new THREE.Box3();
+      for (const [key, mesh] of this.meshes) {
+        if (PART_COMPONENT[key] === this.focus) box.expandByObject(mesh);
+      }
+      if (!box.isEmpty()) {
+        this.framingBox.copy(box);
+        box.getCenter(this.framingCentre);
+        return;
+      }
+    }
+    this.framingBox.copy(this.bounds);
+    this.framingCentre.copy(this.centre);
+  }
+
+  /** How much air the current framing wants. See `FOCUS_PADDING`. */
+  private framingPadding(): number {
+    const base = VIEWS[this.view].padding ?? PADDING;
+    return this.focus ? base * EditorScene.FOCUS_PADDING : base;
   }
 
   /** Width of the corridor between the panels, in pixels. */
   private get usableWidth(): number {
     return Math.max(this.width - this.insetLeft - this.insetRight, 120);
+  }
+
+  /** Height of the corridor above the sheet, in pixels. */
+  private get usableHeight(): number {
+    return Math.max(this.height - this.insetBottom, 120);
   }
 
   /**
@@ -456,6 +566,16 @@ export class EditorScene {
   private get corridorOffset(): number {
     if (this.width === 0) return 0;
     return (this.insetLeft + this.usableWidth / 2) / this.width - 0.5;
+  }
+
+  /**
+   * The same measurement vertically, as a fraction of the canvas height, and
+   * measured *downwards* like the pixels it comes from. Negative when a sheet
+   * along the bottom pushes the corridor's centre above the canvas's.
+   */
+  private get corridorOffsetY(): number {
+    if (this.height === 0) return 0;
+    return this.usableHeight / 2 / this.height - 0.5;
   }
 
   setSize(width: number, height: number): void {
@@ -490,6 +610,7 @@ export class EditorScene {
     const same = view === this.view;
     // An explicit camera command; the arrival animation has had its turn.
     this.endIntro();
+    this.settleControls();
     if (!same) this.remember();
 
     const wasOrtho = this.camera === this.orthographic;
@@ -508,8 +629,63 @@ export class EditorScene {
     this.needsRender = true;
   }
 
-  /** Stash where the current view is sitting, before leaving it. */
+  /**
+   * Spend whatever momentum the orbit rig is still carrying, before the
+   * camera is placed by hand.
+   *
+   * `enableDamping` does not mean the drag ends when the pointer comes up.
+   * OrbitControls keeps `_sphericalDelta` and feeds `dampingFactor` of it into
+   * every `update()`, decaying the remainder by the same proportion -- so the
+   * *whole* of a flick is still to be applied when the finger lifts, and it
+   * plays out over the next second and a half.
+   *
+   * `setView` writes the camera position directly, and the next `update()`
+   * then added that leftover rotation on top of the framing it had just been
+   * given. Measured: press "3D" straight after a drag and the camera walks
+   * from (-216, 136, 546) to (-171, 123, 564) over the following 1.5 seconds
+   * with the turntable provably off. It read as the button half-working.
+   *
+   * Pressing "Front" never showed it, which is what made it look like a bug
+   * in the 3D view specifically: the orthographic views swap camera type, and
+   * that path disposes the rig and builds a new one, which throws the
+   * momentum away as a side effect.
+   *
+   * Turning damping off for one `update()` takes the other branch, which
+   * applies the remainder in full and then zeroes it. Applying it in full is
+   * free here -- it lands on a camera that is about to be repositioned
+   * anyway -- and it leaves nothing behind to fight the framing. Public API
+   * only; `_sphericalDelta` is private and there is no `stop()` in this
+   * build.
+   */
+  private settleControls(): void {
+    const damping = this.controls.enableDamping;
+    this.controls.enableDamping = false;
+    this.controls.update();
+    this.controls.enableDamping = damping;
+  }
+
+  /**
+   * Stash where the current view is sitting, before leaving it.
+   *
+   * Never while focused. A focused pose is a zoom onto one component, and
+   * recording it here would put it back the next time that view came round --
+   * long after the focus that justified it had gone.
+   */
   private remember(): void {
+    /*
+     * Nothing worth keeping until the product has been framed at least once.
+     *
+     * The editor picks a view from the step it opens on, and that happens
+     * within a tick of mounting -- before the GLB has landed and therefore
+     * before any `frame()` has run against real geometry. `remember()` was
+     * called anyway and stored what the orbit rig ships with: target
+     * (0, 0, 0), the world origin. Pressing "3D" later restored it, and the
+     * camera orbited the origin instead of the eyewear, which sits 68 mm in
+     * front of it. The position in that same record looked entirely
+     * plausible, which is what made it hard to see.
+     */
+    if (!this.framedGeometry) return;
+    if (this.focus) return;
     this.remembered.set(this.view, {
       position: this.camera.position.clone(),
       target: this.controls.target.clone(),
@@ -566,11 +742,11 @@ export class EditorScene {
     const corner = new THREE.Vector3();
     for (let i = 0; i < 8; i++) {
       corner.set(
-        i & 1 ? this.bounds.max.x : this.bounds.min.x,
-        i & 2 ? this.bounds.max.y : this.bounds.min.y,
-        i & 4 ? this.bounds.max.z : this.bounds.min.z,
+        i & 1 ? this.framingBox.max.x : this.framingBox.min.x,
+        i & 2 ? this.framingBox.max.y : this.framingBox.min.y,
+        i & 4 ? this.framingBox.max.z : this.framingBox.min.z,
       );
-      corner.sub(this.centre);
+      corner.sub(this.framingCentre);
       halfWidth = Math.max(halfWidth, Math.abs(corner.dot(right)));
       halfHeight = Math.max(halfHeight, Math.abs(corner.dot(camUp)));
     }
@@ -579,7 +755,14 @@ export class EditorScene {
 
   /** Re-fit the frustum to the current aspect without moving the camera. */
   private refit(): void {
-    if (this.camera !== this.orthographic) return;
+    // The frustum shift depends on the canvas and the insets, so it is
+    // re-applied on every resize -- including for the perspective camera,
+    // which has no zoom to re-fit but still has to draw in the right place.
+    this.applyViewOffset();
+    if (this.camera !== this.orthographic) {
+      this.perspective.updateProjectionMatrix();
+      return;
+    }
     this.fitOrtho(VIEWS[this.view].dir);
     this.orthographic.updateProjectionMatrix();
   }
@@ -589,10 +772,17 @@ export class EditorScene {
     // The corridor's aspect, not the canvas's: the product has to fit between
     // the panels, not merely inside the element they float over.
     const aspect = this.usableWidth / this.height;
-    const padding = VIEWS[this.view].padding ?? PADDING;
+    const padding = this.framingPadding();
     const { halfWidth, halfHeight } = this.screenExtent(dir);
-    // Whichever axis is the binding constraint decides the zoom.
-    const half = Math.max(halfHeight * padding, (halfWidth * padding) / aspect);
+    // Whichever axis is the binding constraint decides the zoom. The height
+    // term is scaled by how much of the canvas the sheet leaves, for the same
+    // reason the width term divides by the corridor's aspect: on a phone the
+    // corridor is short rather than narrow, and fitting the product to the
+    // full canvas height hides its lower half behind the controls.
+    const half = Math.max(
+      (halfHeight * padding * this.height) / this.usableHeight,
+      (halfWidth * padding) / aspect,
+    );
     const canvasAspect = this.width / this.height;
     this.orthographic.left = -half * canvasAspect;
     this.orthographic.right = half * canvasAspect;
@@ -614,7 +804,7 @@ export class EditorScene {
    * swings broadside. Tight, and still impossible to clip.
    */
   private turntableExtent(): { halfWidth: number; halfHeight: number } {
-    const size = this.bounds.getSize(new THREE.Vector3());
+    const size = this.framingBox.getSize(new THREE.Vector3());
     return {
       halfWidth: Math.hypot(size.x, size.z) / 2,
       // A little over half, for the couple of degrees the polar wave adds.
@@ -623,50 +813,88 @@ export class EditorScene {
   }
 
   /**
-   * What the camera aims at: the product's centre, optionally shifted so the
-   * product sits off-centre on screen. See `View.lift`.
+   * What the camera aims at, and therefore what it orbits around.
+   *
+   * The framing centre, and nothing else but the authored `View.lift`.
+   *
+   * It used to carry the panel compensation as well -- the aim was pushed
+   * sideways and down so the product would *land* in the gap the panels left.
+   * That composes the shot and breaks the orbit, because `controls.target` is
+   * both "what is in the middle of the picture" and "what the camera rotates
+   * about", and those are not the same job. On a phone the sheet is half the
+   * screen, so the aim sat about 90 mm below a 45 mm-tall product: dragging
+   * swung the frame around a pivot well beneath it and threw it out of shot.
+   * Measured on a 390x844 phone -- framing centre (0, -9.1, -68.5), orbit
+   * target (0, -97.3, -68.5).
+   *
+   * The compensation moved to `applyViewOffset`, which shifts the *frustum*
+   * instead. The picture is identical; the pivot is now the product.
    */
-  private aimPoint(dir: THREE.Vector3, half: number, halfWidth: number): THREE.Vector3 {
+  private aimPoint(dir: THREE.Vector3, liftBasis: number): THREE.Vector3 {
     const lift = VIEWS[this.view].lift ?? 0;
-    const offset = this.corridorOffset;
-    const point = this.centre.clone();
-    if (lift === 0 && offset === 0) return point;
+    const point = this.framingCentre.clone();
+    if (lift === 0) return point;
 
     const up = Math.abs(dir.y) > 0.95 ? new THREE.Vector3(0, 0, -1) : new THREE.Vector3(0, 1, 0);
     const right = new THREE.Vector3().crossVectors(up, dir).normalize();
     const camUp = new THREE.Vector3().crossVectors(dir, right).normalize();
-
-    // Aiming left puts the product right, so the sign is inverted: this moves
-    // the product into the middle of the gap between the panels.
-    point.addScaledVector(right, -offset * halfWidth * 2);
-    point.addScaledVector(camUp, -lift * half);
+    point.addScaledVector(camUp, -lift * liftBasis);
     return point;
+  }
+
+  /**
+   * Slide the rendered image into the gap the panels leave.
+   *
+   * `setViewOffset` renders a window onto a larger notional view, which is
+   * exactly the shift wanted here: the camera does not move, the orbit target
+   * does not move, and the product simply draws further up or across the
+   * canvas. Positive `x` shows a window further right, so the content moves
+   * left -- hence the negation on both axes.
+   *
+   * Both cameras get it, not just the active one, so a view switch never
+   * arrives with a stale frustum. It is applied inside
+   * `updateProjectionMatrix`, which means the raycaster picks through it
+   * correctly without knowing it exists.
+   */
+  private applyViewOffset(): void {
+    const dx = -this.corridorOffset * this.width;
+    const dy = -this.corridorOffsetY * this.height;
+    for (const camera of [this.perspective, this.orthographic]) {
+      if (dx === 0 && dy === 0) camera.clearViewOffset();
+      else camera.setViewOffset(this.width, this.height, dx, dy, this.width, this.height);
+    }
   }
 
   private frame(): void {
     this.framed = true;
+    this.applyViewOffset();
     const { dir } = VIEWS[this.view];
-    const aspect = this.width / this.height;
 
     let aim: THREE.Vector3;
     if (this.camera === this.orthographic) {
       const half = this.fitOrtho(dir);
       this.orthographic.updateProjectionMatrix();
-      aim = this.aimPoint(dir, half, (half * this.width) / this.height);
+      aim = this.aimPoint(dir, half);
+      // Pulled back by the *product's* radius, not the focused part's: an
+      // orthographic camera's distance does not affect the framing, and it
+      // still has to sit outside the whole frame or the near rim clips.
       this.orthographic.position.copy(aim).addScaledVector(dir, this.radius * 4);
     } else {
       const view = VIEWS[this.view];
-      const padding = view.padding ?? PADDING;
+      const padding = this.framingPadding();
       const fov = (this.perspective.fov * Math.PI) / 180;
       const { halfWidth, halfHeight } = view.sphereFit
         ? this.turntableExtent()
         : this.screenExtent(dir);
-      const forHeight = (halfHeight * padding) / Math.tan(fov / 2);
-      // Corridor again, not canvas.
+      // Corridor again, not canvas -- on both axes. The height term scales by
+      // how much of the canvas the sheet leaves, the width term divides by the
+      // corridor's aspect.
+      const forHeight =
+        (halfHeight * padding * this.height) / (Math.tan(fov / 2) * this.usableHeight);
       const corridorAspect = this.usableWidth / this.height;
       const forWidth = (halfWidth * padding) / (Math.tan(fov / 2) * corridorAspect);
       const distance = Math.max(forHeight, forWidth);
-      aim = this.aimPoint(dir, halfHeight * padding, distance * Math.tan(fov / 2) * aspect);
+      aim = this.aimPoint(dir, halfHeight * padding);
       this.perspective.position.copy(aim).addScaledVector(dir, distance);
       this.perspective.updateProjectionMatrix();
     }
@@ -710,6 +938,8 @@ export class EditorScene {
       this.bounds.copy(bounds);
       bounds.getCenter(this.centre);
       this.radius = Math.max(bounds.getSize(new THREE.Vector3()).length() / 2, 1);
+      // The geometry under a focus has just been rebuilt, so re-measure it.
+      this.updateFraming();
       // Measured, but the camera is *not* re-aimed here.
       //
       // Shapes differ in height by a few millimetres, so re-targeting on every
@@ -950,8 +1180,31 @@ export class EditorScene {
       (this.backdrop.material as THREE.Material).dispose();
     }
     for (const material of this.materials.values()) material.dispose();
+    // The pre-filtered environment lives on a render target this scene owns;
+    // clearing the reference alone leaves it on the GPU.
+    (this.scene.environment as THREE.Texture | null)?.dispose();
     this.scene.background = null;
     this.scene.environment = null;
     this.renderer.dispose();
+
+    /*
+     * Hand the WebGL context back -- but only if the canvas is really going.
+     *
+     * `renderer.dispose()` releases three's own resources and leaves the
+     * context alive; `forceContextLoss()` is separate because letting go is a
+     * decision. This app builds a *second* renderer for the try-on, so moving
+     * between the two abandons a context per trip, and Chrome keeps about
+     * sixteen per page before silently killing the oldest. A live scene going
+     * dark with nothing in the console is what that looks like.
+     *
+     * The guard is not defensive padding. A force-lost canvas can never get a
+     * context again, and React owns this one: in StrictMode the effect is torn
+     * down and re-run against the *same* element, so an unconditional call
+     * killed the canvas and the second mount died in the renderer constructor
+     * with "Cannot read properties of null (reading 'precision')". On a real
+     * unmount React has already detached the node by the time this runs, so
+     * `isConnected` tells the two apart exactly.
+     */
+    if (!this.canvas.isConnected) this.renderer.forceContextLoss();
   }
 }

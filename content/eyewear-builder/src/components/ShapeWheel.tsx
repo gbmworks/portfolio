@@ -20,6 +20,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { ShapeIconSet } from '../frame/shapeIcons';
 import { FRONT_SHAPES, shapeBlend } from '../frame/shapes';
+import { COARSE } from '../ui/pointer';
 import { sound } from '../ui/sound';
 
 interface Props {
@@ -251,7 +252,15 @@ export function ShapeWheel({ angle, onChange, icons, unavailable }: Props) {
         )}
       </p>
 
-      <p className="hint">Click a shape, or drag the ring to blend between two.</p>
+      {/* "Click" is an instruction a phone cannot carry out, and the ring
+          is the half of this control nobody finds by accident -- so on a
+          touch screen the sentence leads with the drag and drops the
+          clause the narrower wheel has no room for. */}
+      <p className="hint">
+        {COARSE
+          ? 'Drag the ring to blend, or tap a shape.'
+          : 'Click a shape, or drag the ring to blend between two.'}
+      </p>
 
       {unavailable && (
         <p className="hint hint--warn">
