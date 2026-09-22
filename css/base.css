@@ -136,3 +136,76 @@ body.is-stalled #boot.fallback{ display:grid; }
 }
 .fallback__inner a{ color:var(--accent); border-bottom:1px solid currentColor; }
 .fallback__inner li a{ font-size:17px; font-weight:600; }
+
+/* ------------------------------------------------------------------
+   The scroll nudge.
+
+   These pages do not scroll — the body is fixed and the work lives in
+   panels — so every scroller on them is one nobody can see is a
+   scroller.  Measured on a 390x844 phone: the sheet's column hides
+   1523px past the fold, the work strip 2489 sideways, the project
+   window 3507.  A phone draws no scrollbar until you are already
+   moving, and the horizontal strips hide theirs on purpose, so the
+   page looked like all there was.
+
+   `js/scrollnudge.js` sets `data-scroll` / `data-scroll-x` to "more"
+   while there is something past the edge and "end" once there is not.
+   Everything here is drawn off those, so a new scroller needs the
+   selector and no new styling.
+
+   Two marks, two jobs.  The fade says the content is *cut*, which a
+   flat edge fails to say.  The chevron says it can be *moved*, which a
+   fade alone leaves ambiguous.
+
+   Both are sticky pseudo-elements inside the scroller rather than
+   overlays on the parent: the parents differ — a flex row here, a
+   block column there — and an overlay would need positioning context
+   from each of them.  A sticky pseudo-element pins itself to the edge
+   of whatever scrollport it is in and asks nothing of anybody.  The
+   negative margin keeps it from adding the very extent it reports on.
+   ------------------------------------------------------------------ */
+
+[data-scroll]::after,
+[data-scroll-x]::before{
+  content:''; display:block; position:sticky; pointer-events:none;
+  opacity:.8; transition:opacity .3s var(--ease, ease);
+}
+
+/* --- vertical --- */
+[data-scroll]::after{
+  bottom:0; height:30px; margin-top:-30px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9.5 12 15.5 18 9.5'/%3E%3C/svg%3E")
+      center bottom 4px / 15px 15px no-repeat,
+    linear-gradient(to bottom, rgba(10,10,12,0), rgba(10,10,12,.72));
+}
+[data-scroll='end']::after{ opacity:0; }
+
+/* --- horizontal ---
+   `::before`, and it is the *first* flex item, so `left:0` pins it to
+   the leading edge.  A trailing chevron would have to be `::after`
+   after the last card, which in a flex row is wherever the content
+   ends rather than where the scrollport does. */
+[data-scroll-x]::before{
+  left:auto; right:0; order:9; align-self:stretch;
+  flex:0 0 26px; width:26px; height:auto; margin-left:-26px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9.5 6 15.5 12 9.5 18'/%3E%3C/svg%3E")
+      right 5px center / 14px 14px no-repeat,
+    linear-gradient(to right, rgba(10,10,12,0), rgba(10,10,12,.72));
+}
+[data-scroll-x='end']::before{ opacity:0; }
+
+/* The sector pills sit on the sheet's own ground rather than the dark
+   stage, so the fade behind them has to match it. */
+.sectors[data-scroll-x]::before{
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2317161a' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9.5 6 15.5 12 9.5 18'/%3E%3C/svg%3E")
+      right 4px center / 13px 13px no-repeat,
+    linear-gradient(to right, rgba(247,246,243,0), rgba(247,246,243,.9));
+}
+
+@media (prefers-reduced-motion:reduce){
+  [data-scroll]::after,
+  [data-scroll-x]::before{ transition:none; }
+}

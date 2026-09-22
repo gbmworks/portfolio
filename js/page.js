@@ -24,6 +24,7 @@ import { createStage } from './stage.js';
 import { buildMosaic, entryTile, startTiles } from './tiles.js';
 import { initStage } from './preview.js';
 import { mountShell } from './shell.js';
+import { nudgeScrollers } from './scrollnudge.js';
 import { bindNav } from './nav.js';
 
 const $ = (s) => document.querySelector(s);
@@ -37,6 +38,12 @@ export async function initSection(id) {
   document.body.dataset.layout = isGallery ? 'gallery' : 'sheet';
 
   document.documentElement.style.setProperty('--accent', ACCENT);
+
+  /* These pages do not scroll -- the body is fixed and everything lives in
+     panels -- so every scroller on them is one nobody can see is a scroller.
+     Measured on a phone: the sheet column hides 1523px, the work strip 2489
+     sideways, the project window 3507. */
+  nudgeScrollers('.panel__scroll, .win__panel, .sreel__track, .sectors, .reel__track');
 
   /* ---------------- content ---------------- */
   mountShell();
