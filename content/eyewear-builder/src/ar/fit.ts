@@ -47,8 +47,17 @@ export interface FitSettings {
 export const FIT_REFERENCE = {
   /** Multiplier on the frame's own measured front width. */
   scale: 1.12,
-  /** Vertex distance the frame starts at, mm. */
-  depth: 15,
+  /**
+   * Vertex distance the frame starts at, mm.
+   *
+   * Further out than an optician's 12-15 mm, and deliberately: this is not a
+   * dispensing measurement but the offset that puts a placeholder frame in
+   * front of a face the landmarker has located on an uncalibrated video feed,
+   * and it absorbs whatever the model's own origin and the anchor disagree
+   * about. It was 15 and read as sitting too close; 25 is where it was dialled
+   * to on a real face, which was 10 mm along the slider that started at 15.
+   */
+  depth: 25,
 } as const;
 
 /** The size the frame is actually drawn at, given a fit. */
@@ -60,7 +69,20 @@ export const drawnDepth = (fit: Pick<FitSettings, 'depth'>): number =>
   fit.depth + FIT_REFERENCE.depth;
 
 export const DEFAULT_FIT: FitSettings = {
-  height: 0,
+  /*
+   * A shade below the nasion, and not rebased to read zero like `scale` and
+   * `depth` are.
+   *
+   * Those two had no meaningful zero -- a multiplier of 1 and a vertex
+   * distance of 0 were both arbitrary, so the slider's neutral had to be
+   * *given* a meaning. Height already has one: zero is the bridge sitting
+   * exactly on the bridge of the nose, which is a real place on a real face
+   * and worth being able to see the departure from.
+   *
+   * Only ever the no-scan default. Once there is a scan, `initialFit` solves
+   * this from the pupil line and overwrites it.
+   */
+  height: -2.5,
   depth: 0,
   // A dispensed frame is normally tilted 8-12 degrees so the lower rim sits
   // closer to the cheek; starting at 8 looks right before anyone touches a
@@ -73,9 +95,11 @@ export const DEFAULT_FIT: FitSettings = {
 export const FIT_RANGES: Record<keyof FitSettings, { min: number; max: number; step: number }> = {
   height: { min: -30, max: 20, step: 0.5 },
   // Symmetric about the reference, so the starting fit sits in the middle of
-  // the travel with the same room to go nearer as further. Effectively 5 mm
-  // to 25 mm of vertex distance, which spans what a dispenser would ever set.
-  depth: { min: -10, max: 10, step: 0.5 },
+  // the travel with the same room to go nearer as further. Twenty millimetres
+  // each way rather than ten: the reference moved out to 25, and a control
+  // that cannot reach back past where the frame used to start is a control
+  // that has lost half its useful travel.
+  depth: { min: -20, max: 20, step: 0.5 },
   pantoscopic: { min: -4, max: 20, step: 0.5 },
   splay: { min: -12, max: 12, step: 0.5 },
   // Also symmetric, and no longer wide. It used to run 0.5-1.8 because the
