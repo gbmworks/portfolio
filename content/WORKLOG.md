@@ -2150,6 +2150,33 @@ already reads `live` off every record, so the third runnable needed no
 change there. Worth noting as the thing that *didn't* cost anything:
 three entries in, the mechanism is doing its job.
 
+### Reproduction record — section 28
+
+| commit | what |
+|---|---|
+| `f4b050d` | the app (`base: './'`, `BackToPortfolio`, the bar), `deploy.mjs`, `content/eyewear-builder/`, `studio/eyewear/`, the record, the sheet cell, the cover |
+| `e76dd8a` | `tools/shoot.mjs` — the CDP still-grabber the cover came out of |
+| `120b7f7` | README, NOTES and this section |
+
+**Do not hand-edit** `studio/eyewear/` — `npm run deploy` in
+`content/eyewear-builder` overwrites it, and the wasm inside it is
+generated from the installed `@mediapipe/tasks-vision`.
+
+Pages built `120b7f7` in about 40 seconds, and a
+`pages-build-deployment` run appeared for that SHA immediately — not the
+wedged shape of 2026-09-13. Verified live by the bytes rather than the
+status: `js/projects.js` serves `eyewear-builder`, `studio/eyewear/`
+returns the relative-path `index.html`, all four hashed bundles resolve,
+the two 11 MB wasm files come back `Content-Type: application/wasm`, and
+the `vision_wasm_module_internal` pair 404s because nothing asks for it.
+The editor was then opened in a real Chrome against the live origin —
+frame loaded, Cat-eye morph applied, `140 mm front` measured off the
+geometry — and the back arrow round-tripped to `technical-art.html`.
+
+All on `gbmworks/portfolio`. `gbmPrimetrace/portfolio` has none of it and
+still cannot be pushed from this machine — `push: false`, checked again
+on 2026-09-22.
+
 ---
 
 ## 8. Open items
