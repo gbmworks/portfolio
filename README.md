@@ -35,6 +35,8 @@ What ships and what does not:
 | `content/Unicorn/` | source only | its 59 MB working folder stays local |
 | `studio/fitmint/` | yes, 19 MB | the avatar studio — models, textures, three |
 | `content/Fitmint/` | source only | 92 MB of art and a 59 MB build stage stay local |
+| `studio/eyewear/` | yes, 29 MB | the eyewear builder — 22 MB of it MediaPipe wasm |
+| `content/eyewear-builder/` | source only | `dist/`, `node_modules/` and the wasm stay local |
 
 To re-encode after adding footage:
 
@@ -82,6 +84,7 @@ project.html               one shell for every case study — project.html?p=<sl
 404.html                   hand-written, root-absolute paths — see "Resilience"
 game/unicorn/              a game, not a page about one — see "Things that run"
 studio/fitmint/            an avatar customiser, likewise
+studio/eyewear/            an eyewear configurator, likewise
 
 css/                       one cascade cut into six readable files, loaded in order
   base.css                 tokens, reset, the canvas, the fallback page
@@ -312,9 +315,9 @@ clicked through.
 
 ## Things that run
 
-Two entries on Technical Art are not write-ups. The work itself runs, in
-the browser, on this domain. Three fields on the record in `projects.js`
-carry it:
+Three entries on Technical Art are not write-ups. The work itself runs,
+in the browser, on this domain. Three fields on the record in
+`projects.js` carry it:
 
 | field | |
 |---|---|
@@ -327,22 +330,32 @@ the whole project — there is no write-up worth standing between you and
 it — so it sets `liveFromRow` and clicking its row plays it. The avatar
 studio is one output of a larger job that also has reels, posts and a
 write-up, so its row opens its **page**, and the page opens the studio
-with the one solid accent button on the site, above the fold.
+with the one solid accent button on the site, above the fold. The eyewear
+builder is reached the studio's way, and for the studio's reason: there
+is a build log behind it worth arriving at first.
 
 `entryHref()` in `projects.js` is the single function that answers "where
 does clicking this go" — a sector row, a prev/next arrow and the sitemap
 all call it, so they cannot drift apart.
 
-Both cost the site **nothing until clicked** — measured on a cold load of
-Technical Art, zero requests under `game/` or `studio/`; the whole page
-is 200 KB.
+All three cost the site **nothing until clicked** — measured on a cold
+load of Technical Art, zero requests under `game/` or `studio/`; the
+whole page is 200 KB.
 
-**And both have a way back — to their own record, not to the front
-door.** A visitor who lands in a full-screen game or a full-screen
-editor should not have to reach for the browser's back button, so each
-carries its own link out: the game's `#exit` pill, the studio's arrow in
-its wordmark. Both are relative and resolve from one folder down, and
-both now point at `project.html?p=…` rather than the site root.
+**And each has a way back, and never to the front door.** A visitor who
+lands in a full-screen game or a full-screen editor should not have to
+reach for the browser's back button, so each carries its own link out:
+the game's `#exit` pill, the studio's arrow in its wordmark, the
+builder's arrow in its top bar. All three are relative and resolve from
+one folder down.
+
+Two of them land on **their own record**; the builder lands on the
+**Technical Art index** instead. That is a deliberate difference and the
+only one: it is a tool with no reels and no posts, so the sector page —
+where the rest of the work of its kind is — is the more useful place to
+come out, and its own record is still one row up from there. If it ever
+grows a set of posts worth returning to, `../../technical-art.html` in
+`BackToPortfolio` is the one line to change.
 
 The root was the wrong destination in two different ways. For the
 **game** the page is the one thing a player has *not* seen — its row
@@ -359,19 +372,20 @@ is served from the portfolio. `../../` used to mean "one folder up",
 which happened to be harmless anywhere; `../../project.html?p=…` has to
 land on this site.
 
-Both are deployed the same way, and it is the same split as
+All three are deployed the same way, and it is the same split as
 `assets/media` → `assets/web`: a working folder that stays on this
-machine, and a script that copies the shipped subset into the repo.
-Neither deploy is a recursive copy — each one checks first and refuses to
-write rather than shipping something that 404s halfway through.
+machine, and a script that copies the shipped subset into the repo. None
+of the three deploys is a recursive copy — each one checks first and
+refuses to write rather than shipping something that 404s halfway
+through.
 
-| | the game | the studio |
-|---|---|---|
-| URL | `game/unicorn/` | `studio/fitmint/` |
-| deployed | 16 MB | 19 MB |
-| source | `content/Unicorn/` | `content/Fitmint/AvatarStudio/` |
-| left behind | 59 MB working `dist/` | 92 MB of art, a 59 MB build stage |
-| build | webpack → `npm run deploy` | Blender/sharp → `npm run deploy` |
+| | the game | the studio | the builder |
+|---|---|---|---|
+| URL | `game/unicorn/` | `studio/fitmint/` | `studio/eyewear/` |
+| deployed | 16 MB | 19 MB | 29 MB |
+| source | `content/Unicorn/` | `content/Fitmint/AvatarStudio/` | `content/eyewear-builder/` |
+| left behind | 59 MB working `dist/` | 92 MB of art, a 59 MB build stage | `node_modules/`, `dist/`, 34 MB of wasm |
+| build | webpack → `npm run deploy` | Blender/sharp → `npm run deploy` | Vite → `npm run deploy` |
 
 ### The game
 
@@ -473,6 +487,65 @@ rebuild still reaches the browser.
 
 Its own `README.md` and `PROJECT.md` are in the source folder and cover
 the lighting, the build stages and the known gaps.
+
+### The eyewear builder
+
+`studio/eyewear/` is the **Eyewear Builder** — a frame configurator with
+a webcam try-on, and the third entry on Technical Art. Eight front
+silhouettes sit on a drag wheel that *blends* between neighbours rather
+than snapping, because the shapes are morph targets and the wheel drives
+their weights; the front is a 326-vertex cage subdivided twice at load.
+The try-on measures the face in millimetres from MediaPipe's 478-point
+landmarker, scaled against the iris.
+
+It is `live: 'studio/eyewear/'` on the `eyewear-builder` record and does
+**not** set `liveFromRow`, for the studio's reason: the row opens the
+project page and *Open the builder* there opens the app.
+
+```bash
+cd content/eyewear-builder
+npm run deploy      # tsc + vite build, then deploy.mjs -> studio/eyewear, 29.1 MB
+```
+
+**It needed one line to relocate.** Every runtime asset it loads already
+went through `import.meta.env.BASE_URL`, so `base: './'` in
+`vite.config.ts` was the whole change — models, HDRI, `materials.csv`
+and the wasm all resolve against the document instead of the host root,
+and the folder can be moved without a rebuild. `deploy.mjs` reads the
+built `index.html` and **refuses to ship** if a `src` or `href` in it
+comes back root-absolute, because that is exactly the mistake that
+would 404 under `/studio/eyewear/`.
+
+**22 of its 29 MB is the MediaPipe runtime**, and it ships trimmed on
+evidence rather than by feel. `scripts/sync-wasm.mjs` copies all six
+files out of the installed package — 33.8 MB — but
+`FilesetResolver.forVisionTasks(path)` builds its filename as
+`vision_wasm{_module?}{_nosimd?}_internal.js`, and the `_module` half is
+only reached when its second argument is true. `src/face/landmarker.ts`
+calls it with one argument, so that pair (12.1 MB) can never be
+requested and the deploy drops it. `nosimd` stays — it is the real
+fallback for a browser without WebAssembly SIMD. The deploy re-reads
+that call each time and **fails if it ever gains a second argument**,
+because the day somebody passes `true` the trim turns into a 404
+halfway through a face scan.
+
+The cover on its row is a still of the builder's own 3D view, taken from
+the deployed app. It could not be screenshotted from an automated tab:
+**a hidden tab never runs `requestAnimationFrame`**, so a WebGL canvas
+captured in one comes back empty — the same trap `tools/reel-test.mjs`
+exists for. It came out of a real headless Chrome over CDP with
+SwiftShader.
+
+**It is a desktop app, and the phone tier is still missing.** Below
+about 700px the editor's two floating panels overlap each other and
+cover the frame. That is the app's own known gap, listed in its README,
+and nothing on the portfolio side works around it. The one width rule in
+its stylesheet exists only to pay for the back arrow: at 390px the top
+bar had roughly 2px to spare, and 34px of arrow made the tab labels wrap
+inside their pills.
+
+Its own `README.md` is in the source folder, and `NOTES.md` beside it is
+an engineering log of 67 numbered traps.
 
 ## The reel
 

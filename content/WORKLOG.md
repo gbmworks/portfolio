@@ -1984,6 +1984,174 @@ on 2026-09-14. Built and verified live the same day.
 
 ---
 
+## 28. A third thing that runs
+
+2026-09-22. `content/eyewear-builder` arrived as a finished app — a frame
+configurator with a webcam try-on — and the job was to make it an entry
+on Technical Art: a row, a page, a cover, and a way back out of it. Most
+of it was decisions rather than code.
+
+### Where it goes, and what it costs
+
+`studio/eyewear/`, beside `studio/fitmint/`, because the pattern was
+already set twice: heavy source in `content/`, a `deploy.mjs` that copies
+the shipped subset into the repo, and the repo root *is* the site.
+
+**It needed one line to relocate.** This was the pleasant surprise. Every
+runtime asset the app loads already went through
+`import.meta.env.BASE_URL` — models, the HDRI, `materials.csv`, the
+MediaPipe wasm — so `base: './'` in `vite.config.ts` was the entire
+change. Nothing was pinned to a host root, and the deployed folder can
+now be moved without a rebuild. The studio needed no path fixes either;
+the game did. Two out of three, and the reason both times was that the
+app had been written to ask for its own base rather than assume one.
+
+Because that one line is the whole of the relocation, it is also the
+whole of the risk — so `deploy.mjs` reads the built `index.html` and
+**refuses to write** if a `src` or `href` in it comes back
+root-absolute. One grep standing in for the one mistake that would 404
+the entire app under `/studio/eyewear/`.
+
+### 12 MB dropped on evidence, not on feel
+
+The app is 41 MB built, of which **33.8 MB is the MediaPipe runtime** —
+six files that `scripts/sync-wasm.mjs` copies out of the installed
+package. Committing 34 MB to serve a face tracker deserved a look before
+it deserved a shrug.
+
+`FilesetResolver.forVisionTasks(path)` builds its own filename, and the
+line that does it is in the minified bundle: the name is assembled as
+`vision_` + `wasm` + `_module` if a flag is set + `_nosimd` if SIMD is
+unsupported + `_internal`. The `_module` half is only reached when the
+function's **second argument** is true. `src/face/landmarker.ts` calls it
+with one argument.
+
+So the `vision_wasm_module_internal` pair — **12.1 MB** — can never be
+requested, and the deploy drops it: 29.1 MB shipped instead of 41.
+`nosimd` stays, because it is the real fallback for a browser without
+WebAssembly SIMD and dropping it would trade 11 MB for older Safari.
+
+The part worth keeping is not the saving, it is the guard. A trim
+justified by a function's arguments is only true while those arguments
+hold, so **the deploy re-reads that call on every run** and fails if it
+ever gains a second one. The day somebody passes `true` for the
+ES-module runtime, this turns into a 404 halfway through a face scan —
+the worst possible place for it, because the scan is the half of the app
+that needs a camera to test.
+
+### The cover could not be screenshotted
+
+The brief asked for the thumbnail to be a still of the builder's own 3D
+view. That ran straight into the trap section 26 had already paid for:
+**a hidden tab never runs `requestAnimationFrame`**, and the browser this
+session drives reports `visibilityState: hidden` permanently. For the
+reel that meant frame counts coming back zero. For a WebGL canvas it is
+worse — three.js renders inside a rAF loop, so the canvas is never
+painted at all and the screenshot is an empty grey rectangle with the UI
+sitting on top of it.
+
+`tools/reel-test.mjs` was kept in `239d07e` for exactly this, and it paid
+for itself here: the same CDP shape — launch a real Chrome, attach over
+the DevTools protocol, drive the page — with three differences.
+
+- `--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader`.
+  The reel harness passes `--disable-gpu`, which is fine for a CSS
+  animation and useless here: this page *is* WebGL, and with no GPU and
+  no SwiftShader there is no context to render into.
+- The editor was entered by **clicking the Design tab** rather than by
+  poking the store, so whatever the tab does on the way in happened too.
+- The three-quarter was reached by a **synthetic drag** — 24 mouse-move
+  events between a press and a release — rather than by setting the
+  camera. The scene's own controls then did the framing, and the idle
+  turntable stood down the way it does for a real hand instead of
+  swinging through the shot.
+
+`document.visibilityState` came back `visible` and `webgl2` came back
+`true` on the first run, which is the pair worth printing: both are
+cheap, and either one being wrong explains an empty canvas immediately.
+
+Three orbit angles and three zoom levels were shot and compared. The
+zoomed ones ran the temple into the right-hand panel; the un-orbited one
+read as a flat front elevation with no depth. The keeper is a 16:9 frame
+of the whole editor at a 3/4 that shows the frame is a solid — UI
+included, deliberately, because a row about a configurator should show
+the configurator and not a product render.
+
+### The back button, and the one place it differs
+
+The game's `#exit` pill and the studio's wordmark arrow both land on
+**their own record**, and section 24 wrote down why the site root was the
+wrong destination. The builder's arrow lands on
+**`../../technical-art.html`** instead — the sector index.
+
+That was asked for, and it also happens to be right for this one: it is a
+tool with no reels and no posts, so the page it would otherwise land on
+is thinner than the index, and the index is where the rest of the work of
+its kind is. Its own record is one row up from there. The divergence is
+written down in three places rather than left to be discovered, and
+`BackToPortfolio` in `src/App.tsx` is the one line to change if it ever
+grows a reason to land on its own page.
+
+It renders **only when the path is two or more segments deep**. A
+standalone dev server at `/` has no `technical-art.html` to reach, and an
+arrow that 404s is worse than no arrow at all.
+
+### The arrow cost 34px, and the bar did not have them
+
+This is the one real defect the pass introduced, and it was found by
+measuring rather than by looking at it.
+
+At 390px the top bar — back arrow, wordmark, *Design*, *3D try-on*, a
+sound toggle — has about **2px** of slack. Adding a 28px arrow and its
+6px gap did not overflow the row; it did something quieter. `.tab` had no
+`white-space`, so the row never gave way: **the label wrapped inside its
+own pill.** *3D try-on* became two lines, the pills grew from 34px to
+55px, and they overlapped the wordmark inside a bar still 56px tall.
+
+Measured with and without the arrow in the same session, which is what
+made it attributable rather than a guess:
+
+| | tabs | *3D try-on* |
+|---|---|---|
+| arrow present, no fix | 55px tall | 71px wide, 2 lines |
+| arrow removed | 34px tall | 85px wide, 1 line |
+| arrow present, fixed | 34px tall | 85px wide, 1 line |
+
+Two changes. `white-space: nowrap` on `.tab`, because a pill is one line
+by definition and the failure mode of a full bar should be the row giving
+way rather than the type folding. And the first width media query this
+stylesheet has ever had, tightening the bar's own padding from 24px to
+12px and its gap from 24px to 12px — 36px reclaimed, which is the
+arrow's bill paid by the arrow. Verified at 375, 390 and 430.
+
+**That rule is not a phone tier, and the comment on it says so.** Below
+about 700px the editor's two floating panels still overlap each other and
+cover the frame completely. That is the app's own known gap, listed in
+its README before any of this, and it is now the top item in NOTES'
+"Next" — to be shipped on its own, because it is a visible change to
+something that currently works on a desktop.
+
+### What went where
+
+| file | why |
+|---|---|
+| `js/projects.js` | the `eyewear-builder` record — `live`, `liveLabel`, cover, summary, body |
+| `content/allocation_new.csv` | third cell in the TD column; `js/pages.js` and `sitemap.xml` are generated from it |
+| `assets/covers/eyewear-builder.jpg` | the CDP still, 1400x800, 66 KB |
+| `content/eyewear-builder/vite.config.ts` | `base: './'` |
+| `content/eyewear-builder/src/App.tsx` | `BackToPortfolio`, and the depth test |
+| `content/eyewear-builder/src/styles.css` | `.topbar__id`, `.topbar__back`, `nowrap`, the 560px rule |
+| `content/eyewear-builder/deploy.mjs` | new — the two guards and the wasm trim |
+| `studio/eyewear/` | 29.1 MB of build output, which is what Pages serves |
+| `.gitignore`, `README.md`, `content/NOTES.md` | the split, the reference, the traps |
+
+The sitemap picked up `studio/eyewear/` on its own — `tools/sitemap.mjs`
+already reads `live` off every record, so the third runnable needed no
+change there. Worth noting as the thing that *didn't* cost anything:
+three entries in, the mechanism is doing its job.
+
+---
+
 ## 8. Open items
 
 1. **Five records still have no artwork** — Primetrace, Metabrix,

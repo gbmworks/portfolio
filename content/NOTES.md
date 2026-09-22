@@ -147,15 +147,19 @@ Range request instead of `206`. That means stale modules that look like
 edits not working, and videos stuck at `readyState 0`. Hours went into
 this once already.
 
-For the two things that run:
+For the three things that run:
 
 ```bash
 cd content/Unicorn && npm run deploy            # webpack   -> game/unicorn    (16 MB)
 cd content/Fitmint/AvatarStudio && npm run deploy   #          -> studio/fitmint  (19 MB)
+cd content/eyewear-builder && npm run deploy    # tsc+vite  -> studio/eyewear   (29 MB)
 ```
 
-Neither needs its heavy build re-run to redeploy — both copy from what is
-already on disk, and both refuse to write if something is missing.
+The first two do not need their heavy build re-run to redeploy — both
+copy from what is already on disk. All three refuse to write if
+something is missing. The eyewear one is the exception on cost: its
+`deploy` script runs `tsc -b && vite build` first, which takes about two
+seconds, so there is no separate "just copy" mode to remember.
 
 ## Checks worth re-running before a push
 
@@ -373,7 +377,7 @@ number on its own proves very little.
 - Technical Art leads with the game (`live: 'game/unicorn/'` on the record
   in `projects.js`); clicking the row plays it. Nothing of the game loads
   until then — measured, zero requests under `game/` on a section load.
-- ID 18 · TD 14 · VIZ 29, all 61 with a picture and a destination.
+- ID 18 · TD 15 · VIZ 29, all 62 with a picture and a destination.
 - The footer under the reel is built from `SOCIALS` in `site.js`, which
   drops any profile with no URL — so an unset one is absent rather than a
   dead link. All of them are set now, LinkedIn included.
@@ -386,16 +390,19 @@ number on its own proves very little.
   `js/reel.js` out of the same `.tile` the walls use. `body.has-reel` is
   what unlocks the scroll, and `main.js` only sets it if the reel
   mounted.
-- **Two entries run rather than link**: the game at `game/unicorn/` and
-  the avatar studio at `studio/fitmint/`, first and second on Technical
-  Art. `live` + `liveLabel` + `liveFromRow` on the record is the whole
-  mechanism, and a cold Technical Art load still fetches zero bytes of
-  either — measured.
+- **Three entries run rather than link**: the game at `game/unicorn/`,
+  the avatar studio at `studio/fitmint/` and the eyewear builder at
+  `studio/eyewear/` — first, second and third on Technical Art. `live` +
+  `liveLabel` + `liveFromRow` on the record is the whole mechanism, and a
+  cold Technical Art load still fetches zero bytes of any of them —
+  measured.
   - The **game** sets `liveFromRow`, so its row plays it.
   - The **studio** does not: its row opens the project page, and the big
     orange *Edit an avatar* button there opens the studio. `entryHref()`
     is the one function that decides this; rows, prev/next and the
     sitemap all call it.
+  - The **builder** does not either, for the same reason, and its button
+    says *Open the builder*.
   - Both carry their own **way back, and it lands on their own record**
     (`../../project.html?p=…`) — the game's `#exit` pill, dimmed but
     never removed once play starts, and the arrow in the studio's
@@ -416,6 +423,16 @@ number on its own proves very little.
     exceptions to the `dist/*` ignore) and
     `content/Fitmint/AvatarStudio/index.html` — and each needs its
     `node deploy.mjs` before the change is on the site.
+  - **The builder's way back goes to the sector page, not to its own
+    record** — `../../technical-art.html`, the one deliberate difference
+    between the three. It is a tool with no reels and no posts, so the
+    Technical Art index is the more useful place to come out of it, and
+    its record is one row up from there anyway. It lives in
+    `BackToPortfolio` in `content/eyewear-builder/src/App.tsx`, which
+    renders it **only when the path is two or more segments deep** — a
+    dev server at `/` has no `technical-art.html` to reach, and a dead
+    arrow is worse than no arrow. Same rule as the other two: it needs
+    `npm run deploy` before the change is on the site.
 - The Visualization mosaic reads **across**, not down — it is a CSS grid
   rather than multi-column, so row one is the sheet's first five entries —
   and it crops to **16:9 / 9:16** where every other wall stays at 4:3 / 3:4.
@@ -514,6 +531,41 @@ number on its own proves very little.
 
   **Edit the source and run `node deploy.mjs`** — `studio/fitmint/` is a
   build output, and editing it directly is undone by the next deploy.
+- **The eyewear builder is relocatable, and that is one line.** Every
+  runtime asset it loads goes through `import.meta.env.BASE_URL`, so
+  `base: './'` in `content/eyewear-builder/vite.config.ts` is what lets
+  it run at `/studio/eyewear/` — models, HDRI, `materials.csv` and the
+  wasm all resolve against the document. `deploy.mjs` reads the built
+  `index.html` and **refuses to ship** on a root-absolute `src`/`href`,
+  which is the one mistake that would 404 there.
+
+  **22 of its 29 MB is MediaPipe wasm, and the trim is derived.**
+  `sync-wasm.mjs` copies six files (33.8 MB);
+  `FilesetResolver.forVisionTasks(path)` can only ever name four,
+  because the `_module` pair needs a second argument that
+  `src/face/landmarker.ts` does not pass. The deploy drops that pair and
+  **re-checks the call each run**, failing if it ever gains an argument.
+  Keep `nosimd` — it is the real fallback.
+
+  **It is desktop-only below ~700px** and the portfolio does not work
+  around it: the editor's two floating panels overlap and cover the
+  frame. Its own README says so. The single width rule in its stylesheet
+  is not a phone tier — it pays for the back arrow, which cost 34px of a
+  390px bar that had about 2px spare and made the tab labels wrap inside
+  their pills. Measured: 55px bar with the arrow and no rule, 56px with
+  it, at 375 / 390 / 430.
+
+  **Its cover cannot be screenshotted from an automated tab.** A hidden
+  tab never runs rAF, so the WebGL canvas comes back empty — the same
+  trap `tools/reel-test.mjs` exists for, and the reason that file is
+  kept. The still in `assets/covers/eyewear-builder.jpg` came out of a
+  real headless Chrome over CDP with
+  `--use-angle=swiftshader --enable-unsafe-swiftshader`, driven into the
+  editor by clicking the Design tab, orbited with a synthetic drag, and
+  captured after the arrival turntable had settled. `--disable-gpu`
+  alone is **not** enough: this page *is* WebGL and there would be no
+  context at all.
+
 - **Five** records still have no artwork — Primetrace, Metabrix,
   Freelance 2024, Hecoll and Diaz Goa — and are unlisted, so nothing
   renders as a bare plate. This line said four, and named the wrong
@@ -578,6 +630,29 @@ number on its own proves very little.
   *and* in the landing reel, which are the two frames that crop at all.
 
 ## Next, in the order I would do it
+
+-2. **The eyewear builder has no phone tier**, and it is now the third
+   row on Technical Art — which means a phone visitor can reach a
+   full-screen editor whose two floating panels overlap each other and
+   hide the frame entirely. Nothing about the portfolio side is wrong;
+   the app is desktop-only and says so in its own README. But it is the
+   one entry on the site that is worse on a phone than not being there,
+   and the phone is how this site actually gets reviewed.
+
+   The shape of the fix is already written down, in the studio: a dock
+   whose height is **measured rather than declared**
+   (`trackDockObstruction()` writes the real value to a custom property,
+   which is what lets it be `height:auto`), a preview that keeps a fixed
+   share of the screen, and a category rail that becomes a line you push
+   along instead of a grid. See the `--dock-w` / `--dock-h` bullet in
+   "Current state" — it is the same problem with the same constraints,
+   solved once already.
+
+   **Ship it on its own.** It is a visible change to a thing that
+   currently works on a desktop, and bundling it with anything else
+   makes it un-revertable. Until then the honest interim option, if it
+   reads badly, is to drop the entry back out of the TD column in
+   `content/allocation_new.csv` — one cell, no code.
 
 -1. **The sheet pages now show every entry twice on a phone** — once in
    the "at a glance" strip under the header, once as a thumbnail on its
