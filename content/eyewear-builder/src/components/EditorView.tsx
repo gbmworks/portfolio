@@ -26,6 +26,7 @@ import { BRIDGE_OPTIONS, dominantShape } from '../frame/shapes';
 import { useFrame, useResolvedFrame, useShapeIcons } from '../frame/useFrame';
 import { useStore } from '../state/store';
 import { sound } from '../ui/sound';
+import { useScrollNudge } from '../ui/useScrollNudge';
 import { EditorPanels } from './EditorPanels';
 import { ViewportHint } from './ViewportHint';
 
@@ -37,6 +38,7 @@ export function EditorView() {
   const stageRef = useRef<HTMLDivElement | null>(null);
   const railRef = useRef<HTMLElement | null>(null);
   const panelRef = useRef<HTMLElement | null>(null);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
   const sceneRef = useRef<EditorScene | null>(null);
 
   const config = useStore((s) => s.config);
@@ -158,6 +160,8 @@ export function EditorView() {
       node.removeEventListener('wheel', rest);
     };
   }, [frame]);
+
+  useScrollNudge(bodyRef);
 
   useEffect(() => {
     sceneRef.current?.setView(view);
@@ -388,7 +392,7 @@ export function EditorView() {
 
           {/* Keyed on the step so the entrance re-runs: the panel reads as
               a change of subject, not a redrawn list. */}
-          <div className="panel__body" key={step}>
+          <div className="panel__body" key={step} ref={bodyRef}>
             <EditorPanels
               step={step}
               config={config}

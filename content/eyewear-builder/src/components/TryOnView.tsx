@@ -19,11 +19,51 @@ import { useFaceTracking } from '../face/useFaceTracking';
 import { useFrame, useResolvedFrame } from '../frame/useFrame';
 import { useStore } from '../state/store';
 import { sound } from '../ui/sound';
+import { useScrollNudge } from '../ui/useScrollNudge';
 import { PlacementControls, Slider } from './FitControls';
+
+/* Drawn to the same recipe as the viewport hint's pair: 24px box, 1.8 stroke,
+   round caps and joins, no fill. Each one is `aria-hidden` and the button
+   keeps the words in a `.button__label` -- hidden visually on a phone, still
+   read aloud, and still the tooltip. */
+const glyph = {
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.8,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+};
+
+function ResetIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="button__icon" aria-hidden focusable="false" {...glyph}>
+      <path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5" />
+      <path d="M4.2 4.6v4.2h4.2" />
+    </svg>
+  );
+}
+
+function RulerIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="button__icon" aria-hidden focusable="false" {...glyph}>
+      <rect x="2.6" y="8.2" width="18.8" height="7.6" rx="1.4" />
+      <path d="M7 8.2v3M11 8.2v4.4M15 8.2v3M19 8.2v4.4" />
+    </svg>
+  );
+}
+
+function BackIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="button__icon" aria-hidden focusable="false" {...glyph}>
+      <path d="M15 5l-7 7 7 7" />
+    </svg>
+  );
+}
 
 export function TryOnView() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
   const sceneRef = useRef<ARScene | null>(null);
 
   const scan = useStore((s) => s.scan);
@@ -97,6 +137,8 @@ export function TryOnView() {
     [],
   );
 
+  useScrollNudge(bodyRef);
+
   const { videoRef, state } = useFaceTracking(true, onFrame);
 
   return (
@@ -129,7 +171,7 @@ export function TryOnView() {
           </p>
         </header>
 
-        <div className="panel__body">
+        <div className="panel__body" ref={bodyRef}>
           <PlacementControls
             fit={fit}
             frontWidth={frame?.frontWidth ?? null}
@@ -159,12 +201,27 @@ export function TryOnView() {
             onChange={(v) => setFit({ splay: v })}
           />
 
-          <button className="button button--ghost button--block" onClick={resetFit}>
-            Reset the fit
-          </button>
+          {/*
+            Three controls that become one row on a phone.
 
-          <h3 className="panel__heading">Head mask</h3>
-          <div className="pills">
+            `display: contents` above the breakpoint, so on a desktop these sit
+            exactly where they always did -- a full-width reset, then a heading,
+            then the pills. Below it the wrapper is a flex row and the reset
+            drops its label for its glyph, which turns three stacked blocks and
+            an explanation into a single 40px line.
+          */}
+          <div className="tryon__tools">
+            <button
+              className="button button--ghost button--block button--icon"
+              onClick={resetFit}
+              title="Reset the fit"
+            >
+              <ResetIcon />
+              <span className="button__label">Reset the fit</span>
+            </button>
+
+            <h3 className="panel__heading">Head mask</h3>
+            <div className="pills">
             {(['on', 'off', 'debug'] as OccluderMode[]).map((mode) => (
               <button
                 key={mode}
@@ -176,7 +233,8 @@ export function TryOnView() {
               >
                 {mode === 'on' ? 'On' : mode === 'off' ? 'Off' : 'Show'}
               </button>
-            ))}
+              ))}
+            </div>
           </div>
           <p className="hint">
             The depth-only mask that hides the far arm behind your head. Turn it
@@ -199,13 +257,15 @@ export function TryOnView() {
           {scan ? (
             <div className="tryon__actions">
               <button
-                className="button button--ghost button--block"
+                className="button button--ghost button--block button--icon"
                 onClick={() => {
                   sound.tap();
                   go('result');
                 }}
+                title="See all measurements"
               >
-                See all measurements
+                <RulerIcon />
+                <span className="button__label">See all measurements</span>
               </button>
               <button
                 className="button button--ghost button--block"
@@ -229,13 +289,15 @@ export function TryOnView() {
             </button>
           )}
           <button
-            className="button button--ghost button--block"
+            className="button button--ghost button--block button--icon"
             onClick={() => {
               sound.tap();
               go('editor');
             }}
+            title="Back to the design"
           >
-            Back to the design
+            <BackIcon />
+            <span className="button__label">Back to the design</span>
           </button>
         </div>
       </aside>

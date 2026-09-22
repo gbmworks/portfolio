@@ -12,9 +12,12 @@
  * provenance cannot be checked.
  */
 
+import { useRef } from 'react';
+
 import { SHAPE_GLYPHS } from '../drawing/shapeGlyphs';
 import { SHAPES, describe } from '../face/faceShape';
 import { useStore } from '../state/store';
+import { useScrollNudge } from '../ui/useScrollNudge';
 
 interface Metric {
   label: string;
@@ -24,6 +27,9 @@ interface Metric {
 }
 
 export function ResultView() {
+  const pageRef = useRef<HTMLDivElement | null>(null);
+  useScrollNudge(pageRef);
+
   const scan = useStore((s) => s.scan);
   const go = useStore((s) => s.go);
 
@@ -52,7 +58,7 @@ export function ResultView() {
   ];
 
   return (
-    <div className="result">
+    <div className="result" ref={pageRef}>
       <div className="result__inner">
         <header className="result__head">
           <h1>A parametric model of your face</h1>

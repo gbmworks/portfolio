@@ -1,7 +1,10 @@
+import { useRef } from 'react';
+
 import { SHAPE_GLYPHS } from '../drawing/shapeGlyphs';
 import { SHAPES, type FaceShapeId } from '../face/faceShape';
 import { useStore } from '../state/store';
 import { sound } from '../ui/sound';
+import { useScrollNudge } from '../ui/useScrollNudge';
 
 const ORDER: FaceShapeId[] = [
   'oval',
@@ -16,9 +19,11 @@ const ORDER: FaceShapeId[] = [
 
 export function Landing() {
   const go = useStore((s) => s.go);
+  const pageRef = useRef<HTMLDivElement | null>(null);
+  useScrollNudge(pageRef);
 
   return (
-    <div className="landing">
+    <div className="landing" ref={pageRef}>
       <div className="landing__copy">
         <h1 className="landing__title">
           Design your glasses.

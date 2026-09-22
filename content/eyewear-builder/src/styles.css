@@ -2745,7 +2745,9 @@ button {
   /*
    * The same card, over the camera feed. Shallower than the editor's: the
    * subject here is the customer's own face, and a sheet that reaches the
-   * middle of the screen crops the thing they came to look at.
+   * middle of the screen crops the thing they came to look at. How much
+   * shallower, and what it holds, is settled in "the try-on, compacted" at
+   * the end of this file.
    */
   .tryon__panel {
     top: auto;
@@ -2753,7 +2755,6 @@ button {
     right: 10px;
     bottom: calc(10px + env(safe-area-inset-bottom));
     width: auto;
-    max-height: min(50dvh, 420px);
     border-radius: 16px;
   }
 
@@ -2997,5 +2998,359 @@ button {
   .viewhint {
     bottom: 68px;
     left: calc(50% - var(--dock-r, 0px) / 2);
+  }
+}
+
+
+/* ============================================ the try-on, compacted ====
+ *
+ * The panel is a card over the customer's own face, and on a phone it was
+ * taking half the screen to hold five sliders, three toggles and two
+ * paragraphs. The face is the subject; the controls adjust it.
+ *
+ * Sixty/forty, and stated the way the editor's fifty-five is -- as what is
+ * left after the 52px bar and the 10px gap, so the share that holds is the
+ * video's. At 390x844 that is 506px of face against a 276px card.
+ *
+ * The forty earns its place by shedding words rather than controls: the
+ * secondary buttons keep their glyph and drop their label, the reset joins
+ * the head-mask row, the sliders pair up two to a row, and the two
+ * explanatory paragraphs go. Nothing that does something has been taken
+ * away.
+ * ======================================================================= */
+
+/* Off by default: the icon is a phone affordance and the label is the
+   control everywhere else. */
+.button__icon {
+  display: none;
+}
+
+/*
+ * The tools wrapper generates no box above the breakpoint, so the reset, the
+ * heading and the pills lay out against the panel body exactly as they did
+ * before it was introduced. Same reason as `.editor__dock`: a wrapper added
+ * for one tier should be provably absent in the others, not merely harmless.
+ */
+@media (min-width: 901px) {
+  .tryon__tools {
+    display: contents;
+  }
+}
+
+@media (max-width: 900px) {
+  /*
+   * The card is what is left when the video has its 60%, which is why this is
+   * `40dvh` less the bar and the gap rather than `40dvh` outright -- the
+   * latter is 40% of the *screen* and leaves the video 52.7%, because the bar
+   * comes out of the video's share and not the card's.
+   */
+  .tryon__panel {
+    max-height: clamp(220px, calc(40dvh - 62px), 320px);
+  }
+
+  /*
+   * Two sliders to a row.
+   *
+   * Five stacked is 230px of a 276px card -- the whole of it, before the
+   * head, the foot or the mask toggles. Side by side they are 165px wide,
+   * which is coarse for a drag and exact for a read: the number is on the
+   * label row, so the track is for approaching a value and the figure is for
+   * knowing it. The last one takes the full width rather than sitting alone
+   * beside a gap.
+   */
+  .tryon__panel .panel__body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 10px;
+    align-content: start;
+  }
+
+  .tryon__panel .panel__body > * {
+    grid-column: 1 / -1;
+  }
+
+  .tryon__panel .panel__body > .slider {
+    grid-column: auto;
+  }
+
+  .tryon__panel .panel__body > .slider:last-of-type {
+    grid-column: 1 / -1;
+  }
+
+  /* The tab above already says "Try-on"; the line under it carries the scan
+     read-out, which is said nowhere else. */
+  .tryon__panel .panel__head {
+    padding: 8px 14px 7px;
+  }
+
+  .tryon__panel .panel__head h3 {
+    display: none;
+  }
+
+  .tryon__panel .panel__head p {
+    margin: 0;
+    font-size: 11.5px;
+  }
+
+  /* --- the sliders ----------------------------------------------------- */
+
+  /*
+   * A slider is a label, a track and sometimes a note. Stacked with 14px
+   * between them, five of those are 230px of a 338px card. The label row
+   * tightens onto the track, the note rides at 10.5px underneath, and the
+   * gap between one slider and the next does the rest.
+   */
+  .tryon__panel .slider {
+    margin-bottom: 7px;
+  }
+
+  .tryon__panel .slider__label {
+    margin-bottom: 1px;
+    font-size: 12px;
+  }
+
+  .tryon__panel .slider input[type='range'] {
+    height: 26px;
+  }
+
+  .tryon__panel .slider__hint {
+    margin-top: 0;
+    font-size: 10.5px;
+  }
+
+  /* The only note that is a measurement rather than an instruction -- it
+     carries the frame's width in millimetres. The other one explains which
+     way the control goes, which the control itself shows. */
+  .tryon__panel .slider:nth-of-type(2) .slider__hint {
+    display: none;
+  }
+
+  /* --- reset and the head mask, on one line ---------------------------- */
+
+  .tryon__tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0 2px;
+  }
+
+  .tryon__tools .panel__heading {
+    margin: 0;
+    flex: none;
+    font-size: 11px;
+  }
+
+  .tryon__tools .pills {
+    flex: 1;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+
+  .tryon__tools .pill {
+    padding: 7px 11px;
+    font-size: 12px;
+  }
+
+  /* The paragraph explaining the mask, and the one saying there is no scan
+     yet -- both are read once and then in the way. The head still says the
+     frame is sized against an average head until you scan. */
+  .tryon__panel .panel__body > .hint,
+  .tryon__panel .panel__body > .panel__heading {
+    display: none;
+  }
+
+  /* --- the foot, as one row -------------------------------------------- */
+
+  /*
+   * `display: contents` on the pair, so whether there is a scan or not the
+   * foot lays out the same three-or-two buttons itself rather than nesting a
+   * grid inside a grid.
+   */
+  .tryon__panel .panel__foot {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px 14px calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .tryon__actions {
+    display: contents;
+  }
+
+  /* The way on keeps its words and the room; everything else is a glyph. */
+  .tryon__panel .panel__foot > .button:not(.button--icon),
+  .tryon__actions > .button:not(.button--icon) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* "Scan again" is the primary action once a scan exists, and it is the
+     second of the pair in the markup -- so it leads by order rather than by
+     being moved. */
+  .tryon__actions > .button:nth-child(2) {
+    order: -1;
+  }
+
+  /* --- icon buttons ----------------------------------------------------- */
+
+  .button--icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 44px;
+    min-width: 44px;
+    padding: 0;
+  }
+
+  .button--icon .button__label {
+    /* Gone from the screen, still on the button: screen readers read it, and
+       the `title` puts it back under a cursor. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .button--icon .button__icon {
+    display: block;
+    width: 19px;
+    height: 19px;
+  }
+
+  /* In the tools row it sits with the pills rather than with the foot's
+     44px targets, so it matches their height instead. */
+  .tryon__tools .button--icon {
+    width: 36px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+}
+
+/* ============================================= the scroll nudge ========
+ *
+ * A panel that scrolls and does not look like it is a panel whose lower half
+ * does not exist. It was costing real controls: on a phone the try-on's last
+ * slider sat under the foot and the reset and the head-mask toggles were off
+ * the bottom entirely, with nothing on screen to say either could be reached.
+ *
+ * `useScrollNudge` sets `data-scroll` on any scroller -- "more" while there is
+ * something past the fold, "end" once there is not, and nothing at all when
+ * the content fits. Everything below is drawn from that one attribute, so a
+ * new scroller needs the hook and no new styling.
+ *
+ * Two marks rather than one, and they do different jobs. The fade says the
+ * content is *cut*, which is what a flat edge fails to say. The chevron says
+ * it can be *moved*, which is what a fade alone leaves ambiguous.
+ *
+ * It is a sticky `::after` inside the scroller rather than an overlay on the
+ * parent, because the parents differ -- a flex column here, a grid there, a
+ * bare page on the result screen -- and an overlay would need positioning
+ * context from each of them. A sticky pseudo-element pins itself to the
+ * bottom of whatever scrollport it is in and needs nothing from anybody. The
+ * negative margin keeps it from adding the very height it is reporting on.
+ * ======================================================================= */
+
+[data-scroll]::after {
+  content: '';
+  display: block;
+  position: sticky;
+  bottom: 0;
+  /*
+   * A real block at the end of the content, not an overlay pulled back over
+   * it. With a negative margin the fade and the chevron landed on whatever
+   * the last line happened to be -- in the editor, through the middle of the
+   * shape's name, which reads as a rendering fault rather than an invitation.
+   * Occupying the last 26px means nothing is ever underneath it, and sticky
+   * keeps it at the foot of the scrollport until the content catches up.
+   */
+  /* Deep enough to actually extinguish a line of text. At 26px the fade
+     started and finished inside the height of one, so the word underneath
+     read at nearly full contrast and the chevron looked superimposed on it
+     rather than floating over an edge. */
+  height: 40px;
+  pointer-events: none;
+  background:
+    /* A chip, not a bare glyph. Over a fade the glyph alone read as a mark
+       *on* whatever word it landed over; on its own ground it reads as a
+       control sitting above content that carries on underneath. */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='13' fill='%23fdfcfb' stroke='%2317161a' stroke-opacity='.14'/%3E%3Cpath d='M9 12 14 17 19 12' fill='none' stroke='%2317161a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+      center bottom 3px / 22px 22px no-repeat,
+    /* and the cut it sits on */
+    linear-gradient(
+      to bottom,
+      rgba(252, 251, 249, 0),
+      rgba(252, 251, 249, 0.86) 55%,
+      rgba(252, 251, 249, 0.97)
+    );
+  opacity: 0.82;
+  transition: opacity var(--base) var(--ease);
+}
+
+/* Taken, so stop asking. */
+[data-scroll='end']::after {
+  opacity: 0;
+}
+
+/* The result page scrolls against `--paper`, not the frosted panel ground. */
+.result[data-scroll]::after {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='13' fill='%23fdfcfb' stroke='%2317161a' stroke-opacity='.14'/%3E%3Cpath d='M9 12 14 17 19 12' fill='none' stroke='%2317161a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+      center bottom 3px / 22px 22px no-repeat,
+    linear-gradient(
+      to bottom,
+      rgba(253, 252, 251, 0),
+      rgba(253, 252, 251, 0.9) 55%,
+      rgba(253, 252, 251, 0.98)
+    );
+  height: 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-scroll]::after {
+    transition: none;
+  }
+}
+
+/* ------------------------------------------- the try-on, less chunky -- */
+
+@media (max-width: 900px) {
+  /*
+   * The size slider takes the full row and the other four pair up.
+   *
+   * Its note is the one that carries millimetres -- "139 mm across, your face
+   * suggests 139" -- and in a 165px column that wrapped to two lines and
+   * pushed the last slider under the foot. Full width it is one line, and the
+   * row count is unchanged either way: one full plus two pairs is three rows,
+   * exactly what five in a 2-up grid came to.
+   */
+  .tryon__panel .panel__body > .slider:first-of-type {
+    grid-column: 1 / -1;
+  }
+
+  .tryon__panel .panel__body > .slider:last-of-type {
+    grid-column: auto;
+  }
+
+  /*
+   * The nudge is a grid item too.
+   *
+   * `.panel__body > *` does not reach a pseudo-element, so the sticky
+   * `::after` was placed in the next free cell like any other item -- a fade
+   * and a chevron half the width of the panel, sitting over the left-hand
+   * column. It spans both, and stays out of the auto-placement flow.
+   */
+  .tryon__panel .panel__body[data-scroll]::after {
+    grid-column: 1 / -1;
+  }
+
+  /* The scan read-out is the head's whole job here, so let it have the two
+     lines it needs at a size worth reading rather than one it cannot fit. */
+  .tryon__panel .panel__head p {
+    line-height: 1.35;
   }
 }
