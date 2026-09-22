@@ -590,7 +590,24 @@ button {
   text-align: center;
 }
 
-.scan__panel,
+/*
+ * The guidance column beside the preview.
+ *
+ * This rule had lost its body -- the declarations were gone and the selector
+ * was left joined to the one below by its comma, so the panel was inheriting
+ * the stage name's voice. Every word on the screen came out uppercase, in the
+ * accent colour, at 12px: the 22px prompt, the bin labels, the paragraph
+ * explaining why the turns matter. It is its own rule again.
+ */
+.scan__panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 32px;
+  border-left: 1px solid var(--line);
+  background: var(--paper);
+  overflow-y: auto;
+}
 
 .scan__stagename {
   font-size: 12px;
