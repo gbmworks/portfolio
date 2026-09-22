@@ -2177,6 +2177,323 @@ All on `gbmworks/portfolio`. `gbmPrimetrace/portfolio` has none of it and
 still cannot be pushed from this machine — `push: false`, checked again
 on 2026-09-22.
 
+## 29. The third thing that runs was a desktop
+
+2026-09-22, the same day. The eyewear builder went onto Technical Art in
+section 28 and its own README said what it was: "a working prototype,
+desktop browsers." On a 390px screen that meant the two floating panels
+landed on top of each other with the product behind both, and the
+landing page put every word of its headline on a line of its own — a
+`minmax(0, 1fr) 400px` grid with 390px to divide.
+
+The brief named the model: the avatar studio next door. So the layout
+below 900px is `studio/fitmint`'s dock, down to the breakpoint, because
+the two apps pose the same problem — one 3D subject that wants the whole
+screen, and a column of controls that cannot have it.
+
+### One card instead of two panels
+
+The steps rail and the options panel become one card along the bottom:
+the five steps as a rail you push sideways across its top, the current
+step's controls under it, the camera bar riding above the whole thing.
+
+Both panels are `position: absolute` against `.editor`, so making them
+one card needs a wrapper — and on a desktop a wrapper is a new
+containing block that would move both of them. `display: contents` above
+the breakpoint makes it generate no box at all. Measured either side of
+the change: rail at 18 × 226, panel at 1084 × 316, identical.
+
+**The camera had to learn the other axis.** Trap 67 in the app's own
+NOTES taught the scene that the panels hide part of the canvas
+horizontally; a sheet along the bottom hides part of it *vertically*, and
+a frame fitted to the full canvas height is drawn with its lower half
+behind the controls. `insetBottom`, `usableHeight` and `corridorOffsetY`
+are the vertical halves of those three ideas, and the card's height is
+fixed rather than sized to its contents — which is where this departs
+from the studio it copied. There, a category that needs less takes less.
+Here the framing is derived from the room the card leaves, so a card that
+grew and shrank per step would walk the product up and down the screen on
+every tap.
+
+`EditorView` stays out of the breakpoint entirely. It does not ask how
+wide the window is; it reads back where the panels actually landed — a
+box wider than 70% of the stage is the sheet, anything narrower is a
+column at whichever edge it is nearer — and reports the insets and
+publishes the measured height. The stylesheet owns the layout; the scene
+is told the result.
+
+### Two questions, not one — then a third
+
+`pointer: coarse` is about the finger and `max-width: 900px` is about the
+room, and they are separate media queries on purpose. Conflating them is
+how a touch laptop ends up with phone furniture and a narrow desktop
+window ends up with 44px buttons it did not need.
+
+The third is `hover: hover`, and it is answered where each rule is
+written rather than in a tier of its own. Touch browsers leave `:hover`
+applied to the last thing tapped, so buttons stay lit behind the finger.
+The first fix was a block of counter-rules at the end of the sheet, and
+it could not have worked: `.tab:hover:not(:disabled)` outranks
+`.tab--on`, so tapping the tab you were already on would have taken its
+fill away. Wrapping each hover rule at its own site changes no
+specificity — the rule simply does not exist for a finger.
+
+The finger tier also owns the words. "Scroll to zoom" and "Click a shape"
+are not merely stale on a phone, they are instructions that cannot be
+carried out, and an interface caught giving one impossible instruction is
+not believed about the next. They read `COARSE` from `src/ui/pointer.ts`
+and say "Pinch to zoom" and "Drag the ring to blend, or tap a shape"
+instead — with a pinch glyph drawn to match the other two.
+
+### Three things that were only visible on the small screen
+
+**The scan panel had lost its CSS rule.** `.scan__panel` was a selector,
+a comma, a blank line, and then `.scan__stagename`'s declarations — so it
+had been inheriting the stage name's voice since the file landed:
+`text-transform: uppercase`, the accent colour, 12px. The 22px prompt,
+the bin labels and the paragraph on why the turns matter all rendered in
+small orange capitals, on a panel with no padding or ground of its own.
+Valid CSS, no error, wrong on every screen — the phone layout is just
+where it got looked at. A trailing comma turns a deletion into a merge.
+
+**The top bar was overlapping, not wrapping.** At 390px with all three
+tabs showing the wordmark wants 108px and the nav 337, against 366
+available; the brand's flex item duly shrank to 19px and the button
+inside it drew straight through "Design". Paid for by shortening the two
+labels that were padded — the wordmark's second word, and the try-on
+tab's "3D" — then given `text-overflow: ellipsis` as a floor so the next
+overrun clips instead of colliding.
+
+**The try-on notices were posted behind the controls.** They sat 24px off
+the bottom of a stage that is `inset: 0`, which the card now covers.
+Those are the messages that say the camera was refused or the face was
+lost — the ones that have to be readable precisely when nothing else on
+the screen is working. They moved to the top of the feed.
+
+### And one row of buttons that should never have been there
+
+The left rail carried its own "3D view / Try on / Measurements" pills,
+duplicating the top bar's three tabs and disagreeing with them about the
+names. Removed at every width, not just on the phone, along with 1.3 KB
+of rules that existed only to make two of them fit in a 226px column.
+
+### Verified
+
+`tools/shoot.mjs --phone` at 390 × 844, 844 × 390 and 820 × 1180, plus
+1440 × 900 for the desktop, against the dev server and then against the
+deployed build on `127.0.0.1:8123`. Geometry read back with
+`getBoundingClientRect` rather than judged by eye — the card at 473px
+bottoming out at 834 in an 844px window, the camera bar's right edge at
+505 against a column starting at 514, the wordmark ending at 69 against a
+nav starting at 105. `tsc -b` and `vite build` clean; `deploy.mjs`
+re-ran its own two checks and copied 29.1 MB.
+
+Not verified: a real phone, and a real face in front of the camera. The
+second is the same gap section 28 left.
+
+---
+
+## 30. The camera, the orbit, and 55% of a phone
+
+2026-09-22, still. Section 29 made the builder fit a phone; this is the
+round of notes that came back from driving it on one.
+
+### The 3D button half-worked, and it was measurable
+
+The report was a "snap bug" on the 3D camera icon. It reproduced as
+drift: press the button straight after an orbit and the camera lands on
+the framing and then walks off it over the next second and a half.
+
+`enableDamping` does not smooth a drag, it *defers* most of it.
+OrbitControls keeps the flick in `_sphericalDelta` and applies
+`dampingFactor` of it per `update()`, so when the pointer lifts the whole
+of the gesture is still owed. `setView` writes the camera position
+directly and the next `update()` then paid that debt on top of it.
+
+Pressing "Front" never showed it, which is exactly why it looked like a
+3D-view fault: the orthographic views change camera type, and that path
+disposes the orbit rig and builds a new one, throwing the momentum away
+as a side effect nobody had written down.
+
+Proven before it was fixed, with a harness that orbits, releases,
+presses, and then hashes a clip of the canvas at +120ms and +1400ms with
+no input between — a still scene must hash identically. The first
+version hashed the whole page and reported "moving" for the viewport
+hint fading itself in and out, which is its own small lesson. Camera
+position sampled directly through a dev-only `window.__editor` handle,
+the same convenience the sibling studio keeps as `window.fitmint`:
+(-216, 136, 546) to (-171, 123, 564) with the turntable provably off.
+
+The fix is one `update()` with damping switched off, which takes the
+branch that applies the remainder in full and then zeroes it. Three
+cases, all still afterwards.
+
+### The camera now follows the step
+
+Square on for the silhouette, side on for the arms, and close in on the
+bridge. Those are the angles the decision is actually made from, and
+without them they are angles the customer has to find by hand.
+
+The bridge one needed the scene to be able to frame a *part*.
+`setFocus` points `framingBox` and `framingCentre` at one component's
+meshes, and everything downstream — the screen extent, the turntable
+extent, the aim point, the orthographic pull-back — reads those instead
+of the product's, so it is one substitution rather than a second framing
+path to keep in step with the first. 18 mm of bridge against a 140 mm
+frame, with the padding tripled so both rim edges stay in shot.
+
+It did not work first time, and the failure was instructive: `setFocus`
+re-frames immediately, but `setView` went through React state and so
+arrived a commit later — and `setView` *restores* the pose that view was
+last left in. The bridge framed, then snapped back out. Anything that
+restores remembered state and anything that derives new state cannot be
+left to React's scheduler to order.
+
+Colour and lens are deliberately left alone. There is no single right
+angle to look at a colour from.
+
+### 55%, and what it cost
+
+The ask was 55% of the phone screen for the product. Stated as a share
+of the card that would have been approximate, so the card is sized as
+the remainder instead — `45dvh` less the 52px bar and the 10px gap —
+which lands the product on 464 of 844, or 55.0%.
+
+That left 318px of card, against 473 before, and the two requests that
+arrived alongside paid most of the difference: the primary button and
+"Save design" share a row (87px down to 44), and the four design buttons
+in the temple and bridge panels run as one line of four rather than two
+of two. The running total moved out of the foot and onto the end of the
+steps rail, which is free vertically — the cost is that its itemised
+breakdown is desktop-only now, which a 318px card was never going to
+show readably anyway.
+
+Even so, one step does not fit. The shape wheel is held at 170px because
+that is what keeps its eight buttons at 27px across; sized to the card
+it would need about 130 and take them under a fingertip. Its ring and
+the shape's name land whole, and the sentence under them sits about 56px
+below the fold. At a 50% split the sentence lands too — it is one number
+in the stylesheet either way.
+
+### Then the orbit, which had been wrong the whole time
+
+Two more came back from driving it: the cameras were "messed up" after
+the bridge step, and the 3D view orbited the world origin rather than
+the eyewear. Both were real, and the second had been true since long
+before any of this.
+
+`controls.target` does two jobs — what the camera looks at, and what it
+rotates about. Section 28's framing used the first to compose around the
+floating panels: aim left of centre, and the product lands right of
+centre in the gap they leave. On a desktop that bill was invisible,
+because the corridor is about 2% off-centre. On a phone the sheet is
+nearly half the screen, so the aim sat 90 mm below a 45 mm-tall product
+— framing centre (0, -9.1, -68.5) against an orbit target of
+(0, -97.3, -68.5). Dragging swung the frame around a point underneath it
+and threw it out of shot.
+
+`setViewOffset` is the right tool and was already in three: it renders a
+window onto a larger notional view, so the frustum shifts and neither
+the camera nor its target moves. Identical picture, and the pivot is the
+product again. Measured after: every view's target equals the framing
+centre exactly, with the top view's authored `lift` the only remaining
+offset.
+
+The other half was a half-valid record. The editor picks a camera from
+the step it opens on, within a tick of mounting — before the GLB lands,
+so before any `frame()` has run. `remember()` stored what OrbitControls
+ships with, target (0, 0, 0), while the *position* in the same record
+was a real framed position and looked entirely plausible. Pressing "3D"
+restored it. `remember()` now waits for `framedGeometry`, and refuses to
+record a pose taken under a focus — a camera 233 units from an 18 mm
+bridge means nothing once the focus is gone, which is exactly what
+"messed up after the bridge step" was.
+
+### Verified
+
+The drift harness (three cases, all still), every view's orbit target
+read back against the framing centre, a walk of all five steps recording
+view, focus and distance at each, and the geometry read with
+`getBoundingClientRect` at 390x844, 844x390 and 1440x900 — against the
+dev server and then the deployed build. Desktop unchanged through all of
+it: rail 18 x 226, panel 1084 x 316, dock still `display: contents`,
+breakdown still on the page. The dev-only `window.__editor` handle that
+made most of this measurable is behind `import.meta.env.DEV` and is
+`undefined` in the shipped bundle, checked.
+
+---
+
+## 31. A fit worth starting from, and two things the phone found
+
+2026-09-22. The try-on had been driven on a real face for the first time,
+and the notes that came back were about where it *starts*.
+
+### The starting fit
+
+The frame was too small by default and sat on the lashes. Dialled in
+live: the 140 mm front reads right at 157 mm, and 15 mm is an ordinary
+vertex distance.
+
+Those went in as a `FIT_REFERENCE` rather than as new default numbers,
+and `scale`/`depth` became departures from it. A default of 1.12 sitting
+somewhere in the middle of a slider reads as a value somebody chose; a
+default of 1.00x with the same travel either side reads as the place to
+measure from, which is what it now is. The ranges came in with it —
+0.8–1.2 and ±10 mm, symmetric — where the size slider used to run
+0.5–1.8 because the frame's true size was unknown and the control had to
+find it by eye.
+
+Which closes known gap 2 in the app's NOTES. It had said: set the
+constant and narrow the range once a real measurement exists. It exists.
+
+### The mobile camera was telling the truth badly
+
+`navigator.mediaDevices` is not restricted on an insecure origin, it is
+`undefined`. The handler tested for `NotAllowedError` and `SecurityError`
+— both `DOMException`s — and a TypeError fell through to `error.message`.
+The screen said **"Cannot read properties of undefined (reading
+'getUserMedia')"**.
+
+And it was the *likeliest* thing to hit, because the way to check the
+phone layout on a phone is the dev server's LAN address, which is plain
+http. Measured there: `secure=false`, `mediaDevices=undefined`. It now
+says the camera needs a secure connection and what to do about it.
+`NotFoundError`, `NotReadableError` and `OverconstrainedError` got real
+sentences at the same time, and "allow it in the address bar" lost the
+address bar — a phone has no permission chip in one.
+
+The deployed site is https, so the live try-on was never affected. The
+bug was in how the failure explained itself, and it only ever appeared
+to someone testing properly.
+
+### The unlit editor, and a fix that was worse than the bug
+
+Reported coming back from the try-on to the design view. Not
+reproducible here: a round trip under SwiftShader with a fake webcam
+came back byte-identical — same canvas hash, environment present,
+context not lost.
+
+The best candidate is context pressure. Two renderers exist, so each
+trip abandons one WebGL context, and Chrome keeps about sixteen before
+killing the oldest — a scene going dark with nothing in the console.
+`renderer.dispose()` does not release a context.
+
+Adding `forceContextLoss()` broke the app outright, which was the useful
+part. React owns the canvas, and StrictMode tears the effect down and
+re-runs it against the same element — and a force-lost canvas can never
+get another context. The second mount died in the renderer constructor
+on "Cannot read properties of null (reading 'precision')".
+`if (!canvas.isConnected)` separates a real unmount from a simulated one
+exactly, because React has already detached the node by the time a real
+cleanup runs.
+
+So the release is in, guarded, along with disposing the pre-filtered
+environment both scenes were leaving on the GPU. Whether it is *his* bug
+is still unproven, and it is written down that way.
+
+---
+
+
 ---
 
 ## 8. Open items

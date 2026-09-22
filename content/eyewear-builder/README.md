@@ -21,7 +21,9 @@ when the answer is "not quite that one".
 
 Four camera views: a 60 mm 3D view that makes a slow turntable pass on arrival
 and whenever the cursor rests, plus orthographic front, side and top for judging
-proportion without perspective distorting it. Every control has a
+proportion without perspective distorting it. The camera follows the step where
+there is an obvious angle to follow -- square on for the silhouette, side on for
+the arms, and close in on the bridge, which is 18 mm of a 140 mm frame. Every control has a
 voice: the shape wheel walks a pentatonic scale as you drag it, colour answers
 in a fifth, and advancing a step rises. All synthesised, all mutable from the
 top bar.
@@ -31,6 +33,15 @@ distance, head width, ear depth — using MediaPipe's 478-point landmarker, scal
 against the one dimension on a face that is reliably constant (the iris, 11.7 mm
 across). The frame is then placed on the live video with the far temple hidden
 behind the head by a depth-only occluder, and fit controls for how it sits.
+Those controls read zero at a starting fit dialled in on a real face — 157 mm
+of front width and 15 mm of vertex distance — and run symmetrically either
+side of it, so every number on the panel is a departure from something known
+rather than a value floating in the middle of a slider.
+
+The camera needs a secure context. On the live site that is a given; over the
+dev server's LAN address it is not, and the panel now says so in those words
+rather than reporting the TypeError that `navigator.mediaDevices` being
+`undefined` actually raises.
 
 ## Running it
 
@@ -42,6 +53,11 @@ npm run dev          # http://localhost:5180
 `npm install` is enough — the MediaPipe wasm runtime is copied out of
 `node_modules` into `public/wasm/` automatically before `dev` and `build`
 (see `scripts/sync-wasm.mjs`). Everything else is committed.
+
+The dev server binds to the LAN, so the phone layout can be checked on a phone
+rather than in an emulator — the `Network:` line it prints on start is the
+address. Layout works over plain http there; only the scan needs https, for the
+reason in the paragraph below.
 
 ```bash
 npm run build        # tsc -b && vite build
@@ -125,7 +141,14 @@ interesting ones:
 
 ## Status
 
-A working prototype, desktop browsers. Known gaps are listed at the end of
-`NOTES.md` — the largest is that the try-on lens can't refract what's behind it
-until the camera feed is drawn as the scene background rather than as a video
-element behind a transparent canvas.
+A working prototype. Desktop, tablet and phone, in both orientations: under
+900px the two floating panels become one card along the bottom of the screen
+with the steps as a rail across its top, and the camera frames the product
+against the room that card leaves rather than against the whole canvas. Touch
+targets, gestures and the wording of every instruction follow the pointer
+rather than the width, so a touch laptop gets the finger-sized controls without
+the phone furniture.
+
+Known gaps are listed at the end of `NOTES.md` — the largest is that the try-on
+lens can't refract what's behind it until the camera feed is drawn as the scene
+background rather than as a video element behind a transparent canvas.

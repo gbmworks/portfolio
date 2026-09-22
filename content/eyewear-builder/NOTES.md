@@ -24,9 +24,14 @@ is still the reason a decision was made here — the R3F warning in particular.
 
 ## Where this was left
 
-Working, verified, and ready to move. 42 source modules, all reachable; no dead
+Working, verified, and ready to move. 43 source modules, all reachable; no dead
 CSS; `tsc -b`, `vite build` and the design detector all clean. About 6.4 MB
 without `node_modules`, `dist` or the generated `public/wasm/`.
+
+**Desktop, tablet and phone, both orientations** -- see "The editor layout" for
+the arrangement and traps 68 to 71 for what it cost. Geometry checked with
+`getBoundingClientRect` at 390x844, 844x390, 820x1180 and 1440x900, against the
+dev server and against the deployed build.
 
 **Verified by measurement, not by eye:** the price ceiling (all 14,400
 configurations under ₹4,000), the morph pipeline through mirror, subdivision
@@ -838,6 +843,230 @@ the 3D layer never has to know the view is flipped.
    (trap 45). A tortoise that is opaque but correctly textured beats one that
    is physically right and black.
 
+68. **A CSS rule that loses its body joins the next one.** `.scan__panel` was
+   written as a selector, a comma, a blank line, and then `.scan__stagename`'s
+   declarations. Its own were gone. Nothing errored — it is valid CSS for a
+   selector list — and the scan screen quietly took the stage name's voice:
+   `text-transform: uppercase`, `color: var(--accent-text)`, `font-size: 12px`,
+   inherited by every child that did not restate them. The 22 px prompt, the
+   bin labels and the paragraph on why the turns matter all rendered in small
+   orange capitals, and the panel had no padding, width or ground of its own.
+
+   It had been that way since the file landed. The lesson is about the shape of
+   the mistake rather than this instance: a trailing comma turns a deletion
+   into a *merge*, so what you get is not the missing rule's absence but the
+   next rule's presence somewhere it was never meant to be. Grep for `,` on a
+   line whose next non-blank line is also a selector.
+
+69. **A corridor has two axes, and only one of them was measured.** Trap 67
+   taught the scene that the panels hide part of the canvas horizontally. On a
+   phone they are not columns at the sides at all — they are one sheet along
+   the bottom — so the corridor is *short* rather than narrow, and a frame
+   fitted to the full canvas height is drawn with its lower half behind the
+   controls. `insetBottom`, `usableHeight` and `corridorOffsetY` are the
+   vertical halves of the same three ideas.
+
+   The sign is the part worth writing down. `corridorOffset` is negated when it
+   is applied and `corridorOffsetY` is not, which looks like one of them being
+   wrong. Both are right: `right` and the horizontal offset both increase to
+   the right, so putting the product where the corridor is means aiming the
+   other way; but `camUp` points up the screen while the vertical offset counts
+   *down*, with the pixels it was measured from. That second flip cancels the
+   first. Written as `+` with a comment rather than as `-` with a bug.
+
+70. **Two labels in one bar do not wrap — they overlap.** The top bar is
+   `justify-content: space-between` with the brand in a `min-width: 0` flex
+   item. At 390 px with all three tabs showing, the wordmark wants 108 px and
+   the nav 337, against 366 available. The flex item duly shrank to 19 px; the
+   button inside it did not, because nothing told it to, and it drew straight
+   through "Design". The failure mode of an over-budget bar is not a second
+   line, it is two strings in the same pixels, which is why it survived several
+   looks at the phone layout.
+
+   Measured with `getBoundingClientRect`, paid for by shortening the two labels
+   that were padded — the wordmark's second word and the try-on tab's "3D" —
+   and then given `overflow: hidden; text-overflow: ellipsis` as a floor, so
+   the next time it goes over budget it clips instead of colliding.
+
+71. **`display: contents` is the honest way to add a wrapper for one tier.**
+   The phone layout needs the steps rail and the options panel to be one card;
+   the desktop layout needs them to be two boxes floating at opposite corners.
+   Wrapping them in a div and positioning the div is the phone answer, and on a
+   desktop it inserts a box that was never in the design — a new containing
+   block for two `position: absolute` children, which moves both of them.
+
+   `display: contents` above the breakpoint makes the wrapper generate no box
+   at all, so the children are laid out against `.editor` exactly as they were
+   before it existed. The measured geometry is identical either side of the
+   change: rail at 18 × 226, panel at 1084 × 316.
+
+   The same trick is what lets `EditorView` stay out of the breakpoint. It does
+   not ask how wide the window is; it reads back where the panels actually
+   landed — a box wider than 70% of the stage is the sheet, anything narrower
+   is a column at whichever edge it is nearer — and reports the insets it
+   finds. The stylesheet owns the layout, and the scene is told the result.
+
+72. **Counter-rules lose to the rules they are countering.** Chrome and Safari
+   leave `:hover` applied to the last thing touched until something else is, so
+   on a phone every button passed through on the way stays lit behind the
+   finger. The first fix was a block at the end of the stylesheet setting the
+   hovered elements back to their resting values, with the selected states
+   re-stated after it.
+
+   It could not work. `.tab:hover:not(:disabled)` is three simple selectors and
+   `.tab--on` is one, so the counter-rule outranked the restatement no matter
+   what order they were written in: tapping the tab you were already on would
+   have taken its fill away. The same inversion applied to `.pill--on`,
+   `.viewbtn--on` and `.wheel__node--on`, and the swatch reset was neutralising
+   `background` and `transform` against a hover rule that only ever changed
+   `box-shadow` -- so it did nothing it intended and killed the press feedback
+   as a side effect.
+
+   Wrapping each `:hover` rule in `@media (hover: hover)` where it is written
+   changes no specificity at all. The rule simply does not exist for a finger,
+   and the resting style applies because nothing is competing with it. When the
+   fix for a cascade problem is another rule, check which one wins first.
+
+73. **With damping on, the drag is not over when the pointer lifts.**
+   `enableDamping` does not smooth the drag — it defers most of it. Orbit
+   controls keep `_sphericalDelta` and apply `dampingFactor` of it on every
+   `update()`, decaying the remainder by the same proportion, so the sum still
+   applied when the finger comes up is the *whole* flick, and it plays out over
+   the next second and a half.
+
+   `setView` writes the camera position directly, and the very next `update()`
+   then added that leftover rotation on top of the framing it had just been
+   given. Measured: press "3D" straight after a drag and the camera walks from
+   (-216, 136, 546) to (-171, 123, 564) over the following 1.5 seconds with the
+   turntable provably off (`introStart === null` at every sample). The button
+   appeared to half-work.
+
+   Pressing "Front" never showed it, which is what made it read as a fault in
+   the 3D view specifically. The orthographic views change camera *type*, and
+   that path disposes the rig and builds a new one — which throws the momentum
+   away as a side effect nobody had written down.
+
+   The fix is one `update()` with damping switched off, which takes the branch
+   that applies the remainder in full and then zeroes `_sphericalDelta` and
+   `_panOffset`. Applying it in full costs nothing because it lands on a camera
+   that is about to be repositioned anyway. Public API only: `_sphericalDelta`
+   is private and this build of OrbitControls has no `stop()`.
+
+   Verified by a harness rather than by eye — orbit, release, press, then hash
+   a clip of the canvas at +120ms and +1400ms with no input in between. A still
+   scene must hash identically. Clip, not the whole page: the viewport hint
+   fades itself in and out on a timer and reported "moving" for something that
+   was not the camera.
+
+74. **A restore can undo a reframe that was ordered first.** The bridge step
+   does two things: aim the 3D view, and focus the framing on the bridge. Done
+   through React state the second one lost, every time.
+
+   `setFocus` re-frames immediately. `setView` went through `useState`, so the
+   scene only heard about it on the *next* commit — and `setView` restores
+   whatever pose that view was last left in, which is a whole-product pose.
+   The bridge framed, and then a beat later snapped back out. It looked exactly
+   like the zoom not working, rather than like it working and being overwritten.
+
+   Both calls now go straight to the scene in one tick, aim first and focus
+   second, with the React state set alongside only so the camera bar highlights
+   the right button. By the time that effect runs, the view is already where it
+   was put, so it re-frames through the focus instead of restoring past it.
+
+   The general shape: anything that *restores* remembered state and anything
+   that *derives* new state must not be ordered by React's scheduler. Order
+   them explicitly or the deferred one wins.
+75. **`controls.target` is doing two jobs, and only one of them is framing.**
+   It is what the camera looks at *and* what it rotates about. Trap 67 used the
+   first to compose around the floating panels -- aim left of centre and the
+   product lands right of centre, in the gap -- and quietly paid for it with
+   the second.
+
+   On a desktop the bill was small: the corridor is about 2% off-centre, so the
+   pivot sat a few millimetres to one side and nobody noticed. On a phone the
+   sheet is nearly half the screen, so the aim sat **90 mm below a 45 mm-tall
+   product** -- measured, framing centre (0, -9.1, -68.5) against an orbit
+   target of (0, -97.3, -68.5). Dragging swung the frame around a point well
+   beneath it and threw it out of shot. It reads as the camera orbiting the
+   world origin, which is the thing trap 67's own note says it is careful not
+   to do.
+
+   `setViewOffset` is the right tool and it is already in three: it renders a
+   window onto a larger notional view, so the *frustum* shifts and the camera
+   and its target do not move at all. The picture is identical and the pivot
+   goes back to being the product. It is applied inside
+   `updateProjectionMatrix`, so the raycaster picks through it correctly
+   without being told.
+
+   The authored `View.lift` stays in the aim point on purpose. That one is a
+   statement about the product -- sit a little high in frame -- rather than
+   compensation for something covering it, and the top view is the only one
+   that uses it.
+
+76. **A pose remembered before the first framing is the library's default, not
+   yours.** The editor picks a camera from the step it opens on, and that
+   happens within a tick of mounting -- before the GLB has landed, so before
+   any `frame()` has run against real geometry. `remember()` ran anyway and
+   stored what OrbitControls ships with: target (0, 0, 0).
+
+   Pressing "3D" any time later restored it, and the camera orbited the world
+   origin while the eyewear sat 68 mm in front of it. What made this hard to
+   see is that the *position* in the same record was a real framed position --
+   (-190.6, 119.8, 495.6), entirely plausible -- because `frame()` sets the
+   position inside its branches and the target at the end. Half a valid record
+   is worse than none.
+
+   `remember()` now returns early until `framedGeometry` is true. The same
+   guard covers the focused case: a pose measured 233 units from an 18 mm
+   bridge means nothing once the focus is gone, which is what "the other
+   cameras are messed up after the bridge step" turned out to be. Poses taken
+   under a focus are not recorded, and changing focus clears the ones that
+   were.
+77. **A TypeError is not a `DOMException`, and the fallback branch shows the
+   stack trace's wording to a customer.** `navigator.mediaDevices` is not
+   merely restricted on an insecure origin -- it is `undefined`. Calling
+   through it threw a TypeError, the camera handler tested only for
+   `NotAllowedError`/`SecurityError`, and everything else fell to
+   `error.message`. What the screen said was **"Cannot read properties of
+   undefined (reading 'getUserMedia')"**, which names neither the cause nor
+   the cure.
+
+   Not a corner case either. The dev server binds to the LAN so the phone
+   layout can be checked on a phone, and that address is plain http -- so the
+   first thing anyone testing on a real device meets is the one path that
+   explained itself worst. `window.isSecureContext` is the question the
+   browser is actually asking, and localhost counts as secure, which is why it
+   never appeared on the machine running the server.
+
+   Measured on the LAN address: `secure=false`, `mediaDevices=undefined`, and
+   the panel now reads "The camera needs a secure connection. Open this over
+   https, or on the same machine as the server, and it will work."
+   `NotFoundError`, `NotReadableError` and `OverconstrainedError` got wording
+   at the same time, and "allow it in the address bar" lost the address bar --
+   a phone has no permission chip in one, and being sent to look somewhere
+   that does not exist is worse than being told nothing.
+
+78. **`forceContextLoss()` kills the canvas, not just the context.** Two
+   renderers exist in this app -- the editor's and the try-on's -- so moving
+   between them abandons a WebGL context per trip, and Chrome keeps about
+   sixteen per page before silently killing the oldest. A live scene going
+   dark with nothing in the console is what that looks like, and
+   `renderer.dispose()` does not release a context; `forceContextLoss()` is a
+   separate call precisely because letting go is a decision.
+
+   Calling it unconditionally in `dispose()` broke the app immediately. React
+   owns the canvas, and in StrictMode the effect is torn down and re-run
+   against the **same element** -- and a canvas whose context has been
+   force-lost can never get another one. The second mount died inside the
+   renderer constructor with "Cannot read properties of null (reading
+   'precision')", which is `getContext` having returned null two frames
+   earlier.
+
+   `if (!canvas.isConnected)` separates the two exactly: on a real unmount
+   React has already detached the node by the time the cleanup runs, and on
+   StrictMode's simulated one it has not. Worth keeping in mind for any
+   teardown that frees something the framework still holds a reference to.
+
 ---
 
 ## Layout
@@ -921,6 +1150,73 @@ One full-bleed viewport with the panels floating over it: steps and price top
 left, the current step's choices top right, the camera bar bottom centre. The
 product is the subject, so it gets the room; the controls are instruments laid
 on the glass rather than columns dividing the width.
+
+**Under 900px the two panels become one card along the bottom** -- the steps as
+a rail you push sideways across its top, the current step's controls under it,
+and the camera bar riding above the whole thing. The arrangement is the sibling
+studio's dock (`studio/fitmint`), down to the breakpoint, because the two apps
+pose the same problem: one 3D subject that wants the screen, and a column of
+controls that cannot have it.
+
+**The product gets 55% of the phone screen**, and the card is sized as the
+remainder rather than as a share of its own -- `45dvh` less the top bar and the
+gap it floats on -- so the number that holds is the one that was asked for. At
+390x844 that is 464px of product against a 318px card, and the card spends it
+carefully: the running total sits at the end of the steps rail instead of
+taking a row in the foot, and the primary action shares its row with "Save
+design". One step still does not fit. The shape wheel is held at 170px because
+that is what keeps its eight buttons at 27px, so its ring and the shape's name
+land whole and the sentence under them is about 56px below the fold.
+
+Three things fall away in that tier and each for its own reason rather than to
+save room. The mode buttons are gone at every width now -- they were a second
+set of controls for the three destinations the top bar already owns, and the
+two disagreed about the names. "Back" repeats the brand button beside it. And
+the panel head is dropped, because "1. Frame shape" sat forty pixels under a
+rail pill reading "1 Frame shape"; in two columns that reads as a heading
+answering a menu, stacked it is the same words twice.
+
+The card's height is fixed -- `clamp(320px, 56dvh, 500px)` -- rather than
+sized to its contents the way the sibling's dock is. That is a deliberate
+departure: the camera is framed against the room the card leaves (trap 69), so
+a card that grew and shrank with each step would walk the product up and down
+the screen on every tap. One height, and the product holds still.
+
+Turned sideways a phone is 390px tall, and a card along the bottom of that
+leaves the product sixty pixels. Under 520px of height the controls go back to
+being a column on the right, which is what a short wide window wants anyway.
+
+## The camera follows the step
+
+Three of the five steps have an obvious angle, and it is the angle the customer
+would otherwise have to find by hand: a silhouette is judged square on, an arm
+from the side, and a bridge is a detail that has to be got close to. So `shape`
+aims the front elevation, `temple` the side, and `bridge` the 3D view *focused
+on the bridge* -- 18mm of metal against a 140mm frame, which from the default
+distance is a decision made across the room.
+
+Focusing is one substitution rather than a second framing path: `setFocus`
+points `framingBox` / `framingCentre` at one component's meshes instead of the
+whole product, and `screenExtent`, `turntableExtent`, `aimPoint` and the
+orthographic pull-back all read those. It also clears the remembered per-view
+poses, because every one of them was measured against a different framing --
+see trap 76. `FOCUS_PADDING` triples the view's own
+padding, so what lands is the bridge with the inner edges of both rims still in
+shot -- the context the choice is actually made against. The remembered per-view
+poses are deliberately not touched by a focus, so leaving the step and coming
+back restores the framing you had chosen rather than the zoom.
+
+Colour and lens stay wherever they were left. There is no single right angle to
+look at a colour from, and re-aiming on every step turns the stepper into
+something that keeps taking the camera away.
+
+**Every view orbits the product, and the panels are compensated for in the
+frustum rather than in the aim.** `controls.target` is both what the camera
+looks at and what it rotates about; composing around the floating panels by
+moving the aim pays for the first with the second, and on a phone that put the
+pivot 90 mm below a 45 mm-tall product. `applyViewOffset` shifts the rendered
+window with `setViewOffset` instead -- same picture, and the target stays
+exactly on `framingCentre`. See traps 75 and 76.
 
 **The orthogonal views are orthographic**, and every view frames the product's
 own centre rather than the world origin. Both matter: the model's origin is
@@ -1151,9 +1447,13 @@ no keys.
    pacing, the quality gates and the tracking jitter need a real session.
    Granting camera access is the first thing to do.
 
-2. **The placeholder's true size is still unpinned.** `NOMINAL_FRONT_WIDTH` is
-   138 mm by assumption. The size slider is wide enough to dial it in; once a
-   real measurement exists, set the constant and narrow the range.
+2. ~~**The placeholder's true size is still unpinned.**~~ **Closed.** Dialled
+   in on a real face against a live camera: the 140 mm front reads right at
+   157 mm, which is `FIT_REFERENCE.scale` of 1.12. The slider now reads 1.00x
+   there and runs 0.8 to 1.2 either side of it rather than 0.5 to 1.8 hunting
+   for a size. `NOMINAL_FRONT_WIDTH` was never in play for this file -- it is
+   the fallback for an export whose own units are not believable, and this
+   GLB's are.
 
 3. **Hair is a generic crop on a real head shape.** Landmark 10 and its
    neighbours are fixed points on the model's forehead, so the hairline is not
